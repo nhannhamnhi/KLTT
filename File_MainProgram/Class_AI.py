@@ -50,13 +50,34 @@ class YOLO_Detector:
             # để dễ dàng phát hiện vật thể hơn.
             results = self.model(frame, verbose=False, conf=0.7)
             
+            # Lấy danh sách tên các class đã dectect được
+            detected_classes = []
+            if results and len(results) > 0:
+                # Với model OBB, kết quả nằm trong results[0].obb
+                # Với model thường (Detection), kết quả nằm trong results[0].boxes
+                
+                det_result = None
+                if results[0].obb is not None:
+                    det_result = results[0].obb
+                elif results[0].boxes is not None:
+                    det_result = results[0].boxes
+                
+                if det_result is not None:
+                    # Lấy danh sách class ID của các vật thể phát hiện được
+                    cls_indices = det_result.cls.cpu().numpy()
+                    # Map từ ID sang tên class (ví dụ: 'full', 'empty', 'partial')
+                    names = results[0].names
+                    detected_classes = [names[int(cls_id)] for cls_id in cls_indices]
+
             # Lấy ảnh kết quả (annotated frame)
             # line_width=1: Giảm độ dày nét vẽ khung để nhìn thanh thoát hơn
             annotated_frame = results[0].plot(line_width=2)
-            return annotated_frame
+            
+            # Trả về cả ảnh và danh sách nhãn
+            return annotated_frame, detected_classes
             
         except Exception as e:
             # Nếu bị lỗi trong lúc dự đoán (thường do OpenVINO runtime)
             # In lỗi ra console thay vì làm crash toàn bộ giao diện
             print(f"Lỗi khi xử lý frame AI: {e}")
-            return frame
+            return frame, []

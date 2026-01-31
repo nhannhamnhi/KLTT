@@ -44,7 +44,8 @@ from Main import Ui_Main
 # ================================================================
 class CameraThread(QtCore.QThread):
     # Signal gửi về 2 ảnh: Ảnh gốc và Ảnh đã xử lý (đều là numpy array)
-    change_pixmap_signal = QtCore.pyqtSignal(np.ndarray, np.ndarray)
+    # Signal gửi về 2 ảnh: Ảnh gốc, Ảnh đã xử lý và danh sách nhãn (list)
+    change_pixmap_signal = QtCore.pyqtSignal(np.ndarray, np.ndarray, list)
 
     def __init__(self, detector=None):
         super().__init__()
@@ -61,15 +62,18 @@ class CameraThread(QtCore.QThread):
                 # Xử lý AI ngay trong luồng này để không chặn giao diện
                 if self.detector:
                     try:
-                        processed_img = self.detector.detect_objects(cv_img.copy())
+                        # detect_objects giờ trả về 2 giá trị: ảnh và list nhãn
+                        processed_img, labels = self.detector.detect_objects(cv_img.copy())
                     except Exception as e:
                         print(f"Lỗi AI detect trong thread: {e}")
                         processed_img = cv_img.copy()
+                        labels = []
                 else:
                     processed_img = cv_img.copy()
+                    labels = []
 
-                # Gửi cả 2 ảnh về giao diện
-                self.change_pixmap_signal.emit(cv_img, processed_img)
+                # Gửi cả 2 ảnh và danh sách nhãn về giao diện
+                self.change_pixmap_signal.emit(cv_img, processed_img, labels)
             
             # Thêm một chút delay nhỏ để giảm tải CPU nếu cần (không bắt buộc)
             # self.msleep(10) 
@@ -155,8 +159,8 @@ class Controller:
         # VỊ TRÍ THAY ĐỔI TÊN ĐĂNG NHẬP VÀ MẬT KHẨU Ở ĐÂY
         # Bạn có thể thay đổi 'admin' và '123456' bằng thông tin bạn muốn
         # ================================================================
-        USER_SETUP = "admin"
-        PASS_SETUP = "123456"
+        USER_SETUP = "ad"
+        PASS_SETUP = "1"
         # ================================================================
 
         if username == USER_SETUP and password == PASS_SETUP:
@@ -241,7 +245,7 @@ class Controller:
         self.ui_main.Anhgoc.resetTransform()
         self.ui_main.Anhdaxuly.resetTransform()
 
-    def update_image(self, cv_img_goc, cv_img_xuly):
+    def update_image(self, cv_img_goc, cv_img_xuly, labels):
         """Cập nhật hình ảnh lên giao diện khi có frame mới"""
         
         # Chuyển đổi từ OpenCV (BGR) sang QImage (RGB)
@@ -258,6 +262,42 @@ class Controller:
         self.scene_xuly.clear()
         self.scene_xuly.addPixmap(qt_img_xuly)
         self.ui_main.Anhdaxuly.fitInView(self.scene_xuly.itemsBoundingRect(), QtCore.Qt.IgnoreAspectRatio)
+
+        # --- XỬ LÝ LOGIC HIỂN THỊ KẾT QUẢ OK/NG/WAIT ---
+        # Logic:
+        # - Chưa phát hiện vật (list rỗng) -> WAIT (Nền trắng)
+        # - Có phát hiện:
+        #     + Nếu TẤT CẢ là 'full' -> OK (Nền xanh)
+        #     + Nếu chỉ cần có 1 cái 'partial' hoặc 'empty' -> NG (Nền đỏ)
+        
+        color_wait = "background-color: white; color: black; border: 2px solid #47A3A7; border-radius: 8px;"
+        color_ok = "background-color: #349d00; color: white; border: 2px solid #47A3A7; border-radius: 8px;"
+        color_ng = "background-color: red; color: white; border: 2px solid #47A3A7; border-radius: 8px;"
+
+        if not labels:
+            # Không phát hiện vật gì -> WAIT
+            self.ui_main.hienthiKQ.setStyleSheet(color_wait)
+            self.ui_main.hienthiKQ.setText("WAIT")
+            self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
+        else:
+            # Có phát hiện vật, kiểm tra các nhãn
+            # 'OK' chỉ khi TẤT CẢ các vật detect được là 'Full'
+            all_full = True
+            for label in labels:
+                # Kiểm tra không phân biệt hoa thường để an toàn
+                if label.strip().lower() != 'full':
+                    all_full = False
+                    break
+            
+            if all_full:
+                self.ui_main.hienthiKQ.setStyleSheet(color_ok)
+                self.ui_main.hienthiKQ.setText("OK")
+                self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
+            else:
+                # Bất kỳ trường hợp nào khác (có partial, empty hoặc trộn lẫn) -> NG
+                self.ui_main.hienthiKQ.setStyleSheet(color_ng)
+                self.ui_main.hienthiKQ.setText("NG")
+                self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
 
     def convert_cv_qt(self, cv_img):
         """Chuyển đổi hình ảnh từ OpenCV sang QPixmap"""
