@@ -838,13 +838,16 @@ QSlider::handle:horizontal:hover {
       <number>-50</number>
      </property>
      <property name="maximum">
-      <number>50</number>
+      <number>250</number>
      </property>
      <property name="pageStep">
       <number>5</number>
      </property>
+     <property name="value">
+      <number>100</number>
+     </property>
      <property name="sliderPosition">
-      <number>0</number>
+      <number>100</number>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -913,16 +916,19 @@ QSlider::handle:horizontal:hover {
 }</string>
      </property>
      <property name="minimum">
-      <number>-50</number>
+      <number>0</number>
      </property>
      <property name="maximum">
-      <number>50</number>
+      <number>200</number>
      </property>
      <property name="pageStep">
       <number>5</number>
      </property>
+     <property name="value">
+      <number>100</number>
+     </property>
      <property name="sliderPosition">
-      <number>0</number>
+      <number>100</number>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -968,16 +974,19 @@ QSlider::handle:horizontal:hover {
 }</string>
      </property>
      <property name="minimum">
-      <number>-50</number>
+      <number>0</number>
      </property>
      <property name="maximum">
-      <number>50</number>
+      <number>200</number>
      </property>
      <property name="pageStep">
       <number>5</number>
      </property>
+     <property name="value">
+      <number>100</number>
+     </property>
      <property name="sliderPosition">
-      <number>0</number>
+      <number>100</number>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -1033,6 +1042,40 @@ QSlider::handle:horizontal:hover {
      </property>
      <property name="alignment">
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="Resset_hinhanh">
+     <property name="geometry">
+      <rect>
+       <x>920</x>
+       <y>260</y>
+       <width>91</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+	color: #169393;
+	background-color: #FFFFFF;
+	border: 2px solid #CEC2B1;
+	border-radius: 5px;
+}
+QPushButton:hover {
+	background-color: #E2C0B2;
+	color: #FFFFFF;
+}
+QPushButton:pressed {
+	background-color: #B5A08C;
+}</string>
+     </property>
+     <property name="text">
+      <string>RESSET</string>
      </property>
     </widget>
    </widget>
