@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Main.ui'
+# Form implementation generated from reading ui file 'd:\KL_2025\KLTT\File_QT\Main.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -215,11 +215,17 @@ class Ui_Main(object):
         font.setBold(True)
         font.setWeight(75)
         self.btKetnoiplc.setFont(font)
-        self.btKetnoiplc.setStyleSheet("color: rgb(39, 174, 96);\n"
-"background-color: rgb(242, 242, 242);\n"
-"\n"
-"\n"
-"")
+        self.btKetnoiplc.setStyleSheet("QPushButton {\n"
+"    color: #FFFFFF;\n"
+"    background-color: #169393;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #138181;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #0F6A6A;\n"
+"}")
         self.btKetnoiplc.setObjectName("btKetnoiplc")
         self.btKetnoicamera = QtWidgets.QPushButton(self.groupBox_ketnoi)
         self.btKetnoicamera.setGeometry(QtCore.QRect(140, 420, 111, 41))
@@ -228,11 +234,17 @@ class Ui_Main(object):
         font.setWeight(75)
         font.setKerning(True)
         self.btKetnoicamera.setFont(font)
-        self.btKetnoicamera.setStyleSheet("color: rgb(39, 174, 96);\n"
-"background-color: rgb(242, 242, 242);\n"
-"\n"
-"\n"
-"")
+        self.btKetnoicamera.setStyleSheet("QPushButton {\n"
+"    color: #FFFFFF;\n"
+"    background-color: #169393;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #138181;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #0F6A6A;\n"
+"}")
         self.btKetnoicamera.setObjectName("btKetnoicamera")
         self.btNgatketnoicamera = QtWidgets.QPushButton(self.groupBox_ketnoi)
         self.btNgatketnoicamera.setGeometry(QtCore.QRect(310, 420, 131, 41))
@@ -240,10 +252,19 @@ class Ui_Main(object):
         font.setBold(True)
         font.setWeight(75)
         self.btNgatketnoicamera.setFont(font)
-        self.btNgatketnoicamera.setStyleSheet("background-color: rgb(242, 242, 242);\n"
-"color: rgb(231, 76, 60);\n"
-"\n"
-"")
+        self.btNgatketnoicamera.setStyleSheet("QPushButton {\n"
+"    color: #169393;\n"
+"    background-color: #FFFFFF;\n"
+"    border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #E2C0B2;\n"
+"    color: #FFFFFF;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #B5A08C;\n"
+"}")
         self.btNgatketnoicamera.setObjectName("btNgatketnoicamera")
         self.btNgatketnoiplc = QtWidgets.QPushButton(self.groupBox_ketnoi)
         self.btNgatketnoiplc.setGeometry(QtCore.QRect(300, 200, 131, 41))
@@ -251,10 +272,19 @@ class Ui_Main(object):
         font.setBold(True)
         font.setWeight(75)
         self.btNgatketnoiplc.setFont(font)
-        self.btNgatketnoiplc.setStyleSheet("background-color: rgb(242, 242, 242);\n"
-"color: rgb(231, 76, 60);\n"
-"\n"
-"")
+        self.btNgatketnoiplc.setStyleSheet("QPushButton {\n"
+"    color: #169393;\n"
+"    background-color: #FFFFFF;\n"
+"    border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #E2C0B2;\n"
+"    color: #FFFFFF;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #B5A08C;\n"
+"}")
         self.btNgatketnoiplc.setObjectName("btNgatketnoiplc")
         self.groupBox_hienthidl = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_hienthidl.setGeometry(QtCore.QRect(1140, 510, 771, 431))
@@ -330,11 +360,17 @@ class Ui_Main(object):
         font.setWeight(75)
         self.btXuat.setFont(font)
         self.btXuat.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.btXuat.setStyleSheet("color: rgb(39, 174, 96);\n"
-"background-color: rgb(242, 242, 242);\n"
-"\n"
-"\n"
-"")
+        self.btXuat.setStyleSheet("QPushButton {\n"
+"    color: #FFFFFF;\n"
+"    background-color: #169393;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #138181;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #0F6A6A;\n"
+"}")
         self.btXuat.setObjectName("btXuat")
         self.groupBox_tuychinhcamera = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_tuychinhcamera.setGeometry(QtCore.QRect(10, 620, 1121, 321))
