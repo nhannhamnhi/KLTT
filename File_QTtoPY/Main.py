@@ -430,9 +430,10 @@ class Ui_Main(object):
 "    background: #27ae60;\n"
 "}")
         self.Slider_Dosang.setMinimum(-50)
-        self.Slider_Dosang.setMaximum(50)
+        self.Slider_Dosang.setMaximum(250)
         self.Slider_Dosang.setPageStep(5)
-        self.Slider_Dosang.setSliderPosition(0)
+        self.Slider_Dosang.setProperty("value", 100)
+        self.Slider_Dosang.setSliderPosition(100)
         self.Slider_Dosang.setOrientation(QtCore.Qt.Horizontal)
         self.Slider_Dosang.setTickPosition(QtWidgets.QSlider.TicksBothSides)
         self.Slider_Dosang.setTickInterval(5)
@@ -470,10 +471,11 @@ class Ui_Main(object):
 "QSlider::handle:horizontal:hover {\n"
 "    background: #27ae60;\n"
 "}")
-        self.Slider_baohoa.setMinimum(-50)
-        self.Slider_baohoa.setMaximum(50)
+        self.Slider_baohoa.setMinimum(0)
+        self.Slider_baohoa.setMaximum(200)
         self.Slider_baohoa.setPageStep(5)
-        self.Slider_baohoa.setSliderPosition(0)
+        self.Slider_baohoa.setProperty("value", 100)
+        self.Slider_baohoa.setSliderPosition(100)
         self.Slider_baohoa.setOrientation(QtCore.Qt.Horizontal)
         self.Slider_baohoa.setTickPosition(QtWidgets.QSlider.TicksBothSides)
         self.Slider_baohoa.setTickInterval(5)
@@ -502,10 +504,11 @@ class Ui_Main(object):
 "QSlider::handle:horizontal:hover {\n"
 "    background: #27ae60;\n"
 "}")
-        self.Slider_phoisang.setMinimum(-50)
-        self.Slider_phoisang.setMaximum(50)
+        self.Slider_phoisang.setMinimum(0)
+        self.Slider_phoisang.setMaximum(200)
         self.Slider_phoisang.setPageStep(5)
-        self.Slider_phoisang.setSliderPosition(0)
+        self.Slider_phoisang.setProperty("value", 100)
+        self.Slider_phoisang.setSliderPosition(100)
         self.Slider_phoisang.setOrientation(QtCore.Qt.Horizontal)
         self.Slider_phoisang.setTickPosition(QtWidgets.QSlider.TicksBothSides)
         self.Slider_phoisang.setTickInterval(5)
@@ -528,6 +531,26 @@ class Ui_Main(object):
         self.label_18.setFont(font)
         self.label_18.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.label_18.setObjectName("label_18")
+        self.Resset_hinhanh = QtWidgets.QPushButton(self.groupBox_tuychinhcamera)
+        self.Resset_hinhanh.setGeometry(QtCore.QRect(920, 260, 91, 41))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.Resset_hinhanh.setFont(font)
+        self.Resset_hinhanh.setStyleSheet("QPushButton {\n"
+"    color: #169393;\n"
+"    background-color: #FFFFFF;\n"
+"    border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #E2C0B2;\n"
+"    color: #FFFFFF;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #B5A08C;\n"
+"}")
+        self.Resset_hinhanh.setObjectName("Resset_hinhanh")
         self.groupBox_hienthikq = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_hienthikq.setGeometry(QtCore.QRect(1140, 10, 251, 501))
         font = QtGui.QFont()
@@ -681,6 +704,7 @@ class Ui_Main(object):
         self.label_16.setText(_translate("Main", "Độ sáng (Brightness)"))
         self.label_17.setText(_translate("Main", "Độ bão hòa (Saturation)"))
         self.label_18.setText(_translate("Main", "Thời gian phơi sáng (Exposure Time)"))
+        self.Resset_hinhanh.setText(_translate("Main", "RESSET"))
         self.groupBox_hienthikq.setTitle(_translate("Main", "HIỂN THỊ KQ"))
         self.label_3.setText(_translate("Main", "Tổng số viên "))
         self.label_6.setText(_translate("Main", "Viên đạt "))
