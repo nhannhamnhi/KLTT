@@ -21,14 +21,6 @@ except Exception as e:
 # Import AI Detector trước để nạp các DLL cần thiết
 from Class_AI import YOLO_Detector
 
-# Thêm đường dẫn đến các thư mục chứa module vào sys.path
-current_dir = os.path.dirname(os.path.abspath(__file__))
-root_dir = os.path.dirname(current_dir)
-qt_to_py_path = os.path.join(root_dir, "File_QTtoPY")
-
-if qt_to_py_path not in sys.path:
-    sys.path.append(qt_to_py_path)
-
 import cv2
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
