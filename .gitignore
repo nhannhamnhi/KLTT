@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# AI Models (Large files)
+*.pt
+*.onnx
+*.xml
+*.bin
+fomat_openvino/
+yolov8_openvino_model/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+kernel.errors.txt
