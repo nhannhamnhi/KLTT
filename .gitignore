@@ -11,7 +11,7 @@ env/
 *.onnx
 *.xml
 *.bin
-fomat_openvino/
+# fomat_openvino/
 yolov8_openvino_model/
 
 # IDE
