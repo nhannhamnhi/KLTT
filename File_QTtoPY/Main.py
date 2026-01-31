@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'd:\KL_2025\KLTT\File_QT\Main.ui'
+# Form implementation generated from reading ui file 'D:\KL_2025\KLTT\File_QT\Main.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -45,6 +45,8 @@ class Ui_Main(object):
 "    background-color: #FFFFFF; /* Đảm bảo nền luôn trắng sạch */\n"
 "    border-radius: 4px;        /* Bo góc nhẹ cho hiện đại */\n"
 "}")
+        self.Anhdaxuly.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.Anhdaxuly.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.Anhdaxuly.setObjectName("Anhdaxuly")
         self.label_2 = QtWidgets.QLabel(self.groupBox_hinhanh)
         self.label_2.setGeometry(QtCore.QRect(560, 10, 541, 41))
@@ -64,6 +66,8 @@ class Ui_Main(object):
 "    background-color: #FFFFFF; /* Đảm bảo nền luôn trắng sạch */\n"
 "    border-radius: 4px;        /* Bo góc nhẹ cho hiện đại */\n"
 "}")
+        self.Anhgoc.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.Anhgoc.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.Anhgoc.setObjectName("Anhgoc")
         self.label = QtWidgets.QLabel(self.groupBox_hinhanh)
         self.label.setGeometry(QtCore.QRect(10, 10, 541, 41))
@@ -401,9 +405,9 @@ class Ui_Main(object):
 "}")
         self.groupBox_tuychinhcamera.setAlignment(QtCore.Qt.AlignCenter)
         self.groupBox_tuychinhcamera.setObjectName("groupBox_tuychinhcamera")
-        self.horizontalSlider = QtWidgets.QSlider(self.groupBox_tuychinhcamera)
-        self.horizontalSlider.setGeometry(QtCore.QRect(410, 60, 541, 41))
-        self.horizontalSlider.setStyleSheet("/* Thanh ray (đường rãnh) */\n"
+        self.Slider_Dosang = QtWidgets.QSlider(self.groupBox_tuychinhcamera)
+        self.Slider_Dosang.setGeometry(QtCore.QRect(410, 60, 541, 41))
+        self.Slider_Dosang.setStyleSheet("/* Thanh ray (đường rãnh) */\n"
 "QSlider::groove:horizontal {\n"
 "    border: 1px solid #bbb;\n"
 "    height: 8px; /* Độ dày thanh ray */\n"
@@ -425,14 +429,14 @@ class Ui_Main(object):
 "QSlider::handle:horizontal:hover {\n"
 "    background: #27ae60;\n"
 "}")
-        self.horizontalSlider.setMinimum(-50)
-        self.horizontalSlider.setMaximum(50)
-        self.horizontalSlider.setPageStep(5)
-        self.horizontalSlider.setSliderPosition(0)
-        self.horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider.setTickPosition(QtWidgets.QSlider.TicksBothSides)
-        self.horizontalSlider.setTickInterval(5)
-        self.horizontalSlider.setObjectName("horizontalSlider")
+        self.Slider_Dosang.setMinimum(-50)
+        self.Slider_Dosang.setMaximum(50)
+        self.Slider_Dosang.setPageStep(5)
+        self.Slider_Dosang.setSliderPosition(0)
+        self.Slider_Dosang.setOrientation(QtCore.Qt.Horizontal)
+        self.Slider_Dosang.setTickPosition(QtWidgets.QSlider.TicksBothSides)
+        self.Slider_Dosang.setTickInterval(5)
+        self.Slider_Dosang.setObjectName("Slider_Dosang")
         self.label_16 = QtWidgets.QLabel(self.groupBox_tuychinhcamera)
         self.label_16.setGeometry(QtCore.QRect(40, 60, 201, 41))
         font = QtGui.QFont()
@@ -442,9 +446,9 @@ class Ui_Main(object):
         self.label_16.setFont(font)
         self.label_16.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.label_16.setObjectName("label_16")
-        self.horizontalSlider_2 = QtWidgets.QSlider(self.groupBox_tuychinhcamera)
-        self.horizontalSlider_2.setGeometry(QtCore.QRect(410, 130, 541, 41))
-        self.horizontalSlider_2.setStyleSheet("/* Thanh ray (đường rãnh) */\n"
+        self.Slider_baohoa = QtWidgets.QSlider(self.groupBox_tuychinhcamera)
+        self.Slider_baohoa.setGeometry(QtCore.QRect(410, 130, 541, 41))
+        self.Slider_baohoa.setStyleSheet("/* Thanh ray (đường rãnh) */\n"
 "QSlider::groove:horizontal {\n"
 "    border: 1px solid #bbb;\n"
 "    height: 8px; /* Độ dày thanh ray */\n"
@@ -466,17 +470,17 @@ class Ui_Main(object):
 "QSlider::handle:horizontal:hover {\n"
 "    background: #27ae60;\n"
 "}")
-        self.horizontalSlider_2.setMinimum(-50)
-        self.horizontalSlider_2.setMaximum(50)
-        self.horizontalSlider_2.setPageStep(5)
-        self.horizontalSlider_2.setSliderPosition(0)
-        self.horizontalSlider_2.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider_2.setTickPosition(QtWidgets.QSlider.TicksBothSides)
-        self.horizontalSlider_2.setTickInterval(5)
-        self.horizontalSlider_2.setObjectName("horizontalSlider_2")
-        self.horizontalSlider_3 = QtWidgets.QSlider(self.groupBox_tuychinhcamera)
-        self.horizontalSlider_3.setGeometry(QtCore.QRect(410, 210, 541, 41))
-        self.horizontalSlider_3.setStyleSheet("/* Thanh ray (đường rãnh) */\n"
+        self.Slider_baohoa.setMinimum(-50)
+        self.Slider_baohoa.setMaximum(50)
+        self.Slider_baohoa.setPageStep(5)
+        self.Slider_baohoa.setSliderPosition(0)
+        self.Slider_baohoa.setOrientation(QtCore.Qt.Horizontal)
+        self.Slider_baohoa.setTickPosition(QtWidgets.QSlider.TicksBothSides)
+        self.Slider_baohoa.setTickInterval(5)
+        self.Slider_baohoa.setObjectName("Slider_baohoa")
+        self.Slider_phoisang = QtWidgets.QSlider(self.groupBox_tuychinhcamera)
+        self.Slider_phoisang.setGeometry(QtCore.QRect(410, 210, 541, 41))
+        self.Slider_phoisang.setStyleSheet("/* Thanh ray (đường rãnh) */\n"
 "QSlider::groove:horizontal {\n"
 "    border: 1px solid #bbb;\n"
 "    height: 8px; /* Độ dày thanh ray */\n"
@@ -498,14 +502,14 @@ class Ui_Main(object):
 "QSlider::handle:horizontal:hover {\n"
 "    background: #27ae60;\n"
 "}")
-        self.horizontalSlider_3.setMinimum(-50)
-        self.horizontalSlider_3.setMaximum(50)
-        self.horizontalSlider_3.setPageStep(5)
-        self.horizontalSlider_3.setSliderPosition(0)
-        self.horizontalSlider_3.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider_3.setTickPosition(QtWidgets.QSlider.TicksBothSides)
-        self.horizontalSlider_3.setTickInterval(5)
-        self.horizontalSlider_3.setObjectName("horizontalSlider_3")
+        self.Slider_phoisang.setMinimum(-50)
+        self.Slider_phoisang.setMaximum(50)
+        self.Slider_phoisang.setPageStep(5)
+        self.Slider_phoisang.setSliderPosition(0)
+        self.Slider_phoisang.setOrientation(QtCore.Qt.Horizontal)
+        self.Slider_phoisang.setTickPosition(QtWidgets.QSlider.TicksBothSides)
+        self.Slider_phoisang.setTickInterval(5)
+        self.Slider_phoisang.setObjectName("Slider_phoisang")
         self.label_17 = QtWidgets.QLabel(self.groupBox_tuychinhcamera)
         self.label_17.setGeometry(QtCore.QRect(40, 130, 221, 41))
         font = QtGui.QFont()
@@ -563,36 +567,36 @@ class Ui_Main(object):
         self.label_3.setStyleSheet("color: rgb(22, 147, 147);")
         self.label_3.setAlignment(QtCore.Qt.AlignCenter)
         self.label_3.setObjectName("label_3")
-        self.label_4 = QtWidgets.QLabel(self.groupBox_hienthikq)
-        self.label_4.setGeometry(QtCore.QRect(90, 280, 71, 61))
+        self.Tongsovien = QtWidgets.QLabel(self.groupBox_hienthikq)
+        self.Tongsovien.setGeometry(QtCore.QRect(90, 280, 71, 61))
         font = QtGui.QFont()
         font.setPointSize(15)
-        self.label_4.setFont(font)
-        self.label_4.setStyleSheet("QLabel\n"
+        self.Tongsovien.setFont(font)
+        self.Tongsovien.setStyleSheet("QLabel\n"
 "{\n"
 "   border: 2px solid #47A3A7; \n"
 "    border-radius: 8px;\n"
 "\n"
 "}")
-        self.label_4.setText("")
-        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_4.setWordWrap(False)
-        self.label_4.setObjectName("label_4")
-        self.label_5 = QtWidgets.QLabel(self.groupBox_hienthikq)
-        self.label_5.setGeometry(QtCore.QRect(20, 430, 71, 61))
+        self.Tongsovien.setText("")
+        self.Tongsovien.setAlignment(QtCore.Qt.AlignCenter)
+        self.Tongsovien.setWordWrap(False)
+        self.Tongsovien.setObjectName("Tongsovien")
+        self.Viendat = QtWidgets.QLabel(self.groupBox_hienthikq)
+        self.Viendat.setGeometry(QtCore.QRect(20, 430, 71, 61))
         font = QtGui.QFont()
         font.setPointSize(15)
-        self.label_5.setFont(font)
-        self.label_5.setStyleSheet("QLabel\n"
+        self.Viendat.setFont(font)
+        self.Viendat.setStyleSheet("QLabel\n"
 "{\n"
 "   border: 2px solid #47A3A7; \n"
 "    border-radius: 8px;\n"
 "\n"
 "}")
-        self.label_5.setText("")
-        self.label_5.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_5.setWordWrap(False)
-        self.label_5.setObjectName("label_5")
+        self.Viendat.setText("")
+        self.Viendat.setAlignment(QtCore.Qt.AlignCenter)
+        self.Viendat.setWordWrap(False)
+        self.Viendat.setObjectName("Viendat")
         self.label_6 = QtWidgets.QLabel(self.groupBox_hienthikq)
         self.label_6.setGeometry(QtCore.QRect(20, 360, 101, 71))
         font = QtGui.QFont()
@@ -603,21 +607,21 @@ class Ui_Main(object):
         self.label_6.setStyleSheet("color: rgb(52, 157, 0);")
         self.label_6.setAlignment(QtCore.Qt.AlignCenter)
         self.label_6.setObjectName("label_6")
-        self.label_7 = QtWidgets.QLabel(self.groupBox_hienthikq)
-        self.label_7.setGeometry(QtCore.QRect(160, 430, 71, 61))
+        self.Vienloi = QtWidgets.QLabel(self.groupBox_hienthikq)
+        self.Vienloi.setGeometry(QtCore.QRect(160, 430, 71, 61))
         font = QtGui.QFont()
         font.setPointSize(15)
-        self.label_7.setFont(font)
-        self.label_7.setStyleSheet("QLabel\n"
+        self.Vienloi.setFont(font)
+        self.Vienloi.setStyleSheet("QLabel\n"
 "{\n"
 "   border: 2px solid #47A3A7; \n"
 "    border-radius: 8px;\n"
 "\n"
 "}")
-        self.label_7.setText("")
-        self.label_7.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_7.setWordWrap(False)
-        self.label_7.setObjectName("label_7")
+        self.Vienloi.setText("")
+        self.Vienloi.setAlignment(QtCore.Qt.AlignCenter)
+        self.Vienloi.setWordWrap(False)
+        self.Vienloi.setObjectName("Vienloi")
         self.label_8 = QtWidgets.QLabel(self.groupBox_hienthikq)
         self.label_8.setGeometry(QtCore.QRect(140, 360, 101, 71))
         font = QtGui.QFont()
@@ -628,21 +632,21 @@ class Ui_Main(object):
         self.label_8.setStyleSheet("color: rgb(255, 0, 0);")
         self.label_8.setAlignment(QtCore.Qt.AlignCenter)
         self.label_8.setObjectName("label_8")
-        self.label_15 = QtWidgets.QLabel(self.groupBox_hienthikq)
-        self.label_15.setGeometry(QtCore.QRect(40, 40, 181, 161))
+        self.hienthiKQ = QtWidgets.QLabel(self.groupBox_hienthikq)
+        self.hienthiKQ.setGeometry(QtCore.QRect(40, 40, 181, 161))
         font = QtGui.QFont()
         font.setPointSize(20)
         font.setBold(True)
         font.setWeight(75)
-        self.label_15.setFont(font)
-        self.label_15.setStyleSheet("QLabel\n"
+        self.hienthiKQ.setFont(font)
+        self.hienthiKQ.setStyleSheet("QLabel\n"
 "{\n"
 "   border: 2px solid #47A3A7; \n"
 "    border-radius: 8px;\n"
 "\n"
 "}")
-        self.label_15.setText("")
-        self.label_15.setObjectName("label_15")
+        self.hienthiKQ.setText("")
+        self.hienthiKQ.setObjectName("hienthiKQ")
         Main.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(Main)
         self.statusbar.setObjectName("statusbar")
