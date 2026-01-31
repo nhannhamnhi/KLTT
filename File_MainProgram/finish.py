@@ -27,29 +27,53 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox, QGraphicsScene
 from PyQt5.QtGui import QImage, QPixmap
 
-# Import các giao diện từ các file của bạn
+# Thêm đường dẫn thư mục 'File_QTtoPY' vào sys.path để có thể import các file GUI
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+gui_dir = os.path.join(parent_dir, 'File_QTtoPY')
+sys.path.append(gui_dir)
+
+# Import các giao diện từ các file của bạn (nằm trong File_QTtoPY)
 from Background import Ui_Background
 from Login import Ui_Login
 from Main import Ui_Main
 
 # ================================================================
 # LỚP XỬ LÝ LUỒNG CAMERA (CAMERA THREAD)
-# Giúp việc đọc camera không làm treo giao diện chính
+# Giúp việc đọc camera và XỬ LÝ AI không làm treo giao diện chính
 # ================================================================
 class CameraThread(QtCore.QThread):
-    change_pixmap_signal = QtCore.pyqtSignal(np.ndarray)
+    # Signal gửi về 2 ảnh: Ảnh gốc và Ảnh đã xử lý (đều là numpy array)
+    change_pixmap_signal = QtCore.pyqtSignal(np.ndarray, np.ndarray)
 
-    def __init__(self):
+    def __init__(self, detector=None):
         super().__init__()
         self._run_flag = True
+        self.detector = detector
 
     def run(self):
         # Mở webcam (ID 0 là webcam mặc định của laptop)
         cap = cv2.VideoCapture(0)
+        
         while self._run_flag:
             ret, cv_img = cap.read()
             if ret:
-                self.change_pixmap_signal.emit(cv_img)
+                # Xử lý AI ngay trong luồng này để không chặn giao diện
+                if self.detector:
+                    try:
+                        processed_img = self.detector.detect_objects(cv_img.copy())
+                    except Exception as e:
+                        print(f"Lỗi AI detect trong thread: {e}")
+                        processed_img = cv_img.copy()
+                else:
+                    processed_img = cv_img.copy()
+
+                # Gửi cả 2 ảnh về giao diện
+                self.change_pixmap_signal.emit(cv_img, processed_img)
+            
+            # Thêm một chút delay nhỏ để giảm tải CPU nếu cần (không bắt buộc)
+            # self.msleep(10) 
+
         cap.release()
 
     def stop(self):
@@ -70,6 +94,9 @@ class Controller:
 
         self.ui_login = Ui_Login()
         self.ui_login.setupUi(self.login_win)
+        
+        # Sửa lỗi hiển thị Password bằng dấu *
+        self.ui_login.matkhau.setEchoMode(QtWidgets.QLineEdit.Password)
 
         self.ui_main = Ui_Main()
         self.ui_main.setupUi(self.main_win)
@@ -86,6 +113,9 @@ class Controller:
         
         # Khởi tạo Detector AI
         # Khởi tạo Detector AI (mặc định sẽ dùng OpenVINO trong folder bạn đã cung cấp)
+        # Lưu ý: Việc load model có thể mất vài giây, làm treo nhẹ lúc khởi động.
+        # Nếu muốn mượt hơn nữa, có thể chuyển việc load model sang QThread khác.
+        print("Đang khởi tạo AI Model...")
         self.detector = YOLO_Detector()
         
         # Biến quản lý luồng camera
@@ -101,8 +131,9 @@ class Controller:
         # Khi nhấn nút btDangnhap ở Login -> Kiểm tra thông tin
         self.ui_login.btDangnhap.clicked.connect(self.handle_login)
 
-        # Nhấn Enter ở ô nhập tên hoặc mật khẩu cũng sẽ tự động đăng nhập
-        self.ui_login.nhapten.returnPressed.connect(self.handle_login)
+        # Nhấn Enter ở ô nhập tên -> Chuyển focus sang ô mật khẩu
+        self.ui_login.nhapten.returnPressed.connect(self.ui_login.matkhau.setFocus)
+        # Nhấn Enter ở ô mật khẩu -> Thực hiện đăng nhập
         self.ui_login.matkhau.returnPressed.connect(self.handle_login)
 
         # --- PHẦN THÊM MỚI: Kết nối nút bấm Camera ---
@@ -175,7 +206,8 @@ class Controller:
         
         if loai_camera == "Webcam":
             if self.thread_camera is None or not self.thread_camera.isRunning():
-                self.thread_camera = CameraThread()
+                # Truyền detector vào thread
+                self.thread_camera = CameraThread(detector=self.detector)
                 self.thread_camera.change_pixmap_signal.connect(self.update_image)
                 self.thread_camera.start()
         else:
@@ -209,14 +241,12 @@ class Controller:
         self.ui_main.Anhgoc.resetTransform()
         self.ui_main.Anhdaxuly.resetTransform()
 
-    def update_image(self, cv_img):
+    def update_image(self, cv_img_goc, cv_img_xuly):
         """Cập nhật hình ảnh lên giao diện khi có frame mới"""
-        # --- Xử lý AI trên khung hình đã xử lý ---
-        processed_img = self.detector.detect_objects(cv_img)
         
         # Chuyển đổi từ OpenCV (BGR) sang QImage (RGB)
-        qt_img_goc = self.convert_cv_qt(cv_img)
-        qt_img_xuly = self.convert_cv_qt(processed_img)
+        qt_img_goc = self.convert_cv_qt(cv_img_goc)
+        qt_img_xuly = self.convert_cv_qt(cv_img_xuly)
         
         # Hiển thị lên Ảnh gốc
         self.scene_goc.clear()

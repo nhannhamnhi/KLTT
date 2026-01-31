@@ -22,7 +22,7 @@ class YOLO_Detector:
         # Tải mô hình YOLO (hỗ trợ cả .pt và folder OpenVINO)
         if model_path is None:
             # Sử dụng model OpenVINO vừa được export lại chính xác
-            model_path = r"d:\KL_2025\model\yolov8-obb\yolov8_openvino_model"
+            model_path = r"D:\KL_2025\KLTT\File_modelYOLO\model\yolov8-obb\yolov8_openvino_model"
             
         try:
             # Sử dụng task='obb' vì mô hình của bạn là loại Oriented Bounding Box
@@ -48,11 +48,11 @@ class YOLO_Detector:
         try:
             # Chạy dự đoán trên frame với ngưỡng tin cậy thấp hơn (conf=0.25)
             # để dễ dàng phát hiện vật thể hơn.
-            results = self.model(frame, verbose=False, conf=0.25)
+            results = self.model(frame, verbose=False, conf=0.7)
             
             # Lấy ảnh kết quả (annotated frame)
             # line_width=1: Giảm độ dày nét vẽ khung để nhìn thanh thoát hơn
-            annotated_frame = results[0].plot(line_width=1)
+            annotated_frame = results[0].plot(line_width=2)
             return annotated_frame
             
         except Exception as e:
