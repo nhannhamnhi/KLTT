@@ -279,22 +279,34 @@ class Controller:
             self.ui_main.hienthiKQ.setStyleSheet(color_wait)
             self.ui_main.hienthiKQ.setText("WAIT")
             self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
-        else:
-            # Có phát hiện vật, kiểm tra các nhãn
-            # 'OK' chỉ khi TẤT CẢ các vật detect được là 'Full'
-            all_full = True
-            for label in labels:
-                # Kiểm tra không phân biệt hoa thường để an toàn
-                if label.strip().lower() != 'full':
-                    all_full = False
-                    break
             
-            if all_full:
+            # Reset các ô đếm về 0 khi không có vật
+            self.ui_main.Tongsovien.setText("0")
+            self.ui_main.Viendat.setText("0")
+            self.ui_main.Vienloi.setText("0")
+        else:
+            # --- ĐẾM SỐ LƯỢNG ---
+            tong_so = len(labels)
+            vien_dat = 0
+            for label in labels:
+                if label.strip().lower() == 'full':
+                    vien_dat += 1
+            
+            vien_loi = tong_so - vien_dat
+            
+            # Hiển thị lên các ô đếm
+            self.ui_main.Tongsovien.setText(str(tong_so))
+            self.ui_main.Viendat.setText(str(vien_dat))
+            self.ui_main.Vienloi.setText(str(vien_loi))
+
+            # --- LOGIC OK/NG ---
+            # 'OK' chỉ khi TẤT CẢ các vật detect được là 'Full'
+            if vien_dat == tong_so:
                 self.ui_main.hienthiKQ.setStyleSheet(color_ok)
                 self.ui_main.hienthiKQ.setText("OK")
                 self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
             else:
-                # Bất kỳ trường hợp nào khác (có partial, empty hoặc trộn lẫn) -> NG
+                # Bất kỳ trường hợp nào khác (có ít nhất 1 viên không phải 'Full') -> NG
                 self.ui_main.hienthiKQ.setStyleSheet(color_ng)
                 self.ui_main.hienthiKQ.setText("NG")
                 self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
