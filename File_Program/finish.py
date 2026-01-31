@@ -109,8 +109,9 @@ class Controller:
         # Khi nhấn nút btDangnhap ở Login -> Kiểm tra thông tin
         self.ui_login.btDangnhap.clicked.connect(self.handle_login)
 
-        # Nhấn Enter ở ô nhập tên hoặc mật khẩu cũng sẽ tự động đăng nhập
-        self.ui_login.nhapten.returnPressed.connect(self.handle_login)
+        # Nhấn Enter ở ô nhập tên sẽ chuyển xuống ô mật khẩu
+        self.ui_login.nhapten.returnPressed.connect(lambda: self.ui_login.matkhau.setFocus())
+        # Nhấn Enter ở ô mật khẩu sẽ thực hiện đăng nhập
         self.ui_login.matkhau.returnPressed.connect(self.handle_login)
 
         # --- PHẦN THÊM MỚI: Kết nối nút bấm Camera ---
