@@ -51,14 +51,47 @@ class CameraThread(QtCore.QThread):
         super().__init__()
         self._run_flag = True
         self.detector = detector
+        
+        # Giá trị thông số camera mặc định
+        self.brightness = None
+        self.saturation = None
+        self.exposure = None
+        
+        # Cờ báo hiệu có thay đổi thông số
+        self.params_changed = False
+
+    def set_brightness(self, val):
+        self.brightness = val
+        self.params_changed = True
+
+    def set_saturation(self, val):
+        self.saturation = val
+        self.params_changed = True
+
+    def set_exposure(self, val):
+        self.exposure = val
+        self.params_changed = True
 
     def run(self):
         # Mở webcam (ID 0 là webcam mặc định của laptop)
         cap = cv2.VideoCapture(0)
         
         while self._run_flag:
-            ret, cv_img = cap.read()
+            # Nếu có thay đổi thông số từ thanh trượt, áp dụng vào camera
+            if self.params_changed:
+                if self.brightness is not None:
+                    # OpenCV thường nhận giá trị từ 0.0 đến 1.0 hoặc tùy driver
+                    # Ở đây ta giả sử slider truyền vào giá trị đã được scale phù hợp
+                    cap.set(cv2.CAP_PROP_BRIGHTNESS, self.brightness)
+                if self.saturation is not None:
+                    cap.set(cv2.CAP_PROP_SATURATION, self.saturation)
+                if self.exposure is not None:
+                    cap.set(cv2.CAP_PROP_EXPOSURE, self.exposure)
+                self.params_changed = False
+
+            ret, cap_img = cap.read()
             if ret:
+                cv_img = cap_img.copy()
                 # Xử lý AI ngay trong luồng này để không chặn giao diện
                 if self.detector:
                     try:
@@ -144,6 +177,14 @@ class Controller:
         self.ui_main.btKetnoicamera.clicked.connect(self.ket_noi_camera)
         self.ui_main.btNgatketnoicamera.clicked.connect(self.ngat_ket_noi_camera)
 
+        # Kết nối các Slider để thay đổi từng thông số camera riêng biệt
+        self.ui_main.Slider_Dosang.valueChanged.connect(self.update_brightness)
+        self.ui_main.Slider_baohoa.valueChanged.connect(self.update_saturation)
+        self.ui_main.Slider_phoisang.valueChanged.connect(self.update_exposure)
+
+        # Kết nối nút Reset hình ảnh
+        self.ui_main.Resset_hinhanh.clicked.connect(self.reset_camera_params)
+
     def show_background(self):
         self.background_win.show()
 
@@ -212,6 +253,10 @@ class Controller:
             if self.thread_camera is None or not self.thread_camera.isRunning():
                 # Truyền detector vào thread
                 self.thread_camera = CameraThread(detector=self.detector)
+                
+                # KHÔNG gọi update_camera_params ở đây để camera dùng mặc định của nó
+                # Chỉ khi người dùng kéo thanh trượt thì mới áp dụng thông số mới
+                
                 self.thread_camera.change_pixmap_signal.connect(self.update_image)
                 self.thread_camera.start()
         else:
@@ -244,6 +289,44 @@ class Controller:
         # Reset lại transform (zoom/pan)
         self.ui_main.Anhgoc.resetTransform()
         self.ui_main.Anhdaxuly.resetTransform()
+
+    def update_brightness(self):
+        """Cập nhật độ sáng"""
+        if self.thread_camera is not None:
+            self.thread_camera.set_brightness(self.ui_main.Slider_Dosang.value())
+
+    def update_saturation(self):
+        """Cập nhật độ bão hòa"""
+        if self.thread_camera is not None:
+            self.thread_camera.set_saturation(self.ui_main.Slider_baohoa.value())
+
+    def update_exposure(self):
+        """Cập nhật phơi sáng"""
+        if self.thread_camera is not None:
+            self.thread_camera.set_exposure(self.ui_main.Slider_phoisang.value())
+
+    def reset_camera_params(self):
+        """Khôi phục cài đặt gốc của camera và đưa slider về 0"""
+        # 1. Tạm thời chặn tín hiệu từ slider để không gọi update liên tục khi set value
+        self.ui_main.Slider_Dosang.blockSignals(True)
+        self.ui_main.Slider_baohoa.blockSignals(True)
+        self.ui_main.Slider_phoisang.blockSignals(True)
+        
+        # 2. Đưa các slider về vị trí mặc định (0)
+        self.ui_main.Slider_Dosang.setValue(0)
+        self.ui_main.Slider_baohoa.setValue(0)
+        self.ui_main.Slider_phoisang.setValue(0)
+        
+        # 3. Mở lại chặn tín hiệu
+        self.ui_main.Slider_Dosang.blockSignals(False)
+        self.ui_main.Slider_baohoa.blockSignals(False)
+        self.ui_main.Slider_phoisang.blockSignals(False)
+        
+        # 4. Nếu camera đang chạy, khởi động lại nó để xóa cấu hình phần cứng cũ
+        if self.thread_camera is not None and self.thread_camera.isRunning():
+            self.ngat_ket_noi_camera()
+            self.ket_noi_camera()
+            print("Đã Reset Camera về mặc định phần cứng.")
 
     def update_image(self, cv_img_goc, cv_img_xuly, labels):
         """Cập nhật hình ảnh lên giao diện khi có frame mới"""
