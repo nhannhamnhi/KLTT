@@ -466,11 +466,17 @@ QGroupBox::title {
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">color: rgb(39, 174, 96);
-background-color: rgb(242, 242, 242);
-
-
-</string>
+      <string notr="true">QPushButton {
+	color: #FFFFFF;
+	background-color: #169393;
+	border-radius: 5px;
+}
+QPushButton:hover {
+	background-color: #138181;
+}
+QPushButton:pressed {
+	background-color: #0F6A6A;
+}</string>
      </property>
      <property name="text">
       <string>Kết nối PLC</string>
@@ -493,11 +499,17 @@ background-color: rgb(242, 242, 242);
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">color: rgb(39, 174, 96);
-background-color: rgb(242, 242, 242);
-
-
-</string>
+      <string notr="true">QPushButton {
+	color: #FFFFFF;
+	background-color: #169393;
+	border-radius: 5px;
+}
+QPushButton:hover {
+	background-color: #138181;
+}
+QPushButton:pressed {
+	background-color: #0F6A6A;
+}</string>
      </property>
      <property name="text">
       <string>Kết nối Camera</string>
@@ -519,10 +531,19 @@ background-color: rgb(242, 242, 242);
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(242, 242, 242);
-color: rgb(231, 76, 60);
-
-</string>
+      <string notr="true">QPushButton {
+	color: #169393;
+	background-color: #FFFFFF;
+	border: 2px solid #CEC2B1;
+	border-radius: 5px;
+}
+QPushButton:hover {
+	background-color: #E2C0B2;
+	color: #FFFFFF;
+}
+QPushButton:pressed {
+	background-color: #B5A08C;
+}</string>
      </property>
      <property name="text">
       <string>Ngắt kết nối camera</string>
@@ -544,10 +565,19 @@ color: rgb(231, 76, 60);
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(242, 242, 242);
-color: rgb(231, 76, 60);
-
-</string>
+      <string notr="true">QPushButton {
+	color: #169393;
+	background-color: #FFFFFF;
+	border: 2px solid #CEC2B1;
+	border-radius: 5px;
+}
+QPushButton:hover {
+	background-color: #E2C0B2;
+	color: #FFFFFF;
+}
+QPushButton:pressed {
+	background-color: #B5A08C;
+}</string>
      </property>
      <property name="text">
       <string>Ngắt kết nối plc</string>
@@ -698,11 +728,17 @@ QScrollArea #scrollAreaWidgetContents {
       <enum>Qt::LeftToRight</enum>
      </property>
      <property name="styleSheet">
-      <string notr="true">color: rgb(39, 174, 96);
-background-color: rgb(242, 242, 242);
-
-
-</string>
+      <string notr="true">QPushButton {
+	color: #FFFFFF;
+	background-color: #169393;
+	border-radius: 5px;
+}
+QPushButton:hover {
+	background-color: #138181;
+}
+QPushButton:pressed {
+	background-color: #0F6A6A;
+}</string>
      </property>
      <property name="text">
       <string>Xuất Excel</string>
