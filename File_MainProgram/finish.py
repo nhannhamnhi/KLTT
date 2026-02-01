@@ -55,10 +55,10 @@ class CameraThread(QtCore.QThread):
         self.detector = detector
         self.camera_source = camera_source
         
-        # Giá trị thông số camera mặc định
-        self.brightness = None
-        self.saturation = None
-        self.exposure = None
+        # Giá trị thông số camera mặc định (100 là trạng thái giữ nguyên)
+        self.brightness = 100
+        self.saturation = 100
+        self.exposure = 100
         
         # Cờ báo hiệu có thay đổi thông số
         self.params_changed = False
@@ -85,22 +85,31 @@ class CameraThread(QtCore.QThread):
             return
         
         while self._run_flag:
-            # Nếu có thay đổi thông số từ thanh trượt, áp dụng vào camera
-            if self.params_changed:
-                if self.brightness is not None:
-                    # OpenCV thường nhận giá trị từ 0.0 đến 1.0 hoặc tùy driver
-                    # Ở đây ta giả sử slider truyền vào giá trị đã được scale phù hợp
-                    cap.set(cv2.CAP_PROP_BRIGHTNESS, self.brightness)
-                if self.saturation is not None:
-                    cap.set(cv2.CAP_PROP_SATURATION, self.saturation)
-                if self.exposure is not None:
-                    cap.set(cv2.CAP_PROP_EXPOSURE, self.exposure)
-                self.params_changed = False
-
             ret, cap_img = cap.read()
             if ret:
                 cv_img = cap_img.copy()
-                # Xử lý AI ngay trong luồng này để không chặn giao diện
+                
+                # --- XỬ LÝ ẢNH PHẦN MỀM (Để hoạt động trên mọi loại camera) ---
+                # 1. Điều chỉnh độ sáng
+                if self.brightness != 100:
+                    beta = self.brightness - 100
+                    cv_img = cv2.convertScaleAbs(cv_img, alpha=1.0, beta=beta)
+                
+                # 2. Điều chỉnh độ bão hòa
+                if self.saturation != 100:
+                    hsv = cv2.cvtColor(cv_img, cv2.COLOR_BGR2HSV).astype("float32")
+                    (h, s, v) = cv2.split(hsv)
+                    s = s * (self.saturation / 100.0)
+                    s = np.clip(s, 0, 255)
+                    hsv = cv2.merge([h, s, v])
+                    cv_img = cv2.cvtColor(hsv.astype("uint8"), cv2.COLOR_HSV2BGR)
+                
+                # 3. Điều chỉnh phơi sáng (Giả lập bằng Digital Gain)
+                if self.exposure != 100:
+                    alpha = self.exposure / 100.0
+                    cv_img = cv2.convertScaleAbs(cv_img, alpha=alpha, beta=0)
+                
+                # Xử lý AI ngay trong luồng này...
                 if self.detector:
                     try:
                         # detect_objects giờ trả về 2 giá trị: ảnh và list nhãn
@@ -364,10 +373,10 @@ class Controller:
         self.ui_main.Slider_baohoa.blockSignals(True)
         self.ui_main.Slider_phoisang.blockSignals(True)
         
-        # 2. Đưa các slider về vị trí mặc định (0)
-        self.ui_main.Slider_Dosang.setValue(0)
-        self.ui_main.Slider_baohoa.setValue(0)
-        self.ui_main.Slider_phoisang.setValue(0)
+        # 2. Đưa các slider về vị trí mặc định (100 là giá trị gốc, không thay đổi)
+        self.ui_main.Slider_Dosang.setValue(100)
+        self.ui_main.Slider_baohoa.setValue(100)
+        self.ui_main.Slider_phoisang.setValue(100)
         
         # 3. Mở lại chặn tín hiệu
         self.ui_main.Slider_Dosang.blockSignals(False)
