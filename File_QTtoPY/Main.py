@@ -81,7 +81,7 @@ class Ui_Main(object):
         self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
         self.groupBox_ketnoi = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_ketnoi.setGeometry(QtCore.QRect(1400, 10, 511, 501))
+        self.groupBox_ketnoi.setGeometry(QtCore.QRect(1400, 10, 511, 531))
         font = QtGui.QFont()
         font.setPointSize(20)
         font.setBold(True)
@@ -112,7 +112,7 @@ class Ui_Main(object):
         self.groupBox_ketnoi.setAlignment(QtCore.Qt.AlignCenter)
         self.groupBox_ketnoi.setObjectName("groupBox_ketnoi")
         self.label_9 = QtWidgets.QLabel(self.groupBox_ketnoi)
-        self.label_9.setGeometry(QtCore.QRect(10, 30, 81, 31))
+        self.label_9.setGeometry(QtCore.QRect(10, 360, 81, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -121,7 +121,7 @@ class Ui_Main(object):
         self.label_9.setAlignment(QtCore.Qt.AlignCenter)
         self.label_9.setObjectName("label_9")
         self.label_10 = QtWidgets.QLabel(self.groupBox_ketnoi)
-        self.label_10.setGeometry(QtCore.QRect(10, 250, 111, 31))
+        self.label_10.setGeometry(QtCore.QRect(10, 230, 111, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -130,7 +130,7 @@ class Ui_Main(object):
         self.label_10.setAlignment(QtCore.Qt.AlignCenter)
         self.label_10.setObjectName("label_10")
         self.cbKetnoicamera = QtWidgets.QComboBox(self.groupBox_ketnoi)
-        self.cbKetnoicamera.setGeometry(QtCore.QRect(130, 250, 221, 31))
+        self.cbKetnoicamera.setGeometry(QtCore.QRect(130, 230, 221, 31))
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(False)
@@ -141,9 +141,8 @@ class Ui_Main(object):
         self.cbKetnoicamera.addItem("")
         self.cbKetnoicamera.addItem("")
         self.cbKetnoicamera.addItem("")
-        self.cbKetnoicamera.addItem("")
         self.Idplc = QtWidgets.QTextEdit(self.groupBox_ketnoi)
-        self.Idplc.setGeometry(QtCore.QRect(130, 70, 371, 31))
+        self.Idplc.setGeometry(QtCore.QRect(130, 400, 371, 31))
         self.Idplc.setAcceptDrops(True)
         self.Idplc.setStyleSheet("QTextEdit{\n"
 "   border: 2px solid #47A3A7; \n"
@@ -155,7 +154,7 @@ class Ui_Main(object):
         self.Idplc.setAcceptRichText(True)
         self.Idplc.setObjectName("Idplc")
         self.label_11 = QtWidgets.QLabel(self.groupBox_ketnoi)
-        self.label_11.setGeometry(QtCore.QRect(50, 70, 71, 31))
+        self.label_11.setGeometry(QtCore.QRect(50, 400, 71, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(False)
@@ -164,7 +163,7 @@ class Ui_Main(object):
         self.label_11.setAlignment(QtCore.Qt.AlignCenter)
         self.label_11.setObjectName("label_11")
         self.label_12 = QtWidgets.QLabel(self.groupBox_ketnoi)
-        self.label_12.setGeometry(QtCore.QRect(50, 130, 71, 31))
+        self.label_12.setGeometry(QtCore.QRect(50, 440, 71, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(False)
@@ -173,21 +172,21 @@ class Ui_Main(object):
         self.label_12.setAlignment(QtCore.Qt.AlignCenter)
         self.label_12.setObjectName("label_12")
         self.Rackplc = QtWidgets.QTextEdit(self.groupBox_ketnoi)
-        self.Rackplc.setGeometry(QtCore.QRect(130, 130, 131, 31))
+        self.Rackplc.setGeometry(QtCore.QRect(130, 440, 131, 31))
         self.Rackplc.setStyleSheet("QTextEdit{\n"
 "   border: 2px solid #47A3A7; \n"
 "    border-radius: 8px;\n"
 "}")
         self.Rackplc.setObjectName("Rackplc")
         self.Slotplc = QtWidgets.QTextEdit(self.groupBox_ketnoi)
-        self.Slotplc.setGeometry(QtCore.QRect(360, 130, 141, 31))
+        self.Slotplc.setGeometry(QtCore.QRect(360, 440, 141, 31))
         self.Slotplc.setStyleSheet("QTextEdit{\n"
 "   border: 2px solid #47A3A7; \n"
 "    border-radius: 8px;\n"
 "}")
         self.Slotplc.setObjectName("Slotplc")
         self.label_13 = QtWidgets.QLabel(self.groupBox_ketnoi)
-        self.label_13.setGeometry(QtCore.QRect(300, 130, 51, 31))
+        self.label_13.setGeometry(QtCore.QRect(300, 440, 51, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(False)
@@ -196,7 +195,7 @@ class Ui_Main(object):
         self.label_13.setAlignment(QtCore.Qt.AlignCenter)
         self.label_13.setObjectName("label_13")
         self.label_14 = QtWidgets.QLabel(self.groupBox_ketnoi)
-        self.label_14.setGeometry(QtCore.QRect(30, 310, 91, 31))
+        self.label_14.setGeometry(QtCore.QRect(30, 280, 91, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(False)
@@ -204,7 +203,7 @@ class Ui_Main(object):
         self.label_14.setFont(font)
         self.label_14.setObjectName("label_14")
         self.diachicamera = QtWidgets.QTextEdit(self.groupBox_ketnoi)
-        self.diachicamera.setGeometry(QtCore.QRect(130, 310, 221, 31))
+        self.diachicamera.setGeometry(QtCore.QRect(130, 280, 221, 31))
         self.diachicamera.setStyleSheet("QTextEdit{\n"
 "   border: 2px solid #47A3A7; \n"
 "    border-radius: 8px;\n"
@@ -213,7 +212,7 @@ class Ui_Main(object):
         self.diachicamera.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.diachicamera.setObjectName("diachicamera")
         self.btKetnoiplc = QtWidgets.QPushButton(self.groupBox_ketnoi)
-        self.btKetnoiplc.setGeometry(QtCore.QRect(130, 200, 121, 41))
+        self.btKetnoiplc.setGeometry(QtCore.QRect(140, 480, 121, 41))
         self.btKetnoiplc.setMinimumSize(QtCore.QSize(0, 0))
         font = QtGui.QFont()
         font.setBold(True)
@@ -232,7 +231,7 @@ class Ui_Main(object):
 "}")
         self.btKetnoiplc.setObjectName("btKetnoiplc")
         self.btKetnoicamera = QtWidgets.QPushButton(self.groupBox_ketnoi)
-        self.btKetnoicamera.setGeometry(QtCore.QRect(140, 420, 111, 41))
+        self.btKetnoicamera.setGeometry(QtCore.QRect(140, 330, 111, 41))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -251,7 +250,7 @@ class Ui_Main(object):
 "}")
         self.btKetnoicamera.setObjectName("btKetnoicamera")
         self.btNgatketnoicamera = QtWidgets.QPushButton(self.groupBox_ketnoi)
-        self.btNgatketnoicamera.setGeometry(QtCore.QRect(310, 420, 131, 41))
+        self.btNgatketnoicamera.setGeometry(QtCore.QRect(310, 330, 131, 41))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -271,7 +270,7 @@ class Ui_Main(object):
 "}")
         self.btNgatketnoicamera.setObjectName("btNgatketnoicamera")
         self.btNgatketnoiplc = QtWidgets.QPushButton(self.groupBox_ketnoi)
-        self.btNgatketnoiplc.setGeometry(QtCore.QRect(300, 200, 131, 41))
+        self.btNgatketnoiplc.setGeometry(QtCore.QRect(310, 480, 131, 41))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -290,8 +289,95 @@ class Ui_Main(object):
 "    background-color: #B5A08C;\n"
 "}")
         self.btNgatketnoiplc.setObjectName("btNgatketnoiplc")
+        self.cbTaimodel = QtWidgets.QComboBox(self.groupBox_ketnoi)
+        self.cbTaimodel.setGeometry(QtCore.QRect(130, 60, 221, 31))
+        font = QtGui.QFont()
+        font.setPointSize(8)
+        font.setBold(False)
+        font.setWeight(50)
+        self.cbTaimodel.setFont(font)
+        self.cbTaimodel.setStyleSheet("")
+        self.cbTaimodel.setObjectName("cbTaimodel")
+        self.cbTaimodel.addItem("")
+        self.cbTaimodel.addItem("")
+        self.btTaimodel = QtWidgets.QPushButton(self.groupBox_ketnoi)
+        self.btTaimodel.setGeometry(QtCore.QRect(140, 160, 111, 41))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        font.setKerning(True)
+        self.btTaimodel.setFont(font)
+        self.btTaimodel.setStyleSheet("QPushButton {\n"
+"    color: #FFFFFF;\n"
+"    background-color: #169393;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #138181;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #0F6A6A;\n"
+"}")
+        self.btTaimodel.setObjectName("btTaimodel")
+        self.duongdanmodel = QtWidgets.QTextEdit(self.groupBox_ketnoi)
+        self.duongdanmodel.setGeometry(QtCore.QRect(130, 110, 221, 31))
+        self.duongdanmodel.setStyleSheet("QTextEdit{\n"
+"   border: 2px solid #47A3A7; \n"
+"    border-radius: 8px;\n"
+"}")
+        self.duongdanmodel.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.duongdanmodel.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.duongdanmodel.setObjectName("duongdanmodel")
+        self.btKhoiphuc = QtWidgets.QPushButton(self.groupBox_ketnoi)
+        self.btKhoiphuc.setGeometry(QtCore.QRect(310, 160, 131, 41))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.btKhoiphuc.setFont(font)
+        self.btKhoiphuc.setStyleSheet("QPushButton {\n"
+"    color: #169393;\n"
+"    background-color: #FFFFFF;\n"
+"    border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #E2C0B2;\n"
+"    color: #FFFFFF;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #B5A08C;\n"
+"}")
+        self.btKhoiphuc.setObjectName("btKhoiphuc")
+        self.label_15 = QtWidgets.QLabel(self.groupBox_ketnoi)
+        self.label_15.setGeometry(QtCore.QRect(10, 60, 111, 31))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_15.setFont(font)
+        self.label_15.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_15.setObjectName("label_15")
+        self.btBrowser = QtWidgets.QPushButton(self.groupBox_ketnoi)
+        self.btBrowser.setGeometry(QtCore.QRect(360, 100, 71, 41))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        font.setKerning(True)
+        self.btBrowser.setFont(font)
+        self.btBrowser.setStyleSheet("QPushButton {\n"
+"    color: #FFFFFF;\n"
+"    background-color: #169393;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #138181;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #0F6A6A;\n"
+"}")
+        self.btBrowser.setObjectName("btBrowser")
         self.groupBox_hienthidl = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_hienthidl.setGeometry(QtCore.QRect(1140, 510, 771, 431))
+        self.groupBox_hienthidl.setGeometry(QtCore.QRect(1140, 550, 771, 431))
         font = QtGui.QFont()
         font.setPointSize(20)
         font.setBold(True)
@@ -552,7 +638,7 @@ class Ui_Main(object):
 "}")
         self.Resset_hinhanh.setObjectName("Resset_hinhanh")
         self.groupBox_hienthikq = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_hienthikq.setGeometry(QtCore.QRect(1140, 10, 251, 501))
+        self.groupBox_hienthikq.setGeometry(QtCore.QRect(1140, 10, 251, 531))
         font = QtGui.QFont()
         font.setPointSize(20)
         font.setBold(True)
@@ -686,10 +772,9 @@ class Ui_Main(object):
         self.groupBox_ketnoi.setTitle(_translate("Main", "KẾT NỐI "))
         self.label_9.setText(_translate("Main", "Kết Nối PLC"))
         self.label_10.setText(_translate("Main", "Kết Nối Camera"))
-        self.cbKetnoicamera.setItemText(0, _translate("Main", "Camera_custom"))
-        self.cbKetnoicamera.setItemText(1, _translate("Main", "Webcam"))
-        self.cbKetnoicamera.setItemText(2, _translate("Main", "Camera_GIE"))
-        self.cbKetnoicamera.setItemText(3, _translate("Main", "Camera_USB"))
+        self.cbKetnoicamera.setItemText(0, _translate("Main", "Webcam"))
+        self.cbKetnoicamera.setItemText(1, _translate("Main", "Camera_USB"))
+        self.cbKetnoicamera.setItemText(2, _translate("Main", "Camera_custom"))
         self.label_11.setText(_translate("Main", "IP_PLC"))
         self.label_12.setText(_translate("Main", "Rack"))
         self.label_13.setText(_translate("Main", "Slot"))
@@ -698,13 +783,19 @@ class Ui_Main(object):
         self.btKetnoicamera.setText(_translate("Main", "Kết nối Camera"))
         self.btNgatketnoicamera.setText(_translate("Main", "Ngắt kết nối camera"))
         self.btNgatketnoiplc.setText(_translate("Main", "Ngắt kết nối plc"))
+        self.cbTaimodel.setItemText(0, _translate("Main", "Default"))
+        self.cbTaimodel.setItemText(1, _translate("Main", "Custom"))
+        self.btTaimodel.setText(_translate("Main", "Tải model"))
+        self.btKhoiphuc.setText(_translate("Main", "Khôi phục"))
+        self.label_15.setText(_translate("Main", "Tải model"))
+        self.btBrowser.setText(_translate("Main", "Browser"))
         self.groupBox_hienthidl.setTitle(_translate("Main", "HIỂN THỊ DL"))
         self.btXuat.setText(_translate("Main", "Xuất Excel"))
         self.groupBox_tuychinhcamera.setTitle(_translate("Main", "TÙY CHỈNH CAMERA"))
         self.label_16.setText(_translate("Main", "Độ sáng (Brightness)"))
         self.label_17.setText(_translate("Main", "Độ bão hòa (Saturation)"))
         self.label_18.setText(_translate("Main", "Thời gian phơi sáng (Exposure Time)"))
-        self.Resset_hinhanh.setText(_translate("Main", "RESSET"))
+        self.Resset_hinhanh.setText(_translate("Main", "RESET"))
         self.groupBox_hienthikq.setTitle(_translate("Main", "HIỂN THỊ KQ"))
         self.label_3.setText(_translate("Main", "Tổng số viên "))
         self.label_6.setText(_translate("Main", "Viên đạt "))
