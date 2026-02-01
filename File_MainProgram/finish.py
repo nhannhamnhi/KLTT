@@ -46,11 +46,14 @@ class CameraThread(QtCore.QThread):
     # Signal gửi về 2 ảnh: Ảnh gốc và Ảnh đã xử lý (đều là numpy array)
     # Signal gửi về 2 ảnh: Ảnh gốc, Ảnh đã xử lý và danh sách nhãn (list)
     change_pixmap_signal = QtCore.pyqtSignal(np.ndarray, np.ndarray, list)
+    # Signal báo lỗi kết nối
+    error_signal = QtCore.pyqtSignal(str)
 
-    def __init__(self, detector=None):
+    def __init__(self, detector=None, camera_source=0):
         super().__init__()
         self._run_flag = True
         self.detector = detector
+        self.camera_source = camera_source
         
         # Giá trị thông số camera mặc định
         self.brightness = None
@@ -73,8 +76,13 @@ class CameraThread(QtCore.QThread):
         self.params_changed = True
 
     def run(self):
-        # Mở webcam (ID 0 là webcam mặc định của laptop)
-        cap = cv2.VideoCapture(0)
+        # Mở camera dựa trên nguồn được truyền vào
+        cap = cv2.VideoCapture(self.camera_source)
+        
+        if not cap.isOpened():
+            self.error_signal.emit(f"Không thể mở nguồn camera: {self.camera_source}")
+            self._run_flag = False
+            return
         
         while self._run_flag:
             # Nếu có thay đổi thông số từ thanh trượt, áp dụng vào camera
@@ -158,6 +166,9 @@ class Controller:
         # Biến quản lý luồng camera
         self.thread_camera = None
 
+        # Vô hiệu hóa ô nhập địa chỉ camera lúc mới khởi động
+        self.ui_main.diachicamera.setEnabled(False)
+
         # Kết nối các sự kiện nút bấm
         self.setup_connections()
 
@@ -176,6 +187,9 @@ class Controller:
         # --- PHẦN THÊM MỚI: Kết nối nút bấm Camera ---
         self.ui_main.btKetnoicamera.clicked.connect(self.ket_noi_camera)
         self.ui_main.btNgatketnoicamera.clicked.connect(self.ngat_ket_noi_camera)
+        
+        # Kết nối sự kiện thay đổi lựa chọn của combobox camera
+        self.ui_main.cbKetnoicamera.currentIndexChanged.connect(self.on_camera_selection_changed)
 
         # Kết nối các Slider để thay đổi từng thông số camera riêng biệt
         self.ui_main.Slider_Dosang.valueChanged.connect(self.update_brightness)
@@ -244,23 +258,61 @@ class Controller:
             self.ui_login.matkhau.clear()
             self.ui_login.matkhau.setFocus() # Đưa con trỏ chuột vào ô mật khẩu
 
+    def on_camera_selection_changed(self):
+        """Xử lý khi thay đổi lựa chọn loại camera trong combobox"""
+        loai_camera = self.ui_main.cbKetnoicamera.currentText()
+        if loai_camera == "Camera_custom":
+            # Nếu là camera tùy chỉnh thì cho phép người dùng nhập địa chỉ
+            self.ui_main.diachicamera.setEnabled(True)
+            self.ui_main.diachicamera.setFocus()
+        else:
+            # Ngược lại thì vô hiệu hóa ô nhập và xóa nội dung
+            self.ui_main.diachicamera.setEnabled(False)
+
+    def handle_camera_error(self, message):
+        """Xử lý khi có lỗi từ luồng camera"""
+        QMessageBox.critical(self.main_win, "Lỗi kết nối Camera", message)
+        self.ngat_ket_noi_camera()
+
     # --- PHẦN THÊM MỚI: Các hàm xử lý Camera ---
     def ket_noi_camera(self):
         """Hàm xử lý khi nhấn nút Kết nối Camera"""
+        # Nếu đang có luồng chạy, hãy ngắt nó trước khi bắt đầu cái mới
+        if self.thread_camera is not None and self.thread_camera.isRunning():
+            self.ngat_ket_noi_camera()
+
         loai_camera = self.ui_main.cbKetnoicamera.currentText()
-        
+        camera_source = 0 # Mặc định là webcam laptop
+
         if loai_camera == "Webcam":
-            if self.thread_camera is None or not self.thread_camera.isRunning():
-                # Truyền detector vào thread
-                self.thread_camera = CameraThread(detector=self.detector)
-                
-                # KHÔNG gọi update_camera_params ở đây để camera dùng mặc định của nó
-                # Chỉ khi người dùng kéo thanh trượt thì mới áp dụng thông số mới
-                
-                self.thread_camera.change_pixmap_signal.connect(self.update_image)
-                self.thread_camera.start()
-        else:
-            QMessageBox.information(self.main_win, "Thông báo", f"Chức năng cho {loai_camera} đang được phát triển.")
+            camera_source = 0
+        elif loai_camera == "Camera_USB":
+            camera_source = 1 # Webcam rời thường có ID là 1
+        elif loai_camera == "Camera_custom":
+            # Lấy nội dung từ ô nhập địa chỉ và làm sạch chuỗi
+            raw_source = self.ui_main.diachicamera.toPlainText().strip()
+            
+            # Xóa các ký tự ngoặc kép nếu người dùng lỡ dán vào
+            raw_source = raw_source.replace('"', '').replace("'", "")
+            
+            if not raw_source:
+                QMessageBox.warning(self.main_win, "Cảnh báo", "Vui lòng nhập địa chỉ camera hoặc ID chuyên biệt!")
+                return
+            
+            # Thử chuyển đổi sang số nguyên nếu người dùng nhập ID camera (0, 1, 2...)
+            try:
+                camera_source = int(raw_source)
+            except ValueError:
+                # Nếu không phải số, là link RTSP hoặc link Droidcam (http://...)
+                camera_source = raw_source
+
+        # Khởi tạo và kết nối các signal
+        self.thread_camera = CameraThread(detector=self.detector, camera_source=camera_source)
+        self.thread_camera.change_pixmap_signal.connect(self.update_image)
+        self.thread_camera.error_signal.connect(self.handle_camera_error)
+        
+        self.thread_camera.start()
+        print(f"Đang thử kết nối tới camera nguồn: {camera_source}")
 
     def ngat_ket_noi_camera(self):
         """Hàm xử lý khi nhấn nút Ngắt kết nối camera"""
