@@ -55,10 +55,9 @@ class CameraThread(QtCore.QThread):
         self.detector = detector
         self.camera_source = camera_source
         
-        # Giá trị thông số camera mặc định (100 là trạng thái giữ nguyên)
-        self.brightness = 100
-        self.saturation = 100
-        self.exposure = 100
+        # Giá trị thông số camera mặc định (0 là trạng thái giữ nguyên mặc định phần cứng)
+        self.brightness = 0
+        self.saturation = 0
         
         # Cờ báo hiệu có thay đổi thông số
         self.params_changed = False
@@ -69,10 +68,6 @@ class CameraThread(QtCore.QThread):
 
     def set_saturation(self, val):
         self.saturation = val
-        self.params_changed = True
-
-    def set_exposure(self, val):
-        self.exposure = val
         self.params_changed = True
 
     def run(self):
@@ -89,26 +84,21 @@ class CameraThread(QtCore.QThread):
             if ret:
                 cv_img = cap_img.copy()
                 
-                # --- XỬ LÝ ẢNH PHẦN MỀM (Để hoạt động trên mọi loại camera) ---
-                # 1. Điều chỉnh độ sáng
-                if self.brightness != 100:
-                    beta = self.brightness - 100
-                    cv_img = cv2.convertScaleAbs(cv_img, alpha=1.0, beta=beta)
+                # --- XỬ LÝ ẢNH PHẦN MỀM ---
+                # 1. Điều chỉnh độ sáng (Beta cộng thêm vào giá trị pixel)
+                if self.brightness != 0:
+                    cv_img = cv2.convertScaleAbs(cv_img, alpha=1.0, beta=self.brightness)
                 
-                # 2. Điều chỉnh độ bão hòa
-                if self.saturation != 100:
+                # 2. Điều chỉnh độ bão hòa (Tỉ lệ nhân hệ số)
+                if self.saturation != 0:
                     hsv = cv2.cvtColor(cv_img, cv2.COLOR_BGR2HSV).astype("float32")
                     (h, s, v) = cv2.split(hsv)
-                    s = s * (self.saturation / 100.0)
+                    # 0 -> hệ số 1.0 (không đổi), 100 -> hệ số 2.0 (tăng gấp đôi), -100 -> hệ số 0 (trắng đen)
+                    alpha = (100 + self.saturation) / 100.0
+                    s = s * alpha
                     s = np.clip(s, 0, 255)
                     hsv = cv2.merge([h, s, v])
                     cv_img = cv2.cvtColor(hsv.astype("uint8"), cv2.COLOR_HSV2BGR)
-                
-                # 3. Điều chỉnh phơi sáng (Giả lập bằng Digital Gain)
-                if self.exposure != 100:
-                    alpha = self.exposure / 100.0
-                    cv_img = cv2.convertScaleAbs(cv_img, alpha=alpha, beta=0)
-                
                 # Xử lý AI ngay trong luồng này...
                 if self.detector:
                     try:
@@ -175,6 +165,12 @@ class Controller:
         # Biến quản lý luồng camera
         self.thread_camera = None
 
+        # Thiết lập phạm vi và giá trị mặc định cho các Slider (-100 đến 100, mốc 0 ở giữa)
+        self.ui_main.Slider_Dosang.setRange(-100, 100)
+        self.ui_main.Slider_baohoa.setRange(-100, 100)
+        self.ui_main.Slider_Dosang.setValue(0)
+        self.ui_main.Slider_baohoa.setValue(0)
+
         # Vô hiệu hóa ô nhập địa chỉ camera lúc mới khởi động
         self.ui_main.diachicamera.setEnabled(False)
 
@@ -203,7 +199,6 @@ class Controller:
         # Kết nối các Slider để thay đổi từng thông số camera riêng biệt
         self.ui_main.Slider_Dosang.valueChanged.connect(self.update_brightness)
         self.ui_main.Slider_baohoa.valueChanged.connect(self.update_saturation)
-        self.ui_main.Slider_phoisang.valueChanged.connect(self.update_exposure)
 
         # Kết nối nút Reset hình ảnh
         self.ui_main.Resset_hinhanh.clicked.connect(self.reset_camera_params)
@@ -361,27 +356,19 @@ class Controller:
         if self.thread_camera is not None:
             self.thread_camera.set_saturation(self.ui_main.Slider_baohoa.value())
 
-    def update_exposure(self):
-        """Cập nhật phơi sáng"""
-        if self.thread_camera is not None:
-            self.thread_camera.set_exposure(self.ui_main.Slider_phoisang.value())
-
     def reset_camera_params(self):
         """Khôi phục cài đặt gốc của camera và đưa slider về 0"""
         # 1. Tạm thời chặn tín hiệu từ slider để không gọi update liên tục khi set value
         self.ui_main.Slider_Dosang.blockSignals(True)
         self.ui_main.Slider_baohoa.blockSignals(True)
-        self.ui_main.Slider_phoisang.blockSignals(True)
         
-        # 2. Đưa các slider về vị trí mặc định (100 là giá trị gốc, không thay đổi)
-        self.ui_main.Slider_Dosang.setValue(100)
-        self.ui_main.Slider_baohoa.setValue(100)
-        self.ui_main.Slider_phoisang.setValue(100)
+        # 2. Đưa các slider về vị trí mặc định (0 là giá trị gốc)
+        self.ui_main.Slider_Dosang.setValue(0)
+        self.ui_main.Slider_baohoa.setValue(0)
         
         # 3. Mở lại chặn tín hiệu
         self.ui_main.Slider_Dosang.blockSignals(False)
         self.ui_main.Slider_baohoa.blockSignals(False)
-        self.ui_main.Slider_phoisang.blockSignals(False)
         
         # 4. Nếu camera đang chạy, khởi động lại nó để xóa cấu hình phần cứng cũ
         if self.thread_camera is not None and self.thread_camera.isRunning():

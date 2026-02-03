@@ -15,27 +15,32 @@ class Ui_Main(object):
     def setupUi(self, Main):
         Main.setObjectName("Main")
         Main.resize(1932, 1003)
-        Main.setStyleSheet("background-color: rgb(255, 255, 255);")
+        Main.setStyleSheet("/* Thiết lập cho các GroupBox */\n"
+"QGroupBox {\n"
+"    border: 2px solid #CEC2B1;\n"
+"    border-radius: 8px;\n"
+"    margin-top: 15px; /* Tạo khoảng trống cho title */\n"
+"    background-color: #FFFFFF;\n"
+"}\n"
+"\n"
+"QGroupBox::title {\n"
+"    subcontrol-origin: margin;\n"
+"    subcontrol-position: top center; \n"
+"    padding: 2px 20px;\n"
+"    background-color: #006666;\n"
+"    color: white;\n"
+"    font-weight: bold;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QMainWindow {\n"
+"    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 #FFFFFF, stop:1 #DCDCDC);\n"
+"}")
         self.centralwidget = QtWidgets.QWidget(Main)
         self.centralwidget.setObjectName("centralwidget")
         self.groupBox_hinhanh = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_hinhanh.setGeometry(QtCore.QRect(10, 10, 1121, 601))
         self.groupBox_hinhanh.setMouseTracking(False)
-        self.groupBox_hinhanh.setStyleSheet("QGroupBox {\n"
-"    /* Đặt màu viền và độ dày */\n"
-"    border: 2px solid #CEC2B1; \n"
-"    border-radius: 8px;\n"
-"    /* Khoảng cách này cực kỳ quan trọng để tiêu đề không đè lên viền */\n"
-"    margin-top: 12px; \n"
-"    font-weight: bold;\n"
-"    color: #048687; /* Màu chữ tiêu đề theo bảng màu */\n"
-"}\n"
-"\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    subcontrol-position: top center; /* Đặt tiêu đề ở giữa */\n"
-"    padding: 0 5px; /* Tạo khoảng trắng hai bên chữ tiêu đề */\n"
-"}")
+        self.groupBox_hinhanh.setStyleSheet("")
         self.groupBox_hinhanh.setTitle("")
         self.groupBox_hinhanh.setObjectName("groupBox_hinhanh")
         self.Anhdaxuly = QtWidgets.QGraphicsView(self.groupBox_hinhanh)
@@ -55,7 +60,7 @@ class Ui_Main(object):
         font.setBold(True)
         font.setWeight(75)
         self.label_2.setFont(font)
-        self.label_2.setStyleSheet("background-color: rgb(4, 134, 135);\n"
+        self.label_2.setStyleSheet("background-color: #006666;\n"
 "color: rgb(255, 255, 255);")
         self.label_2.setAlignment(QtCore.Qt.AlignCenter)
         self.label_2.setObjectName("label_2")
@@ -76,7 +81,7 @@ class Ui_Main(object):
         font.setBold(True)
         font.setWeight(75)
         self.label.setFont(font)
-        self.label.setStyleSheet("background-color: rgb(4, 134, 135);\n"
+        self.label.setStyleSheet("background-color: #006666;\n"
 "color: rgb(255, 255, 255);")
         self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
@@ -87,28 +92,7 @@ class Ui_Main(object):
         font.setBold(True)
         font.setWeight(75)
         self.groupBox_ketnoi.setFont(font)
-        self.groupBox_ketnoi.setStyleSheet("QGroupBox {\n"
-"    /* Đặt màu viền và độ dày */\n"
-"    border: 2px solid #CEC2B1; \n"
-"    border-radius: 8px;\n"
-"    /* Khoảng cách này cực kỳ quan trọng để tiêu đề không đè lên viền */\n"
-"    margin-top: 12px; \n"
-"    font-weight: bold;\n"
-"    color: #048687; /* Màu chữ tiêu đề theo bảng màu */\n"
-"}\n"
-"\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    subcontrol-position: top center;\n"
-"    padding: 2px 15px;\n"
-"    \n"
-"    /* Chỉnh màu chữ và nền tiêu đề */\n"
-"\n"
-"    color: #FFFFFF;           /* Chữ trắng */\n"
-"    background-color: #048687; /* Nền xanh đậm (theo bảng màu) */\n"
-"    border-radius: 4px;       /* Bo góc nhẹ cho phần nền tiêu đề */\n"
-"}\n"
-"")
+        self.groupBox_ketnoi.setStyleSheet("")
         self.groupBox_ketnoi.setAlignment(QtCore.Qt.AlignCenter)
         self.groupBox_ketnoi.setObjectName("groupBox_ketnoi")
         self.label_9 = QtWidgets.QLabel(self.groupBox_ketnoi)
@@ -136,7 +120,8 @@ class Ui_Main(object):
         font.setBold(False)
         font.setWeight(50)
         self.cbKetnoicamera.setFont(font)
-        self.cbKetnoicamera.setStyleSheet("")
+        self.cbKetnoicamera.setStyleSheet("border: 2px solid #CEC2B1;\n"
+"border-radius: 5px;")
         self.cbKetnoicamera.setObjectName("cbKetnoicamera")
         self.cbKetnoicamera.addItem("")
         self.cbKetnoicamera.addItem("")
@@ -145,8 +130,8 @@ class Ui_Main(object):
         self.Idplc.setGeometry(QtCore.QRect(130, 400, 371, 31))
         self.Idplc.setAcceptDrops(True)
         self.Idplc.setStyleSheet("QTextEdit{\n"
-"   border: 2px solid #47A3A7; \n"
-"    border-radius: 8px;\n"
+"border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
 "}")
         self.Idplc.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.Idplc.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -174,15 +159,15 @@ class Ui_Main(object):
         self.Rackplc = QtWidgets.QTextEdit(self.groupBox_ketnoi)
         self.Rackplc.setGeometry(QtCore.QRect(130, 440, 131, 31))
         self.Rackplc.setStyleSheet("QTextEdit{\n"
-"   border: 2px solid #47A3A7; \n"
-"    border-radius: 8px;\n"
+" border: 2px solid #CEC2B1;\n"
+"border-radius: 5px;\n"
 "}")
         self.Rackplc.setObjectName("Rackplc")
         self.Slotplc = QtWidgets.QTextEdit(self.groupBox_ketnoi)
         self.Slotplc.setGeometry(QtCore.QRect(360, 440, 141, 31))
         self.Slotplc.setStyleSheet("QTextEdit{\n"
-"   border: 2px solid #47A3A7; \n"
-"    border-radius: 8px;\n"
+"border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
 "}")
         self.Slotplc.setObjectName("Slotplc")
         self.label_13 = QtWidgets.QLabel(self.groupBox_ketnoi)
@@ -205,8 +190,8 @@ class Ui_Main(object):
         self.diachicamera = QtWidgets.QTextEdit(self.groupBox_ketnoi)
         self.diachicamera.setGeometry(QtCore.QRect(130, 280, 221, 31))
         self.diachicamera.setStyleSheet("QTextEdit{\n"
-"   border: 2px solid #47A3A7; \n"
-"    border-radius: 8px;\n"
+" border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
 "}")
         self.diachicamera.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.diachicamera.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -219,12 +204,16 @@ class Ui_Main(object):
         font.setWeight(75)
         self.btKetnoiplc.setFont(font)
         self.btKetnoiplc.setStyleSheet("QPushButton {\n"
-"    color: #FFFFFF;\n"
-"    background-color: #169393;\n"
+"    background-color: #006666;\n"
+"    color: white;\n"
+"    border: 2px solid #CEC2B1;\n"
 "    border-radius: 5px;\n"
+"    padding: 5px;\n"
+"    font-weight: bold;\n"
 "}\n"
+"\n"
 "QPushButton:hover {\n"
-"    background-color: #138181;\n"
+"    background-color: #008080; /* Hiệu ứng khi di chuột */\n"
 "}\n"
 "QPushButton:pressed {\n"
 "    background-color: #0F6A6A;\n"
@@ -238,12 +227,16 @@ class Ui_Main(object):
         font.setKerning(True)
         self.btKetnoicamera.setFont(font)
         self.btKetnoicamera.setStyleSheet("QPushButton {\n"
-"    color: #FFFFFF;\n"
-"    background-color: #169393;\n"
+"    background-color: #006666;\n"
+"    color: white;\n"
+"    border: 2px solid #CEC2B1;\n"
 "    border-radius: 5px;\n"
+"    padding: 5px;\n"
+"    font-weight: bold;\n"
 "}\n"
+"\n"
 "QPushButton:hover {\n"
-"    background-color: #138181;\n"
+"    background-color: #008080; /* Hiệu ứng khi di chuột */\n"
 "}\n"
 "QPushButton:pressed {\n"
 "    background-color: #0F6A6A;\n"
@@ -296,7 +289,8 @@ class Ui_Main(object):
         font.setBold(False)
         font.setWeight(50)
         self.cbTaimodel.setFont(font)
-        self.cbTaimodel.setStyleSheet("")
+        self.cbTaimodel.setStyleSheet("border: 2px solid #CEC2B1;\n"
+"border-radius: 5px;")
         self.cbTaimodel.setObjectName("cbTaimodel")
         self.cbTaimodel.addItem("")
         self.cbTaimodel.addItem("")
@@ -308,12 +302,16 @@ class Ui_Main(object):
         font.setKerning(True)
         self.btTaimodel.setFont(font)
         self.btTaimodel.setStyleSheet("QPushButton {\n"
-"    color: #FFFFFF;\n"
-"    background-color: #169393;\n"
+"    background-color: #006666;\n"
+"    color: white;\n"
+"    border: 2px solid #CEC2B1;\n"
 "    border-radius: 5px;\n"
+"    padding: 5px;\n"
+"    font-weight: bold;\n"
 "}\n"
+"\n"
 "QPushButton:hover {\n"
-"    background-color: #138181;\n"
+"    background-color: #008080; /* Hiệu ứng khi di chuột */\n"
 "}\n"
 "QPushButton:pressed {\n"
 "    background-color: #0F6A6A;\n"
@@ -322,8 +320,8 @@ class Ui_Main(object):
         self.duongdanmodel = QtWidgets.QTextEdit(self.groupBox_ketnoi)
         self.duongdanmodel.setGeometry(QtCore.QRect(130, 110, 221, 31))
         self.duongdanmodel.setStyleSheet("QTextEdit{\n"
-"   border: 2px solid #47A3A7; \n"
-"    border-radius: 8px;\n"
+"border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
 "}")
         self.duongdanmodel.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.duongdanmodel.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -365,12 +363,16 @@ class Ui_Main(object):
         font.setKerning(True)
         self.btBrowser.setFont(font)
         self.btBrowser.setStyleSheet("QPushButton {\n"
-"    color: #FFFFFF;\n"
-"    background-color: #169393;\n"
+"    background-color: #006666;\n"
+"    color: white;\n"
+"    border: 2px solid #CEC2B1;\n"
 "    border-radius: 5px;\n"
+"    padding: 5px;\n"
+"    font-weight: bold;\n"
 "}\n"
+"\n"
 "QPushButton:hover {\n"
-"    background-color: #138181;\n"
+"    background-color: #008080; /* Hiệu ứng khi di chuột */\n"
 "}\n"
 "QPushButton:pressed {\n"
 "    background-color: #0F6A6A;\n"
@@ -383,30 +385,11 @@ class Ui_Main(object):
         font.setBold(True)
         font.setWeight(75)
         self.groupBox_hienthidl.setFont(font)
-        self.groupBox_hienthidl.setStyleSheet("QGroupBox {\n"
-"    /* Đặt màu viền và độ dày */\n"
-"    border: 2px solid #CEC2B1; \n"
-"    border-radius: 8px;\n"
-"    /* Khoảng cách này cực kỳ quan trọng để tiêu đề không đè lên viền */\n"
-"    margin-top: 12px; \n"
-"    font-weight: bold;\n"
-"    color: #048687; /* Màu chữ tiêu đề theo bảng màu */\n"
-"}\n"
-"\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    subcontrol-position: top center;\n"
-"    padding: 2px 15px;\n"
-"    \n"
-"    /* Chỉnh màu chữ và nền tiêu đề */\n"
-"    color: #FFFFFF;           /* Chữ trắng */\n"
-"    background-color: #048687; /* Nền xanh đậm (theo bảng màu) */\n"
-"    border-radius: 4px;       /* Bo góc nhẹ cho phần nền tiêu đề */\n"
-"}")
+        self.groupBox_hienthidl.setStyleSheet("")
         self.groupBox_hienthidl.setAlignment(QtCore.Qt.AlignCenter)
         self.groupBox_hienthidl.setObjectName("groupBox_hienthidl")
         self.scrollArea = QtWidgets.QScrollArea(self.groupBox_hienthidl)
-        self.scrollArea.setGeometry(QtCore.QRect(10, 40, 481, 381))
+        self.scrollArea.setGeometry(QtCore.QRect(10, 40, 481, 361))
         self.scrollArea.setStyleSheet("/* Chỉnh viền tổng thể cho ScrollArea */\n"
 "QScrollArea {\n"
 "    border: 2px solid #CEC2B1; /* Màu be trung tính đồng bộ với GroupBox */\n"
@@ -424,10 +407,10 @@ class Ui_Main(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents_2 = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 460, 360))
+        self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 460, 340))
         self.scrollAreaWidgetContents_2.setObjectName("scrollAreaWidgetContents_2")
         self.Hienthidulieu = QtWidgets.QListView(self.scrollAreaWidgetContents_2)
-        self.Hienthidulieu.setGeometry(QtCore.QRect(0, 0, 461, 361))
+        self.Hienthidulieu.setGeometry(QtCore.QRect(0, 0, 461, 341))
         self.Hienthidulieu.setObjectName("Hienthidulieu")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents_2)
         self.dateTimeEdit = QtWidgets.QDateTimeEdit(self.groupBox_hienthidl)
@@ -451,75 +434,51 @@ class Ui_Main(object):
         self.btXuat.setFont(font)
         self.btXuat.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.btXuat.setStyleSheet("QPushButton {\n"
-"    color: #FFFFFF;\n"
-"    background-color: #169393;\n"
+"    background-color: #006666;\n"
+"    color: white;\n"
+"    border: 2px solid #CEC2B1;\n"
 "    border-radius: 5px;\n"
+"    padding: 5px;\n"
+"    font-weight: bold;\n"
 "}\n"
 "QPushButton:hover {\n"
-"    background-color: #138181;\n"
+"    background-color: #008080; /* Hiệu ứng khi di chuột */\n"
 "}\n"
 "QPushButton:pressed {\n"
 "    background-color: #0F6A6A;\n"
 "}")
         self.btXuat.setObjectName("btXuat")
         self.groupBox_tuychinhcamera = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_tuychinhcamera.setGeometry(QtCore.QRect(10, 620, 1121, 321))
+        self.groupBox_tuychinhcamera.setGeometry(QtCore.QRect(10, 620, 1121, 281))
         font = QtGui.QFont()
         font.setPointSize(20)
         font.setBold(True)
         font.setWeight(75)
         self.groupBox_tuychinhcamera.setFont(font)
-        self.groupBox_tuychinhcamera.setStyleSheet("QGroupBox {\n"
-"    /* Đặt màu viền và độ dày */\n"
-"    border: 2px solid #CEC2B1; \n"
-"    border-radius: 8px;\n"
-"    /* Khoảng cách này cực kỳ quan trọng để tiêu đề không đè lên viền */\n"
-"    margin-top: 12px; \n"
-"    font-weight: bold;\n"
-"    color: #048687; /* Màu chữ tiêu đề theo bảng màu */\n"
-"}\n"
-"\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    subcontrol-position: top center;\n"
-"    padding: 2px 15px;\n"
-"    \n"
-"    /* Chỉnh màu chữ và nền tiêu đề */\n"
-"    color: #FFFFFF;           /* Chữ trắng */\n"
-"    background-color: #048687; /* Nền xanh đậm (theo bảng màu) */\n"
-"    border-radius: 4px;       /* Bo góc nhẹ cho phần nền tiêu đề */\n"
-"}")
+        self.groupBox_tuychinhcamera.setStyleSheet("")
         self.groupBox_tuychinhcamera.setAlignment(QtCore.Qt.AlignCenter)
         self.groupBox_tuychinhcamera.setObjectName("groupBox_tuychinhcamera")
         self.Slider_Dosang = QtWidgets.QSlider(self.groupBox_tuychinhcamera)
         self.Slider_Dosang.setGeometry(QtCore.QRect(410, 60, 541, 41))
-        self.Slider_Dosang.setStyleSheet("/* Thanh ray (đường rãnh) */\n"
-"QSlider::groove:horizontal {\n"
+        self.Slider_Dosang.setStyleSheet("QSlider::groove:horizontal {\n"
 "    border: 1px solid #bbb;\n"
-"    height: 8px; /* Độ dày thanh ray */\n"
-"    background: #E2C0B2;\n"
-"    margin: 2px 0;\n"
+"    height: 8px;\n"
+"    background: #e0d5c1;\n"
 "    border-radius: 4px;\n"
 "}\n"
 "\n"
-"/* Nút kéo */\n"
 "QSlider::handle:horizontal {\n"
-"    background: #008080; /* Màu xanh đồng bộ của bạn */\n"
-"    border: 1px solid #005f5f;\n"
+"    background: #006666;\n"
+"    border: 1px solid #004444;\n"
 "    width: 18px;\n"
-"    height: 18px;\n"
-"    margin: -7px 0; /* Căn giữa nút kéo so với đường rãnh */\n"
-"    border-radius: 9px;\n"
-"}\n"
-"/* Hiệu ứng khi di chuột qua nút trượt */\n"
-"QSlider::handle:horizontal:hover {\n"
-"    background: #27ae60;\n"
+"    margin: -7px 0;\n"
+"    border-radius: 4px;\n"
 "}")
         self.Slider_Dosang.setMinimum(-50)
-        self.Slider_Dosang.setMaximum(250)
+        self.Slider_Dosang.setMaximum(50)
         self.Slider_Dosang.setPageStep(5)
-        self.Slider_Dosang.setProperty("value", 100)
-        self.Slider_Dosang.setSliderPosition(100)
+        self.Slider_Dosang.setProperty("value", 0)
+        self.Slider_Dosang.setSliderPosition(0)
         self.Slider_Dosang.setOrientation(QtCore.Qt.Horizontal)
         self.Slider_Dosang.setTickPosition(QtWidgets.QSlider.TicksBothSides)
         self.Slider_Dosang.setTickInterval(5)
@@ -531,94 +490,46 @@ class Ui_Main(object):
         font.setBold(False)
         font.setWeight(50)
         self.label_16.setFont(font)
+        self.label_16.setStyleSheet("color: #006666;")
         self.label_16.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.label_16.setObjectName("label_16")
         self.Slider_baohoa = QtWidgets.QSlider(self.groupBox_tuychinhcamera)
-        self.Slider_baohoa.setGeometry(QtCore.QRect(410, 130, 541, 41))
-        self.Slider_baohoa.setStyleSheet("/* Thanh ray (đường rãnh) */\n"
-"QSlider::groove:horizontal {\n"
+        self.Slider_baohoa.setGeometry(QtCore.QRect(410, 170, 541, 41))
+        self.Slider_baohoa.setStyleSheet("QSlider::groove:horizontal {\n"
 "    border: 1px solid #bbb;\n"
-"    height: 8px; /* Độ dày thanh ray */\n"
-"    background: #E2C0B2;\n"
-"    margin: 2px 0;\n"
+"    height: 8px;\n"
+"    background: #e0d5c1;\n"
 "    border-radius: 4px;\n"
 "}\n"
 "\n"
-"/* Nút kéo */\n"
 "QSlider::handle:horizontal {\n"
-"    background: #008080; /* Màu xanh đồng bộ của bạn */\n"
-"    border: 1px solid #005f5f;\n"
+"    background: #006666;\n"
+"    border: 1px solid #004444;\n"
 "    width: 18px;\n"
-"    height: 18px;\n"
-"    margin: -7px 0; /* Căn giữa nút kéo so với đường rãnh */\n"
-"    border-radius: 9px;\n"
-"}\n"
-"/* Hiệu ứng khi di chuột qua nút trượt */\n"
-"QSlider::handle:horizontal:hover {\n"
-"    background: #27ae60;\n"
+"    margin: -7px 0;\n"
+"    border-radius: 4px;\n"
 "}")
-        self.Slider_baohoa.setMinimum(0)
-        self.Slider_baohoa.setMaximum(200)
+        self.Slider_baohoa.setMinimum(-50)
+        self.Slider_baohoa.setMaximum(50)
         self.Slider_baohoa.setPageStep(5)
-        self.Slider_baohoa.setProperty("value", 100)
-        self.Slider_baohoa.setSliderPosition(100)
+        self.Slider_baohoa.setProperty("value", 0)
+        self.Slider_baohoa.setSliderPosition(0)
         self.Slider_baohoa.setOrientation(QtCore.Qt.Horizontal)
         self.Slider_baohoa.setTickPosition(QtWidgets.QSlider.TicksBothSides)
         self.Slider_baohoa.setTickInterval(5)
         self.Slider_baohoa.setObjectName("Slider_baohoa")
-        self.Slider_phoisang = QtWidgets.QSlider(self.groupBox_tuychinhcamera)
-        self.Slider_phoisang.setGeometry(QtCore.QRect(410, 210, 541, 41))
-        self.Slider_phoisang.setStyleSheet("/* Thanh ray (đường rãnh) */\n"
-"QSlider::groove:horizontal {\n"
-"    border: 1px solid #bbb;\n"
-"    height: 8px; /* Độ dày thanh ray */\n"
-"    background: #E2C0B2;\n"
-"    margin: 2px 0;\n"
-"    border-radius: 4px;\n"
-"}\n"
-"\n"
-"/* Nút kéo */\n"
-"QSlider::handle:horizontal {\n"
-"    background: #008080; /* Màu xanh đồng bộ của bạn */\n"
-"    border: 1px solid #005f5f;\n"
-"    width: 18px;\n"
-"    height: 18px;\n"
-"    margin: -7px 0; /* Căn giữa nút kéo so với đường rãnh */\n"
-"    border-radius: 9px;\n"
-"}\n"
-"/* Hiệu ứng khi di chuột qua nút trượt */\n"
-"QSlider::handle:horizontal:hover {\n"
-"    background: #27ae60;\n"
-"}")
-        self.Slider_phoisang.setMinimum(0)
-        self.Slider_phoisang.setMaximum(200)
-        self.Slider_phoisang.setPageStep(5)
-        self.Slider_phoisang.setProperty("value", 100)
-        self.Slider_phoisang.setSliderPosition(100)
-        self.Slider_phoisang.setOrientation(QtCore.Qt.Horizontal)
-        self.Slider_phoisang.setTickPosition(QtWidgets.QSlider.TicksBothSides)
-        self.Slider_phoisang.setTickInterval(5)
-        self.Slider_phoisang.setObjectName("Slider_phoisang")
         self.label_17 = QtWidgets.QLabel(self.groupBox_tuychinhcamera)
-        self.label_17.setGeometry(QtCore.QRect(40, 130, 221, 41))
+        self.label_17.setGeometry(QtCore.QRect(40, 170, 221, 41))
         font = QtGui.QFont()
         font.setPointSize(15)
         font.setBold(False)
         font.setWeight(50)
         self.label_17.setFont(font)
+        self.label_17.setStyleSheet("color: #006666;")
         self.label_17.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.label_17.setObjectName("label_17")
-        self.label_18 = QtWidgets.QLabel(self.groupBox_tuychinhcamera)
-        self.label_18.setGeometry(QtCore.QRect(40, 210, 331, 41))
-        font = QtGui.QFont()
-        font.setPointSize(15)
-        font.setBold(False)
-        font.setWeight(50)
-        self.label_18.setFont(font)
-        self.label_18.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-        self.label_18.setObjectName("label_18")
         self.Resset_hinhanh = QtWidgets.QPushButton(self.groupBox_tuychinhcamera)
-        self.Resset_hinhanh.setGeometry(QtCore.QRect(920, 260, 91, 41))
+        self.Resset_hinhanh.setGeometry(QtCore.QRect(1000, 170, 91, 41))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -644,26 +555,8 @@ class Ui_Main(object):
         font.setBold(True)
         font.setWeight(75)
         self.groupBox_hienthikq.setFont(font)
-        self.groupBox_hienthikq.setStyleSheet("QGroupBox {\n"
-"    /* Đặt màu viền và độ dày */\n"
-"    border: 2px solid #CEC2B1; \n"
-"    border-radius: 8px;\n"
-"    /* Khoảng cách này cực kỳ quan trọng để tiêu đề không đè lên viền */\n"
-"    margin-top: 12px; \n"
-"    font-weight: bold;\n"
-"    color: #048687; /* Màu chữ tiêu đề theo bảng màu */\n"
-"}\n"
-"\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    subcontrol-position: top center;\n"
-"    padding: 2px 15px;\n"
-"    \n"
-"    /* Chỉnh màu chữ và nền tiêu đề */\n"
-"    color: #FFFFFF;           /* Chữ trắng */\n"
-"    background-color: #048687; /* Nền xanh đậm (theo bảng màu) */\n"
-"    border-radius: 4px;       /* Bo góc nhẹ cho phần nền tiêu đề */\n"
-"}")
+        self.groupBox_hienthikq.setStyleSheet("\n"
+"")
         self.groupBox_hienthikq.setAlignment(QtCore.Qt.AlignCenter)
         self.groupBox_hienthikq.setObjectName("groupBox_hienthikq")
         self.label_3 = QtWidgets.QLabel(self.groupBox_hienthikq)
@@ -673,7 +566,8 @@ class Ui_Main(object):
         font.setBold(False)
         font.setWeight(50)
         self.label_3.setFont(font)
-        self.label_3.setStyleSheet("color: rgb(22, 147, 147);")
+        self.label_3.setStyleSheet("color: rgb(22, 147, 147);\n"
+"")
         self.label_3.setAlignment(QtCore.Qt.AlignCenter)
         self.label_3.setObjectName("label_3")
         self.Tongsovien = QtWidgets.QLabel(self.groupBox_hienthikq)
@@ -692,13 +586,13 @@ class Ui_Main(object):
         self.Tongsovien.setWordWrap(False)
         self.Tongsovien.setObjectName("Tongsovien")
         self.Viendat = QtWidgets.QLabel(self.groupBox_hienthikq)
-        self.Viendat.setGeometry(QtCore.QRect(20, 430, 71, 61))
+        self.Viendat.setGeometry(QtCore.QRect(30, 430, 71, 61))
         font = QtGui.QFont()
         font.setPointSize(15)
         self.Viendat.setFont(font)
         self.Viendat.setStyleSheet("QLabel\n"
 "{\n"
-"   border: 2px solid #47A3A7; \n"
+"   border: 2px solid green; \n"
 "    border-radius: 8px;\n"
 "\n"
 "}")
@@ -723,7 +617,7 @@ class Ui_Main(object):
         self.Vienloi.setFont(font)
         self.Vienloi.setStyleSheet("QLabel\n"
 "{\n"
-"   border: 2px solid #47A3A7; \n"
+"   border: 2px solid red; \n"
 "    border-radius: 8px;\n"
 "\n"
 "}")
@@ -794,7 +688,6 @@ class Ui_Main(object):
         self.groupBox_tuychinhcamera.setTitle(_translate("Main", "TÙY CHỈNH CAMERA"))
         self.label_16.setText(_translate("Main", "Độ sáng (Brightness)"))
         self.label_17.setText(_translate("Main", "Độ bão hòa (Saturation)"))
-        self.label_18.setText(_translate("Main", "Thời gian phơi sáng (Exposure Time)"))
         self.Resset_hinhanh.setText(_translate("Main", "RESET"))
         self.groupBox_hienthikq.setTitle(_translate("Main", "HIỂN THỊ KQ"))
         self.label_3.setText(_translate("Main", "Tổng số viên "))
