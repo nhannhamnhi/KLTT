@@ -772,9 +772,9 @@ QPushButton:pressed {
     <property name="geometry">
      <rect>
       <x>1140</x>
-      <y>550</y>
+      <y>560</y>
       <width>771</width>
-      <height>431</height>
+      <height>421</height>
      </rect>
     </property>
     <property name="font">
@@ -1142,8 +1142,7 @@ QPushButton:pressed {
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">
-</string>
+     <string notr="true"/>
     </property>
     <property name="title">
      <string>HIỂN THỊ KQ</string>
