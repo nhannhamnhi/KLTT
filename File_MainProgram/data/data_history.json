@@ -1,0 +1,74 @@
+{
+  "2026-02-03": [
+    {
+      "time": "17:15:26",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG"
+    },
+    {
+      "time": "17:15:36",
+      "total": 7,
+      "passed": 2,
+      "failed": 5,
+      "result": "NG"
+    },
+    {
+      "time": "17:15:46",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG"
+    },
+    {
+      "time": "17:15:56",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "17:16:06",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "17:16:16",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "result": "NG"
+    },
+    {
+      "time": "17:16:26",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "result": "NG"
+    },
+    {
+      "time": "17:16:36",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "result": "NG"
+    },
+    {
+      "time": "17:16:46",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "result": "NG"
+    },
+    {
+      "time": "17:16:56",
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "result": "NG"
+    }
+  ]
+}
