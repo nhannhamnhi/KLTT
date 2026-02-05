@@ -70,5 +70,133 @@
       "failed": 1,
       "result": "NG"
     }
+  ],
+  "2026-02-05": [
+    {
+      "time": "13:55:20",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:55:30",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG"
+    },
+    {
+      "time": "13:55:40",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG"
+    },
+    {
+      "time": "13:55:50",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG"
+    },
+    {
+      "time": "13:56:00",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:56:10",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:56:20",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:56:30",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:56:40",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:56:50",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:57:00",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:57:10",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:57:20",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:57:30",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:57:40",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:57:50",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:58:00",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "13:58:10",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "result": "OK"
+    }
   ]
 }

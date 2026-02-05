@@ -202,6 +202,10 @@ class DataManager:
             row_num = 2
             stt = 1
 
+            # Biến để đếm số lần kết quả OK/NG
+            count_ok = 0
+            count_ng = 0
+
             # Sắp xếp các ngày theo thứ tự
             sorted_dates = sorted(self.data.keys())
 
@@ -237,6 +241,12 @@ class DataManager:
                     ws.cell(row=row_num, column=7, value=rec['result']).alignment = header_alignment
                     ws.cell(row=row_num, column=7).border = thin_border
 
+                    # Đếm số lần kết quả OK/NG
+                    if rec['result'] == 'OK':
+                        count_ok += 1
+                    elif rec['result'] == 'NG':
+                        count_ng += 1
+
                     stt += 1
                     row_num += 1
 
@@ -247,6 +257,44 @@ class DataManager:
                     ws.merge_cells(start_row=start_row, start_column=2, end_row=end_row, end_column=2)
                     # Căn giữa ô đã merge
                     ws.cell(row=start_row, column=2).alignment = Alignment(horizontal='center', vertical='center')
+
+            # Thêm hàng tổng hợp ở cuối
+            if row_num > 2:  # Chỉ thêm nếu có dữ liệu
+                from openpyxl.styles import PatternFill
+                
+                summary_row = row_num
+                summary_font = Font(bold=True, size=12)
+                summary_fill = PatternFill(start_color='FFEB9C', end_color='FFEB9C', fill_type='solid')  # Màu vàng nhạt
+                
+                # Merge cột 1-4 để viết "TỔNG HỢP KẾT QUẢ"
+                ws.merge_cells(start_row=summary_row, start_column=1, end_row=summary_row, end_column=4)
+                cell_summary = ws.cell(row=summary_row, column=1, value="TỔNG HỢP KẾT QUẢ")
+                cell_summary.font = summary_font
+                cell_summary.alignment = Alignment(horizontal='center', vertical='center')
+                cell_summary.border = thin_border
+                cell_summary.fill = summary_fill
+                
+                # Cột 5: Nhãn "OK:"
+                cell_ok_label = ws.cell(row=summary_row, column=5, value=f"OK: {count_ok}")
+                cell_ok_label.font = summary_font
+                cell_ok_label.alignment = Alignment(horizontal='center', vertical='center')
+                cell_ok_label.border = thin_border
+                cell_ok_label.fill = PatternFill(start_color='C6EFCE', end_color='C6EFCE', fill_type='solid')  # Màu xanh nhạt
+                
+                # Cột 6: Nhãn "NG:"
+                cell_ng_label = ws.cell(row=summary_row, column=6, value=f"NG: {count_ng}")
+                cell_ng_label.font = summary_font
+                cell_ng_label.alignment = Alignment(horizontal='center', vertical='center')
+                cell_ng_label.border = thin_border
+                cell_ng_label.fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')  # Màu đỏ nhạt
+                
+                # Cột 7: Tổng số lần
+                total_count = count_ok + count_ng
+                cell_total = ws.cell(row=summary_row, column=7, value=f"Tổng: {total_count}")
+                cell_total.font = summary_font
+                cell_total.alignment = Alignment(horizontal='center', vertical='center')
+                cell_total.border = thin_border
+                cell_total.fill = summary_fill
 
             # Điều chỉnh độ rộng cột
             column_widths = [6, 15, 12, 15, 12, 12, 12]
