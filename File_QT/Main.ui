@@ -610,7 +610,12 @@ border-radius: 5px;</string>
      </item>
      <item>
       <property name="text">
-       <string>Custom</string>
+       <string>OpenVION</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Orther (.pt, .oxxn,....)</string>
       </property>
      </item>
     </widget>
@@ -848,32 +853,6 @@ QScrollArea #scrollAreaWidgetContents {
       </widget>
      </widget>
     </widget>
-    <widget class="QDateTimeEdit" name="dateTimeEdit">
-     <property name="geometry">
-      <rect>
-       <x>530</x>
-       <y>80</y>
-       <width>194</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QDateTimeEdit{
-   border: 2px solid #47A3A7; 
-    border-radius: 8px;
-}</string>
-     </property>
-     <property name="buttonSymbols">
-      <enum>QAbstractSpinBox::NoButtons</enum>
-     </property>
-    </widget>
     <widget class="QPushButton" name="btXuat">
      <property name="geometry">
       <rect>
@@ -910,6 +889,75 @@ QPushButton:pressed {
      </property>
      <property name="text">
       <string>Xuất Excel</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btTrigger">
+     <property name="geometry">
+      <rect>
+       <x>540</x>
+       <y>230</y>
+       <width>131</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+    background-color: #006666;
+    color: white;
+    border: 2px solid #CEC2B1;
+	border-radius: 5px;
+    padding: 5px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #008080; /* Hiệu ứng khi di chuột */
+}
+QPushButton:pressed {
+	background-color: #0F6A6A;
+}</string>
+     </property>
+     <property name="text">
+      <string>Trigger</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btContinue">
+     <property name="geometry">
+      <rect>
+       <x>540</x>
+       <y>310</y>
+       <width>131</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+	color: #169393;
+	background-color: #FFFFFF;
+	border: 2px solid #CEC2B1;
+	border-radius: 5px;
+}
+QPushButton:hover {
+	background-color: #E2C0B2;
+	color: #FFFFFF;
+}
+QPushButton:pressed {
+	background-color: #B5A08C;
+}</string>
+     </property>
+     <property name="text">
+      <string>Continue</string>
      </property>
     </widget>
    </widget>
