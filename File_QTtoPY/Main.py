@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\KL_2025\KLTT\File_QT\Main.ui'
+# Form implementation generated from reading ui file 'd:\KL_2025\KLTT\File_QT\Main.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -294,6 +294,7 @@ class Ui_Main(object):
         self.cbTaimodel.setObjectName("cbTaimodel")
         self.cbTaimodel.addItem("")
         self.cbTaimodel.addItem("")
+        self.cbTaimodel.addItem("")
         self.btTaimodel = QtWidgets.QPushButton(self.groupBox_ketnoi)
         self.btTaimodel.setGeometry(QtCore.QRect(140, 160, 111, 41))
         font = QtGui.QFont()
@@ -379,7 +380,7 @@ class Ui_Main(object):
 "}")
         self.btBrowser.setObjectName("btBrowser")
         self.groupBox_hienthidl = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_hienthidl.setGeometry(QtCore.QRect(1140, 550, 771, 431))
+        self.groupBox_hienthidl.setGeometry(QtCore.QRect(1140, 560, 771, 421))
         font = QtGui.QFont()
         font.setPointSize(20)
         font.setBold(True)
@@ -413,19 +414,6 @@ class Ui_Main(object):
         self.Hienthidulieu.setGeometry(QtCore.QRect(0, 0, 461, 341))
         self.Hienthidulieu.setObjectName("Hienthidulieu")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents_2)
-        self.dateTimeEdit = QtWidgets.QDateTimeEdit(self.groupBox_hienthidl)
-        self.dateTimeEdit.setGeometry(QtCore.QRect(530, 80, 194, 22))
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        font.setBold(False)
-        font.setWeight(50)
-        self.dateTimeEdit.setFont(font)
-        self.dateTimeEdit.setStyleSheet("QDateTimeEdit{\n"
-"   border: 2px solid #47A3A7; \n"
-"    border-radius: 8px;\n"
-"}")
-        self.dateTimeEdit.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        self.dateTimeEdit.setObjectName("dateTimeEdit")
         self.btXuat = QtWidgets.QPushButton(self.groupBox_hienthidl)
         self.btXuat.setGeometry(QtCore.QRect(540, 150, 131, 61))
         font = QtGui.QFont()
@@ -448,6 +436,47 @@ class Ui_Main(object):
 "    background-color: #0F6A6A;\n"
 "}")
         self.btXuat.setObjectName("btXuat")
+        self.btTrigger = QtWidgets.QPushButton(self.groupBox_hienthidl)
+        self.btTrigger.setGeometry(QtCore.QRect(540, 230, 131, 61))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.btTrigger.setFont(font)
+        self.btTrigger.setStyleSheet("QPushButton {\n"
+"    background-color: #006666;\n"
+"    color: white;\n"
+"    border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
+"    padding: 5px;\n"
+"    font-weight: bold;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #008080; /* Hiệu ứng khi di chuột */\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #0F6A6A;\n"
+"}")
+        self.btTrigger.setObjectName("btTrigger")
+        self.btContinue = QtWidgets.QPushButton(self.groupBox_hienthidl)
+        self.btContinue.setGeometry(QtCore.QRect(540, 310, 131, 61))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.btContinue.setFont(font)
+        self.btContinue.setStyleSheet("QPushButton {\n"
+"    color: #169393;\n"
+"    background-color: #FFFFFF;\n"
+"    border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #E2C0B2;\n"
+"    color: #FFFFFF;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #B5A08C;\n"
+"}")
+        self.btContinue.setObjectName("btContinue")
         self.groupBox_tuychinhcamera = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_tuychinhcamera.setGeometry(QtCore.QRect(10, 620, 1121, 281))
         font = QtGui.QFont()
@@ -555,8 +584,7 @@ class Ui_Main(object):
         font.setBold(True)
         font.setWeight(75)
         self.groupBox_hienthikq.setFont(font)
-        self.groupBox_hienthikq.setStyleSheet("\n"
-"")
+        self.groupBox_hienthikq.setStyleSheet("")
         self.groupBox_hienthikq.setAlignment(QtCore.Qt.AlignCenter)
         self.groupBox_hienthikq.setObjectName("groupBox_hienthikq")
         self.label_3 = QtWidgets.QLabel(self.groupBox_hienthikq)
@@ -678,13 +706,16 @@ class Ui_Main(object):
         self.btNgatketnoicamera.setText(_translate("Main", "Ngắt kết nối camera"))
         self.btNgatketnoiplc.setText(_translate("Main", "Ngắt kết nối plc"))
         self.cbTaimodel.setItemText(0, _translate("Main", "Default"))
-        self.cbTaimodel.setItemText(1, _translate("Main", "Custom"))
+        self.cbTaimodel.setItemText(1, _translate("Main", "OpenVION"))
+        self.cbTaimodel.setItemText(2, _translate("Main", "Orther (.pt, .oxxn,....)"))
         self.btTaimodel.setText(_translate("Main", "Tải model"))
         self.btKhoiphuc.setText(_translate("Main", "Khôi phục"))
         self.label_15.setText(_translate("Main", "Tải model"))
         self.btBrowser.setText(_translate("Main", "Browser"))
         self.groupBox_hienthidl.setTitle(_translate("Main", "HIỂN THỊ DL"))
         self.btXuat.setText(_translate("Main", "Xuất Excel"))
+        self.btTrigger.setText(_translate("Main", "Trigger"))
+        self.btContinue.setText(_translate("Main", "Continue"))
         self.groupBox_tuychinhcamera.setTitle(_translate("Main", "TÙY CHỈNH CAMERA"))
         self.label_16.setText(_translate("Main", "Độ sáng (Brightness)"))
         self.label_17.setText(_translate("Main", "Độ bão hòa (Saturation)"))
