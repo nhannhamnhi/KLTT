@@ -65,6 +65,9 @@ class CameraThread(QtCore.QThread):
         
         # Cờ báo hiệu có thay đổi thông số
         self.params_changed = False
+        
+        # Cờ báo hiệu tạm dừng hình ảnh (đóng băng)
+        self.is_paused = False
 
     def set_brightness(self, val):
         self.brightness = val
@@ -116,8 +119,9 @@ class CameraThread(QtCore.QThread):
                     processed_img = cv_img.copy()
                     labels = []
 
-                # Gửi cả 2 ảnh và danh sách nhãn về giao diện
-                self.change_pixmap_signal.emit(cv_img, processed_img, labels)
+                # Gửi cả 2 ảnh và danh sách nhãn về giao diện (chỉ gửi khi không bị pause)
+                if not self.is_paused:
+                    self.change_pixmap_signal.emit(cv_img, processed_img, labels)
             
             # Thêm một chút delay nhỏ để giảm tải CPU nếu cần (không bắt buộc)
             # self.msleep(10) 
@@ -198,16 +202,15 @@ class Controller:
         self.current_failed = 0
         self.current_result = "WAIT"
 
-        # Timer cập nhật thời gian hiện tại lên dateTimeEdit (mỗi giây)
+        # Timer cập nhật thời gian nội bộ
         self.time_timer = QtCore.QTimer()
         self.time_timer.timeout.connect(self.update_datetime)
         self.time_timer.start(1000)  # 1 giây
-        self.update_datetime()  # Cập nhật ngay lập tức
 
-        # Timer ghi dữ liệu mỗi 10 giây
-        self.data_timer = QtCore.QTimer()
-        self.data_timer.timeout.connect(self.save_current_data)
-        self.data_timer.start(10000)  # 10 giây
+        # Ghi chú: Đã tắt timer ghi dữ liệu tự động 10s để sử dụng nút Trigger thủ công
+        # self.data_timer = QtCore.QTimer()
+        # self.data_timer.timeout.connect(self.save_current_data)
+        # self.data_timer.start(10000)
 
     def setup_connections(self):
         # Khi nhấn nút btBatdau ở Background -> Hiện Login
@@ -237,6 +240,10 @@ class Controller:
 
         # Kết nối nút Xuất Excel
         self.ui_main.btXuat.clicked.connect(self.export_excel)
+
+        # Kết nối các nút mô phỏng cảm biến (Trigger và Continue)
+        self.ui_main.btTrigger.clicked.connect(self.handle_trigger)
+        self.ui_main.btContinue.clicked.connect(self.handle_continue)
 
     def show_background(self):
         self.background_win.show()
@@ -411,6 +418,24 @@ class Controller:
             self.ket_noi_camera()
             print("Đã Reset Camera về mặc định phần cứng.")
 
+    def handle_trigger(self):
+        """Xử lý khi nhấn nút Trigger: Dừng hình và Lưu dữ liệu"""
+        if self.thread_camera is not None and self.thread_camera.isRunning():
+            # 1. Đóng băng hình ảnh
+            self.thread_camera.is_paused = True
+            
+            # 2. Lưu dữ liệu hiện tại ngay lập tức
+            self.save_current_data()
+            print("[TRIGGER] Đã đóng băng camera và lưu dữ liệu.")
+        else:
+            QMessageBox.warning(self.main_win, "Thông báo", "Vui lòng kết nối Camera trước khi Trigger!")
+
+    def handle_continue(self):
+        """Xử lý khi nhấn nút Continue: Tiếp tục luồng camera"""
+        if self.thread_camera is not None and self.thread_camera.isRunning():
+            self.thread_camera.is_paused = False
+            print("[CONTINUE] Camera đã hoạt động trở lại.")
+
     def update_image(self, cv_img_goc, cv_img_xuly, labels):
         """Cập nhật hình ảnh lên giao diện khi có frame mới"""
         
@@ -495,9 +520,8 @@ class Controller:
 
     # --- CÁC HÀM MỚI CHO QUẢN LÝ DỮ LIỆU ---
     def update_datetime(self):
-        """Cập nhật thời gian hiện tại lên widget dateTimeEdit"""
-        current_time = QtCore.QDateTime.currentDateTime()
-        self.ui_main.dateTimeEdit.setDateTime(current_time)
+        """Cập nhật thời gian nội bộ (có thể dùng để log hoặc hiển thị QLabel nếu cần)"""
+        pass
 
     def save_current_data(self):
         """Lưu dữ liệu hiện tại vào file JSON (được gọi mỗi 10 giây)"""
@@ -523,37 +547,66 @@ class Controller:
             self.ui_main.Hienthidulieu.scrollTo(index)
 
     def export_excel(self):
-        """Xuất dữ liệu ra file Excel"""
-        # Hiển thị dialog để người dùng chọn nơi lưu
-        today_str = datetime.now().strftime('%Y-%m-%d')
-        default_filename = f"KetQua_{today_str}.xlsx"
+        """Xuất dữ liệu ra file Excel - Hiển thị chọn ngày cụ thể"""
+        # 1. Tạo hộp thoại chọn ngày (Calendar Dialog)
+        dialog = QtWidgets.QDialog(self.main_win)
+        dialog.setWindowTitle("Chọn ngày xuất dữ liệu")
+        layout = QtWidgets.QVBoxLayout(dialog)
         
-        filepath, _ = QFileDialog.getSaveFileName(
-            self.main_win,
-            "Chọn nơi lưu file Excel",
-            default_filename,
-            "Excel Files (*.xlsx);;All Files (*)"
-        )
+        calendar = QtWidgets.QCalendarWidget()
+        calendar.setGridVisible(True)
         
-        if filepath:
-            # Đảm bảo có đuôi .xlsx
-            if not filepath.endswith('.xlsx'):
-                filepath += '.xlsx'
+        # Chỉ tích chọn các ngày có dữ liệu (nếu muốn) 
+        # Để đơn giản, cho phép chọn bất kỳ ngày nào, nếu không có data sẽ thông báo
+        
+        layout.addWidget(calendar)
+        
+        btn_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        btn_box.accepted.connect(dialog.accept)
+        btn_box.rejected.connect(dialog.reject)
+        layout.addWidget(btn_box)
+        
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            selected_date = calendar.selectedDate().toString("yyyy-MM-dd")
             
-            success = self.data_manager.export_to_excel(filepath)
+            # Kiểm tra xem ngày này có dữ liệu không
+            # Lấy data từ manager
+            if selected_date not in self.data_manager.data:
+                QMessageBox.warning(self.main_win, "Thông báo", f"Không có dữ liệu cho ngày {selected_date}")
+                return
+
+            # 2. Hiển thị dialog chọn nơi lưu
+            today_str = datetime.now().strftime('%Y-%m-%d')
+            default_filename = f"KetQua_{selected_date}.xlsx"
             
-            if success:
-                QMessageBox.information(
-                    self.main_win,
-                    "Thành công",
-                    f"Đã xuất file Excel thành công!\n\nĐường dẫn: {filepath}"
-                )
-            else:
-                QMessageBox.critical(
-                    self.main_win,
-                    "Lỗi",
-                    "Không thể xuất file Excel!\nVui lòng kiểm tra xem thư viện openpyxl đã được cài chưa.\n\nChạy: pip install openpyxl"
-                )
+            filepath, _ = QFileDialog.getSaveFileName(
+                self.main_win,
+                "Chọn nơi lưu file Excel",
+                default_filename,
+                "Excel Files (*.xlsx);;All Files (*)"
+            )
+            
+            if filepath:
+                # Đảm bảo có đuôi .xlsx
+                if not filepath.endswith('.xlsx'):
+                    filepath += '.xlsx'
+                
+                success = self.data_manager.export_to_excel(filepath, date_filter=selected_date)
+                
+                if success:
+                    QMessageBox.information(
+                        self.main_win,
+                        "Thành công",
+                        f"Đã xuất file Excel thành công cho ngày {selected_date}!\n\nĐường dẫn: {filepath}"
+                    )
+                else:
+                    QMessageBox.critical(
+                        self.main_win,
+                        "Lỗi",
+                        "Không thể xuất file Excel!"
+                    )
+        
+        # Kết thúc hàm
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
