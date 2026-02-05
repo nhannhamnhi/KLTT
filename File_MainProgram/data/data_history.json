@@ -197,6 +197,20 @@
       "passed": 1,
       "failed": 0,
       "result": "OK"
+    },
+    {
+      "time": "14:44:37",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG"
+    },
+    {
+      "time": "14:45:03",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
     }
   ]
 }

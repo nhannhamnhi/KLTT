@@ -157,12 +157,14 @@ class DataManager:
             # Ghi lại file sau khi dọn dẹp
             Thread(target=self._write_json, daemon=True).start()
 
-    def export_to_excel(self, filepath):
+    def export_to_excel(self, filepath, date_filter=None):
         """
         Xuất dữ liệu ra file Excel với merge cell cho cột Ngày
 
         Args:
             filepath: Đường dẫn file Excel để lưu
+            date_filter: Nếu là chuỗi 'YYYY-MM-DD', chỉ xuất ngày đó. 
+                        Nếu là None, xuất toàn bộ dữ liệu.
 
         Returns:
             bool: True nếu thành công, False nếu thất bại
@@ -206,8 +208,15 @@ class DataManager:
             count_ok = 0
             count_ng = 0
 
-            # Sắp xếp các ngày theo thứ tự
-            sorted_dates = sorted(self.data.keys())
+            # Lọc các ngày cần xuất
+            if date_filter:
+                if date_filter in self.data:
+                    sorted_dates = [date_filter]
+                else:
+                    sorted_dates = []
+            else:
+                # Sắp xếp các ngày theo thứ tự
+                sorted_dates = sorted(self.data.keys())
 
             for date_str in sorted_dates:
                 records = self.data[date_str]
@@ -219,27 +228,32 @@ class DataManager:
                 display_date = date_obj.strftime('%d/%m/%Y')
 
                 start_row = row_num
-                for rec in records:
-                    ws.cell(row=row_num, column=1, value=stt).alignment = header_alignment
-                    ws.cell(row=row_num, column=1).border = thin_border
+                for i, rec in enumerate(records):
+                    current_row = row_num
+                    ws.cell(row=current_row, column=1, value=stt).alignment = header_alignment
+                    ws.cell(row=current_row, column=1).border = thin_border
 
-                    ws.cell(row=row_num, column=2, value=display_date).alignment = header_alignment
-                    ws.cell(row=row_num, column=2).border = thin_border
+                    # Chỉ ghi ngày vào hàng đầu tiên của ngày đó
+                    if i == 0:
+                        ws.cell(row=current_row, column=2, value=display_date).alignment = header_alignment
+                        ws.cell(row=current_row, column=2).border = thin_border
+                    else:
+                        ws.cell(row=current_row, column=2).border = thin_border
 
-                    ws.cell(row=row_num, column=3, value=rec['time']).alignment = header_alignment
-                    ws.cell(row=row_num, column=3).border = thin_border
+                    ws.cell(row=current_row, column=3, value=rec['time']).alignment = header_alignment
+                    ws.cell(row=current_row, column=3).border = thin_border
 
-                    ws.cell(row=row_num, column=4, value=rec['total']).alignment = header_alignment
-                    ws.cell(row=row_num, column=4).border = thin_border
+                    ws.cell(row=current_row, column=4, value=rec['total']).alignment = header_alignment
+                    ws.cell(row=current_row, column=4).border = thin_border
 
-                    ws.cell(row=row_num, column=5, value=rec['passed']).alignment = header_alignment
-                    ws.cell(row=row_num, column=5).border = thin_border
+                    ws.cell(row=current_row, column=5, value=rec['passed']).alignment = header_alignment
+                    ws.cell(row=current_row, column=5).border = thin_border
 
-                    ws.cell(row=row_num, column=6, value=rec['failed']).alignment = header_alignment
-                    ws.cell(row=row_num, column=6).border = thin_border
+                    ws.cell(row=current_row, column=6, value=rec['failed']).alignment = header_alignment
+                    ws.cell(row=current_row, column=6).border = thin_border
 
-                    ws.cell(row=row_num, column=7, value=rec['result']).alignment = header_alignment
-                    ws.cell(row=row_num, column=7).border = thin_border
+                    ws.cell(row=current_row, column=7, value=rec['result']).alignment = header_alignment
+                    ws.cell(row=current_row, column=7).border = thin_border
 
                     # Đếm số lần kết quả OK/NG
                     if rec['result'] == 'OK':
@@ -255,7 +269,7 @@ class DataManager:
                 # Merge cell cột Ngày nếu có nhiều hơn 1 bản ghi trong ngày
                 if end_row > start_row:
                     ws.merge_cells(start_row=start_row, start_column=2, end_row=end_row, end_column=2)
-                    # Căn giữa ô đã merge
+                    # Căn trung tâm cho ô đã gộp
                     ws.cell(row=start_row, column=2).alignment = Alignment(horizontal='center', vertical='center')
 
             # Thêm hàng tổng hợp ở cuối
