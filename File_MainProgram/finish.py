@@ -24,8 +24,9 @@ from Class_AI import YOLO_Detector
 import cv2
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QMessageBox, QGraphicsScene
+from PyQt5.QtWidgets import QMessageBox, QGraphicsScene, QFileDialog
 from PyQt5.QtGui import QImage, QPixmap
+from datetime import datetime
 
 # Thêm đường dẫn thư mục 'File_QTtoPY' vào sys.path để có thể import các file GUI
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -37,6 +38,9 @@ sys.path.append(gui_dir)
 from Background import Ui_Background
 from Login import Ui_Login
 from Main import Ui_Main
+
+# Import module quản lý dữ liệu
+from data_manager import get_data_manager
 
 # ================================================================
 # LỚP XỬ LÝ LUỒNG CAMERA (CAMERA THREAD)
@@ -177,6 +181,34 @@ class Controller:
         # Kết nối các sự kiện nút bấm
         self.setup_connections()
 
+        # --- PHẦN MỚI: Quản lý dữ liệu và hiển thị ---
+        # Khởi tạo Data Manager (singleton)
+        self.data_manager = get_data_manager()
+
+        # Model cho QListView để hiển thị danh sách kết quả
+        self.data_model = QtCore.QStringListModel()
+        self.ui_main.Hienthidulieu.setModel(self.data_model)
+
+        # Load dữ liệu ngày hôm nay lên danh sách
+        self.update_data_list()
+
+        # Biến lưu trữ kết quả hiện tại để ghi mỗi 10 giây
+        self.current_total = 0
+        self.current_passed = 0
+        self.current_failed = 0
+        self.current_result = "WAIT"
+
+        # Timer cập nhật thời gian hiện tại lên dateTimeEdit (mỗi giây)
+        self.time_timer = QtCore.QTimer()
+        self.time_timer.timeout.connect(self.update_datetime)
+        self.time_timer.start(1000)  # 1 giây
+        self.update_datetime()  # Cập nhật ngay lập tức
+
+        # Timer ghi dữ liệu mỗi 10 giây
+        self.data_timer = QtCore.QTimer()
+        self.data_timer.timeout.connect(self.save_current_data)
+        self.data_timer.start(10000)  # 10 giây
+
     def setup_connections(self):
         # Khi nhấn nút btBatdau ở Background -> Hiện Login
         self.ui_background.btBatdau.clicked.connect(self.show_login)
@@ -202,6 +234,9 @@ class Controller:
 
         # Kết nối nút Reset hình ảnh
         self.ui_main.Resset_hinhanh.clicked.connect(self.reset_camera_params)
+
+        # Kết nối nút Xuất Excel
+        self.ui_main.btXuat.clicked.connect(self.export_excel)
 
     def show_background(self):
         self.background_win.show()
@@ -442,6 +477,12 @@ class Controller:
                 self.ui_main.hienthiKQ.setText("NG")
                 self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
 
+            # Lưu kết quả hiện tại để timer ghi sau
+            self.current_total = tong_so
+            self.current_passed = vien_dat
+            self.current_failed = vien_loi
+            self.current_result = "OK" if vien_dat == tong_so else "NG"
+
     def convert_cv_qt(self, cv_img):
         """Chuyển đổi hình ảnh từ OpenCV sang QPixmap"""
         rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
@@ -451,6 +492,68 @@ class Controller:
         
         # Không giới hạn kích thước ở đây để fitInView xử lý việc zoom full
         return QPixmap.fromImage(convert_to_Qt_format)
+
+    # --- CÁC HÀM MỚI CHO QUẢN LÝ DỮ LIỆU ---
+    def update_datetime(self):
+        """Cập nhật thời gian hiện tại lên widget dateTimeEdit"""
+        current_time = QtCore.QDateTime.currentDateTime()
+        self.ui_main.dateTimeEdit.setDateTime(current_time)
+
+    def save_current_data(self):
+        """Lưu dữ liệu hiện tại vào file JSON (được gọi mỗi 10 giây)"""
+        # Chỉ lưu khi có kết quả thực sự (không phải WAIT)
+        if self.current_result != "WAIT":
+            display_str = self.data_manager.save_record(
+                total=self.current_total,
+                passed=self.current_passed,
+                failed=self.current_failed,
+                result=self.current_result
+            )
+            print(f"[GHI DỮ LIỆU] {display_str}")
+            self.update_data_list()
+
+    def update_data_list(self):
+        """Cập nhật danh sách hiển thị từ dữ liệu ngày hôm nay"""
+        records = self.data_manager.get_today_records()
+        self.data_model.setStringList(records)
+        
+        # Tự động cuộn xuống dòng mới nhất
+        if records:
+            index = self.data_model.index(len(records) - 1)
+            self.ui_main.Hienthidulieu.scrollTo(index)
+
+    def export_excel(self):
+        """Xuất dữ liệu ra file Excel"""
+        # Hiển thị dialog để người dùng chọn nơi lưu
+        today_str = datetime.now().strftime('%Y-%m-%d')
+        default_filename = f"KetQua_{today_str}.xlsx"
+        
+        filepath, _ = QFileDialog.getSaveFileName(
+            self.main_win,
+            "Chọn nơi lưu file Excel",
+            default_filename,
+            "Excel Files (*.xlsx);;All Files (*)"
+        )
+        
+        if filepath:
+            # Đảm bảo có đuôi .xlsx
+            if not filepath.endswith('.xlsx'):
+                filepath += '.xlsx'
+            
+            success = self.data_manager.export_to_excel(filepath)
+            
+            if success:
+                QMessageBox.information(
+                    self.main_win,
+                    "Thành công",
+                    f"Đã xuất file Excel thành công!\n\nĐường dẫn: {filepath}"
+                )
+            else:
+                QMessageBox.critical(
+                    self.main_win,
+                    "Lỗi",
+                    "Không thể xuất file Excel!\nVui lòng kiểm tra xem thư viện openpyxl đã được cài chưa.\n\nChạy: pip install openpyxl"
+                )
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
