@@ -610,12 +610,7 @@ border-radius: 5px;</string>
      </item>
      <item>
       <property name="text">
-       <string>OpenVION</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Orther (.pt, .oxxn,....)</string>
+       <string>Custom (recommend-openVINO)</string>
       </property>
      </item>
     </widget>
