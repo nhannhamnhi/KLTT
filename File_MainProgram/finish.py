@@ -19,7 +19,7 @@ except Exception as e:
     print(f"Lưu ý: Không thể nạp DLL bổ sung cho torch: {e}")
 
 # Import AI Detector trước để nạp các DLL cần thiết
-from Class_AI import YOLO_Detector
+from Class_AI import YOLO_Detector, DEFAULT_MODEL_PATH
 
 import cv2
 import numpy as np
@@ -170,6 +170,11 @@ class Controller:
         print("Đang khởi tạo AI Model...")
         self.detector = YOLO_Detector()
         
+        # Thiết lập đường dẫn model mặc định và cập nhật UI ban đầu
+        self.default_model_path = DEFAULT_MODEL_PATH
+        self.ui_main.duongdanmodel.setPlainText(self.default_model_path)
+        QtCore.QTimer.singleShot(100, self.handle_model_selection_changed) # Delay nhỏ để UI kịp render rồi mới khóa nút
+        
         # Biến quản lý luồng camera
         self.thread_camera = None
 
@@ -244,6 +249,12 @@ class Controller:
         # Kết nối các nút mô phỏng cảm biến (Trigger và Continue)
         self.ui_main.btTrigger.clicked.connect(self.handle_trigger)
         self.ui_main.btContinue.clicked.connect(self.handle_continue)
+
+        # --- PHẦN MỚI: Kết nối các nút quản lý Model AI ---
+        self.ui_main.cbTaimodel.currentIndexChanged.connect(self.handle_model_selection_changed)
+        self.ui_main.btBrowser.clicked.connect(self.handle_browse_model)
+        self.ui_main.btTaimodel.clicked.connect(self.handle_load_model)
+        self.ui_main.btKhoiphuc.clicked.connect(self.handle_restore_model)
 
     def show_background(self):
         self.background_win.show()
@@ -535,6 +546,113 @@ class Controller:
             )
             print(f"[GHI DỮ LIỆU] {display_str}")
             self.update_data_list()
+
+    # --- CÁC HÀM XỬ LÝ MODEL AI ---
+    def handle_model_selection_changed(self):
+        """Xử lý khóa/mở các nút dựa trên lựa chọn loại model"""
+        lua_chon = self.ui_main.cbTaimodel.currentText()
+        
+        if lua_chon == "Default":
+            # Khóa các nút và ô nhập
+            self.ui_main.duongdanmodel.setEnabled(False)
+            self.ui_main.btBrowser.setEnabled(False)
+            self.ui_main.btTaimodel.setEnabled(False)
+            self.ui_main.btKhoiphuc.setEnabled(False)
+            # Đưa link về mặc định
+            self.ui_main.duongdanmodel.setPlainText(self.default_model_path)
+        elif "custom" in lua_chon.lower():
+            # Mở khóa cho chế độ Custom
+            self.ui_main.duongdanmodel.setEnabled(True)
+            self.ui_main.btBrowser.setEnabled(True)
+            self.ui_main.btTaimodel.setEnabled(True)
+            self.ui_main.btKhoiphuc.setEnabled(True)
+
+    def handle_browse_model(self):
+        """Duyệt file hoặc thư mục để chọn model"""
+        lua_chon = self.ui_main.cbTaimodel.currentText()
+        
+        if "custom" in lua_chon.lower():
+            # Chế độ custom mới: Cho phép chọn cả file (.pt, .onnx) và thư mục (OpenVINO)
+            # Đầu tiên hỏi người dùng muốn chọn file hay thư mục
+            msg = QMessageBox()
+            msg.setWindowTitle("Chọn loại model")
+            msg.setText("Bạn muốn tải file model (.pt, .onnx) hay thư mục model OpenVINO?")
+            btn_file = msg.addButton("Chọn File (.pt, .onnx)", QMessageBox.ActionRole)
+            btn_folder = msg.addButton("Chọn Thư mục (OpenVINO)", QMessageBox.ActionRole)
+            msg.addButton("Hủy", QMessageBox.RejectRole)
+            
+            msg.exec_()
+            
+            if msg.clickedButton() == btn_file:
+                file_path, _ = QFileDialog.getOpenFileName(
+                    self.main_win, "Chọn file Model AI", "", "AI Models (*.pt *.onnx);;All Files (*)"
+                )
+                if file_path:
+                    self.ui_main.duongdanmodel.setPlainText(file_path)
+            elif msg.clickedButton() == btn_folder:
+                dir_path = QFileDialog.getExistingDirectory(self.main_win, "Chọn thư mục Model OpenVINO")
+                if dir_path:
+                    self.ui_main.duongdanmodel.setPlainText(dir_path)
+
+    def handle_load_model(self):
+        """Kiểm tra định dạng và tải model lên hệ thống"""
+        path = self.ui_main.duongdanmodel.toPlainText().strip()
+        lua_chon = self.ui_main.cbTaimodel.currentText()
+        
+        if not path:
+            QMessageBox.warning(self.main_win, "Cảnh báo", "Vui lòng chọn đường dẫn model!")
+            return
+
+        # 1. Validation định dạng linh hoạt cho OpenVION-custom
+        if "custom" in lua_chon.lower():
+            is_valid = False
+            # Trường hợp là file
+            if os.path.isfile(path):
+                if path.lower().endswith('.pt') or path.lower().endswith('.onnx'):
+                    is_valid = True
+                else:
+                    QMessageBox.critical(self.main_win, "Lỗi định dạng", 
+                                       "Nếu là file, vui lòng chọn đúng định dạng .pt hoặc .onnx!")
+                    return
+            # Trường hợp là thư mục (OpenVINO)
+            elif os.path.isdir(path):
+                files = os.listdir(path)
+                if any(f.endswith('.xml') for f in files):
+                    is_valid = True
+                else:
+                    huong_dan = (
+                        "Thư mục không đúng cấu trúc OpenVINO!\n\n"
+                        "Yêu cầu: Thư mục phải chứa file .xml và .bin tương ứng."
+                    )
+                    QMessageBox.critical(self.main_win, "Lỗi cấu trúc", huong_dan)
+                    return
+            else:
+                QMessageBox.critical(self.main_win, "Lỗi", "Đường dẫn không tồn tại!")
+                return
+
+        # 2. Thực hiện tải model
+        try:
+            print(f"Đang tải model mới: {path}")
+            new_detector = YOLO_Detector(model_path=path)
+            
+            if new_detector.model is not None:
+                self.detector = new_detector
+                # Cập nhật detector cho luồng camera nếu đang chạy
+                if self.thread_camera is not None:
+                    self.thread_camera.detector = self.detector
+                
+                QMessageBox.information(self.main_win, "Thành công", f"Đã tải thành công model AI từ:\n{path}")
+            else:
+                QMessageBox.critical(self.main_win, "Lỗi", "Không thể nạp model. Vui lòng kiểm tra lại file!")
+        except Exception as e:
+            QMessageBox.critical(self.main_win, "Lỗi hệ thống", f"Phát sinh lỗi khi tải model: {e}")
+
+    def handle_restore_model(self):
+        """Khôi phục về cài đặt mặc định (Default)"""
+        # Đưa combobox về lựa chọn 'Default'
+        # Việc thay đổi index sẽ tự động kích hoạt handle_model_selection_changed
+        self.ui_main.cbTaimodel.setCurrentText("Default")
+        print("Đã khôi phục cài đặt model về mặc định.")
 
     def update_data_list(self):
         """Cập nhật danh sách hiển thị từ dữ liệu ngày hôm nay"""

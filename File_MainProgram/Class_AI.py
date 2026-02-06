@@ -17,12 +17,14 @@ except Exception:
 
 from ultralytics import YOLO
 
+# Đường dẫn model mặc định
+DEFAULT_MODEL_PATH = r"D:\KL_2025\KLTT\File_modelYOLO\model\yolov8-obb\yolov8_openvino_model"
+
 class YOLO_Detector:
     def __init__(self, model_path=None):
         # Tải mô hình YOLO (hỗ trợ cả .pt và folder OpenVINO)
         if model_path is None:
-            # Sử dụng model OpenVINO vừa được export lại chính xác
-            model_path = r"D:\KL_2025\KLTT\File_modelYOLO\model\yolov8-obb\yolov8_openvino_model"
+            model_path = DEFAULT_MODEL_PATH
             
         try:
             # Sử dụng task='obb' vì mô hình của bạn là loại Oriented Bounding Box
