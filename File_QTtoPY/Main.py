@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'd:\KL_2025\KLTT\File_QT\Main.ui'
+# Form implementation generated from reading ui file 'D:\KL_2025\KLTT\File_QT\Main.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -292,7 +292,6 @@ class Ui_Main(object):
         self.cbTaimodel.setStyleSheet("border: 2px solid #CEC2B1;\n"
 "border-radius: 5px;")
         self.cbTaimodel.setObjectName("cbTaimodel")
-        self.cbTaimodel.addItem("")
         self.cbTaimodel.addItem("")
         self.cbTaimodel.addItem("")
         self.btTaimodel = QtWidgets.QPushButton(self.groupBox_ketnoi)
@@ -706,8 +705,7 @@ class Ui_Main(object):
         self.btNgatketnoicamera.setText(_translate("Main", "Ngắt kết nối camera"))
         self.btNgatketnoiplc.setText(_translate("Main", "Ngắt kết nối plc"))
         self.cbTaimodel.setItemText(0, _translate("Main", "Default"))
-        self.cbTaimodel.setItemText(1, _translate("Main", "OpenVION"))
-        self.cbTaimodel.setItemText(2, _translate("Main", "Orther (.pt, .oxxn,....)"))
+        self.cbTaimodel.setItemText(1, _translate("Main", "Custom (recommend-openVINO)"))
         self.btTaimodel.setText(_translate("Main", "Tải model"))
         self.btKhoiphuc.setText(_translate("Main", "Khôi phục"))
         self.label_15.setText(_translate("Main", "Tải model"))
