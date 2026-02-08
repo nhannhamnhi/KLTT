@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 
 # Cho phép chạy nhiều thư viện OpenMP cùng lúc để tránh crash (thường gặp với torch/cv2)
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -49,7 +50,8 @@ from data_manager import get_data_manager
 class CameraThread(QtCore.QThread):
     # Signal gửi về 2 ảnh: Ảnh gốc và Ảnh đã xử lý (đều là numpy array)
     # Signal gửi về 2 ảnh: Ảnh gốc, Ảnh đã xử lý và danh sách nhãn (list)
-    change_pixmap_signal = QtCore.pyqtSignal(np.ndarray, np.ndarray, list)
+    # Signal gửi về 2 ảnh: Ảnh gốc, Ảnh đã xử lý, danh sách nhãn (list) và FPS (float)
+    change_pixmap_signal = QtCore.pyqtSignal(np.ndarray, np.ndarray, list, float)
     # Signal báo lỗi kết nối
     error_signal = QtCore.pyqtSignal(str)
 
@@ -68,6 +70,9 @@ class CameraThread(QtCore.QThread):
         
         # Cờ báo hiệu tạm dừng hình ảnh (đóng băng)
         self.is_paused = False
+        
+        # Biến tính FPS
+        self.prev_time = 0
 
     def set_brightness(self, val):
         self.brightness = val
@@ -121,7 +126,16 @@ class CameraThread(QtCore.QThread):
 
                 # Gửi cả 2 ảnh và danh sách nhãn về giao diện (chỉ gửi khi không bị pause)
                 if not self.is_paused:
-                    self.change_pixmap_signal.emit(cv_img, processed_img, labels)
+                    # Tính FPS
+                    curr_time = time.time()
+                    fps = 0
+                    if self.prev_time != 0:
+                        delta = curr_time - self.prev_time
+                        if delta > 0:
+                            fps = 1.0 / delta
+                    self.prev_time = curr_time
+                    
+                    self.change_pixmap_signal.emit(cv_img, processed_img, labels, fps)
             
             # Thêm một chút delay nhỏ để giảm tải CPU nếu cần (không bắt buộc)
             # self.msleep(10) 
@@ -200,6 +214,9 @@ class Controller:
 
         # Load dữ liệu ngày hôm nay lên danh sách
         self.update_data_list()
+        
+        # Khởi tạo Status Bar
+        self.init_statusbar()
 
         # Biến lưu trữ kết quả hiện tại để ghi mỗi 10 giây
         self.current_total = 0
@@ -326,6 +343,41 @@ class Controller:
             # Ngược lại thì vô hiệu hóa ô nhập và xóa nội dung
             self.ui_main.diachicamera.setEnabled(False)
 
+    def init_statusbar(self):
+        """Khởi tạo các widget trên thanh trạng thái (Status Bar)"""
+        # Kiểm tra xem giao diện có statusbar không (thường QMainWindow mặc định có)
+        if hasattr(self.ui_main, 'statusbar'):
+            # 1. Label Trạng thái hệ thống
+            self.lb_stt_system = QtWidgets.QLabel("Hệ thống: Sẵn sàng")
+            self.lb_stt_system.setStyleSheet("color: black; font-weight: bold; padding-right: 15px")
+            self.ui_main.statusbar.addWidget(self.lb_stt_system)
+            
+            # 2. Label Model đang dùng
+            model_name = os.path.basename(self.default_model_path) if self.default_model_path else "Default"
+            
+            # Lấy thông tin chi tiết (Detect/OBB - Format)
+            model_info = self.detector.get_model_info() if self.detector else ""
+            
+            self.lb_stt_model = QtWidgets.QLabel(f"Model: {model_name} [{model_info}]")
+            self.lb_stt_model.setStyleSheet("color: blue; padding-right: 15px")
+            self.ui_main.statusbar.addWidget(self.lb_stt_model)
+            
+            # 3. Label Camera Info
+            self.lb_stt_cam = QtWidgets.QLabel("Cam: Chưa kết nối")
+            self.lb_stt_cam.setStyleSheet("padding-right: 15px")
+            self.ui_main.statusbar.addWidget(self.lb_stt_cam)
+            
+            # 4. Label FPS
+            self.lb_stt_fps = QtWidgets.QLabel("FPS: --")
+            self.lb_stt_fps.setStyleSheet("color: red; font-weight: bold; padding-right: 15px")
+            self.ui_main.statusbar.addWidget(self.lb_stt_fps)
+            
+            # 5. Label Thời gian (Nằm về phía bên phải)
+            self.lb_stt_time = QtWidgets.QLabel("--:--:--")
+            self.ui_main.statusbar.addPermanentWidget(self.lb_stt_time)
+        else:
+            print("Lỗi: Không tìm thấy widget 'statusbar' trong Ui_Main!")
+
     def handle_camera_error(self, message):
         """Xử lý khi có lỗi từ luồng camera"""
         QMessageBox.critical(self.main_win, "Lỗi kết nối Camera", message)
@@ -369,7 +421,14 @@ class Controller:
         self.thread_camera.error_signal.connect(self.handle_camera_error)
         
         self.thread_camera.start()
+        self.thread_camera.start()
         print(f"Đang thử kết nối tới camera nguồn: {camera_source}")
+        
+        # Cập nhật status bar
+        if hasattr(self, 'lb_stt_system'):
+            self.lb_stt_system.setText("Hệ thống: 🟢 Đang chạy")
+        if hasattr(self, 'lb_stt_cam'):
+            self.lb_stt_cam.setText(f"Cam: {loai_camera}")
 
     def ngat_ket_noi_camera(self):
         """Hàm xử lý khi nhấn nút Ngắt kết nối camera"""
@@ -397,7 +456,14 @@ class Controller:
         
         # Reset lại transform (zoom/pan)
         self.ui_main.Anhgoc.resetTransform()
+        self.ui_main.Anhgoc.resetTransform()
         self.ui_main.Anhdaxuly.resetTransform()
+
+        # Cập nhật status bar
+        if hasattr(self, 'lb_stt_system'):
+            self.lb_stt_system.setText("Hệ thống: 🔴 Ngắt kết nối")
+        if hasattr(self, 'lb_stt_fps'):
+            self.lb_stt_fps.setText("FPS: --")
 
     def update_brightness(self):
         """Cập nhật độ sáng"""
@@ -437,7 +503,11 @@ class Controller:
             
             # 2. Lưu dữ liệu hiện tại ngay lập tức
             self.save_current_data()
+            self.save_current_data()
             print("[TRIGGER] Đã đóng băng camera và lưu dữ liệu.")
+            
+            if hasattr(self, 'lb_stt_system'):
+                self.lb_stt_system.setText("Hệ thống: ⚠️ Tạm dừng")
         else:
             QMessageBox.warning(self.main_win, "Thông báo", "Vui lòng kết nối Camera trước khi Trigger!")
 
@@ -445,10 +515,18 @@ class Controller:
         """Xử lý khi nhấn nút Continue: Tiếp tục luồng camera"""
         if self.thread_camera is not None and self.thread_camera.isRunning():
             self.thread_camera.is_paused = False
+            self.thread_camera.is_paused = False
             print("[CONTINUE] Camera đã hoạt động trở lại.")
+            
+            if hasattr(self, 'lb_stt_system'):
+                self.lb_stt_system.setText("Hệ thống: 🟢 Đang chạy")
 
-    def update_image(self, cv_img_goc, cv_img_xuly, labels):
+    def update_image(self, cv_img_goc, cv_img_xuly, labels, fps):
         """Cập nhật hình ảnh lên giao diện khi có frame mới"""
+        
+        # Cập nhật FPS lên status bar
+        if hasattr(self, 'lb_stt_fps'):
+            self.lb_stt_fps.setText(f"FPS: {fps:.1f}")
         
         # Chuyển đổi từ OpenCV (BGR) sang QImage (RGB)
         qt_img_goc = self.convert_cv_qt(cv_img_goc)
@@ -532,7 +610,9 @@ class Controller:
     # --- CÁC HÀM MỚI CHO QUẢN LÝ DỮ LIỆU ---
     def update_datetime(self):
         """Cập nhật thời gian nội bộ (có thể dùng để log hoặc hiển thị QLabel nếu cần)"""
-        pass
+        now_str = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
+        if hasattr(self, 'lb_stt_time'):
+            self.lb_stt_time.setText(now_str)
 
     def save_current_data(self):
         """Lưu dữ liệu hiện tại vào file JSON (được gọi mỗi 10 giây)"""
@@ -603,6 +683,11 @@ class Controller:
             QMessageBox.warning(self.main_win, "Cảnh báo", "Vui lòng chọn đường dẫn model!")
             return
 
+        model_name_hienthi = os.path.basename(path)
+        if hasattr(self, 'lb_stt_model'):
+             # Tạm thời cập nhật tên, chưa có info mới
+             self.lb_stt_model.setText(f"Model: {model_name_hienthi} [Loading...]")
+
         # 1. Validation định dạng linh hoạt cho OpenVION-custom
         if "custom" in lua_chon.lower():
             is_valid = False
@@ -642,6 +727,11 @@ class Controller:
                     self.thread_camera.detector = self.detector
                 
                 QMessageBox.information(self.main_win, "Thành công", f"Đã tải thành công model AI từ:\n{path}")
+                
+                # Cập nhật label status với đầy đủ info
+                if hasattr(self, 'lb_stt_model'):
+                    model_info = self.detector.get_model_info()
+                    self.lb_stt_model.setText(f"Model: {os.path.basename(path)} [{model_info}]")
             else:
                 QMessageBox.critical(self.main_win, "Lỗi", "Không thể nạp model. Vui lòng kiểm tra lại file!")
         except Exception as e:
@@ -652,7 +742,13 @@ class Controller:
         # Đưa combobox về lựa chọn 'Default'
         # Việc thay đổi index sẽ tự động kích hoạt handle_model_selection_changed
         self.ui_main.cbTaimodel.setCurrentText("Default")
+        self.ui_main.cbTaimodel.setCurrentText("Default")
         print("Đã khôi phục cài đặt model về mặc định.")
+        
+        if hasattr(self, 'lb_stt_model'):
+            # Lấy lại info của mặc định
+            model_info = self.detector.get_model_info() if self.detector else ""
+            self.lb_stt_model.setText(f"Model: Default [{model_info}]")
 
     def update_data_list(self):
         """Cập nhật danh sách hiển thị từ dữ liệu ngày hôm nay"""
