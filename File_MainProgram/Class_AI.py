@@ -25,6 +25,9 @@ class YOLO_Detector:
         # Tải mô hình YOLO (hỗ trợ cả .pt và folder OpenVINO)
         if model_path is None:
             model_path = DEFAULT_MODEL_PATH
+        
+        self.model_path_loaded = model_path
+
             
         try:
             # Sử dụng task='obb' vì mô hình của bạn là loại Oriented Bounding Box
@@ -79,7 +82,38 @@ class YOLO_Detector:
             return annotated_frame, detected_classes
             
         except Exception as e:
-            # Nếu bị lỗi trong lúc dự đoán (thường do OpenVINO runtime)
-            # In lỗi ra console thay vì làm crash toàn bộ giao diện
             print(f"Lỗi khi xử lý frame AI: {e}")
             return frame, []
+
+    def get_model_info(self):
+        """Trả về thông tin về loại task và định dạng model (VD: OBB - OpenVINO)"""
+        if self.model is None:
+            return "No Model"
+        
+        # 1. Xác định Task (Detect hay OBB)
+        try:
+            # Thuộc tính task thường có trong model object của ultralytics
+            task = self.model.task 
+            if task == 'obb':
+                task_str = "OBB"
+            elif task == 'detect':
+                task_str = "DETECT"
+            else:
+                task_str = task.upper()
+        except:
+            task_str = "UNKNOWN"
+
+        # 2. Xác định định dạng (Format) dựa vào đường dẫn file
+        format_str = "Unknown"
+        if hasattr(self, 'model_path_loaded'):
+            path_lower = self.model_path_loaded.lower()
+            if os.path.exists(self.model_path_loaded) and os.path.isdir(self.model_path_loaded):
+                format_str = "OpenVINO"
+            elif path_lower.endswith('.pt'):
+                format_str = ".pt"
+            elif path_lower.endswith('.onnx'):
+                format_str = "ONNX"
+            elif 'openvino' in path_lower: # Fallback check tên
+                format_str = "OpenVINO"
+        
+        return f"{task_str} - {format_str}"
