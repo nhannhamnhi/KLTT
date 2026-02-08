@@ -126,18 +126,18 @@ class Ui_Main(object):
         self.cbKetnoicamera.addItem("")
         self.cbKetnoicamera.addItem("")
         self.cbKetnoicamera.addItem("")
-        self.Idplc = QtWidgets.QTextEdit(self.groupBox_ketnoi)
-        self.Idplc.setGeometry(QtCore.QRect(130, 400, 371, 31))
-        self.Idplc.setAcceptDrops(True)
-        self.Idplc.setStyleSheet("QTextEdit{\n"
+        self.Iplc = QtWidgets.QTextEdit(self.groupBox_ketnoi)
+        self.Iplc.setGeometry(QtCore.QRect(130, 400, 371, 31))
+        self.Iplc.setAcceptDrops(True)
+        self.Iplc.setStyleSheet("QTextEdit{\n"
 "border: 2px solid #CEC2B1;\n"
 "    border-radius: 5px;\n"
 "}")
-        self.Idplc.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.Idplc.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.Idplc.setUndoRedoEnabled(True)
-        self.Idplc.setAcceptRichText(True)
-        self.Idplc.setObjectName("Idplc")
+        self.Iplc.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.Iplc.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.Iplc.setUndoRedoEnabled(True)
+        self.Iplc.setAcceptRichText(True)
+        self.Iplc.setObjectName("Iplc")
         self.label_11 = QtWidgets.QLabel(self.groupBox_ketnoi)
         self.label_11.setGeometry(QtCore.QRect(50, 400, 71, 31))
         font = QtGui.QFont()
