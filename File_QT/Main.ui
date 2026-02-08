@@ -2,12 +2,15 @@
 <ui version="4.0">
  <class>Main</class>
  <widget class="QMainWindow" name="Main">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1932</width>
-    <height>1003</height>
+    <width>1918</width>
+    <height>1029</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -266,7 +269,7 @@ border-radius: 5px;</string>
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>350</y>
+       <y>390</y>
        <width>221</width>
        <height>31</height>
       </rect>
@@ -297,7 +300,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>350</y>
+       <y>390</y>
        <width>71</width>
        <height>31</height>
       </rect>
@@ -320,7 +323,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>70</x>
-       <y>390</y>
+       <y>430</y>
        <width>41</width>
        <height>31</height>
       </rect>
@@ -343,7 +346,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>240</x>
-       <y>390</y>
+       <y>430</y>
        <width>31</width>
        <height>31</height>
       </rect>
@@ -408,7 +411,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>370</x>
-       <y>350</y>
+       <y>390</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -521,7 +524,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>370</x>
-       <y>430</y>
+       <y>470</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -739,7 +742,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>390</y>
+       <y>430</y>
        <width>71</width>
        <height>31</height>
       </rect>
@@ -758,7 +761,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>280</x>
-       <y>390</y>
+       <y>430</y>
        <width>71</width>
        <height>31</height>
       </rect>
@@ -777,7 +780,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>70</x>
-       <y>440</y>
+       <y>480</y>
        <width>41</width>
        <height>31</height>
       </rect>
@@ -800,7 +803,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>230</x>
-       <y>440</y>
+       <y>480</y>
        <width>41</width>
        <height>31</height>
       </rect>
@@ -823,7 +826,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>440</y>
+       <y>480</y>
        <width>71</width>
        <height>31</height>
       </rect>
@@ -839,7 +842,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>280</x>
-       <y>440</y>
+       <y>480</y>
        <width>71</width>
        <height>31</height>
       </rect>
@@ -851,12 +854,70 @@ border: 2px solid #CEC2B1;
 }</string>
      </property>
     </widget>
+    <widget class="QComboBox" name="CPU_PLC">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>350</y>
+       <width>221</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 2px solid #CEC2B1;
+border-radius: 5px;
+</string>
+     </property>
+     <item>
+      <property name="text">
+       <string>S7-1500</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>S7-1200</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>S7-400</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>S7-300</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="label_20">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>350</y>
+       <width>71</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>CPU_PLC</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_hienthidl">
     <property name="geometry">
      <rect>
       <x>1140</x>
-      <y>560</y>
+      <y>550</y>
       <width>771</width>
       <height>421</height>
      </rect>
