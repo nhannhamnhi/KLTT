@@ -198,9 +198,6 @@ class Controller:
         self.ui_main.Slider_Dosang.setValue(0)
         self.ui_main.Slider_baohoa.setValue(0)
 
-        # Vô hiệu hóa ô nhập địa chỉ camera lúc mới khởi động
-        self.ui_main.diachicamera.setEnabled(False)
-
         # Kết nối các sự kiện nút bấm
         self.setup_connections()
 
@@ -333,15 +330,8 @@ class Controller:
             self.ui_login.matkhau.setFocus() # Đưa con trỏ chuột vào ô mật khẩu
 
     def on_camera_selection_changed(self):
-        """Xử lý khi thay đổi lựa chọn loại camera trong combobox"""
-        loai_camera = self.ui_main.cbKetnoicamera.currentText()
-        if loai_camera == "Camera_custom":
-            # Nếu là camera tùy chỉnh thì cho phép người dùng nhập địa chỉ
-            self.ui_main.diachicamera.setEnabled(True)
-            self.ui_main.diachicamera.setFocus()
-        else:
-            # Ngược lại thì vô hiệu hóa ô nhập và xóa nội dung
-            self.ui_main.diachicamera.setEnabled(False)
+        """Xử lý khi thay đổi lựa chọn loại camera trong combobox (nếu cần thêm logic gì khác)"""
+        pass
 
     def init_statusbar(self):
         """Khởi tạo các widget trên thanh trạng thái (Status Bar)"""
@@ -397,23 +387,6 @@ class Controller:
             camera_source = 0
         elif loai_camera == "Camera_USB":
             camera_source = 1 # Webcam rời thường có ID là 1
-        elif loai_camera == "Camera_custom":
-            # Lấy nội dung từ ô nhập địa chỉ và làm sạch chuỗi
-            raw_source = self.ui_main.diachicamera.toPlainText().strip()
-            
-            # Xóa các ký tự ngoặc kép nếu người dùng lỡ dán vào
-            raw_source = raw_source.replace('"', '').replace("'", "")
-            
-            if not raw_source:
-                QMessageBox.warning(self.main_win, "Cảnh báo", "Vui lòng nhập địa chỉ camera hoặc ID chuyên biệt!")
-                return
-            
-            # Thử chuyển đổi sang số nguyên nếu người dùng nhập ID camera (0, 1, 2...)
-            try:
-                camera_source = int(raw_source)
-            except ValueError:
-                # Nếu không phải số, là link RTSP hoặc link Droidcam (http://...)
-                camera_source = raw_source
 
         # Khởi tạo và kết nối các signal
         self.thread_camera = CameraThread(detector=self.detector, camera_source=camera_source)
