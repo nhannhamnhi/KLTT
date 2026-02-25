@@ -187,7 +187,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>320</y>
+       <y>300</y>
        <width>81</width>
        <height>31</height>
       </rect>
@@ -210,7 +210,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>210</y>
+       <y>200</y>
        <width>111</width>
        <height>31</height>
       </rect>
@@ -233,8 +233,8 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>210</y>
-       <width>221</width>
+       <y>200</y>
+       <width>281</width>
        <height>31</height>
       </rect>
      </property>
@@ -259,17 +259,12 @@ border-radius: 5px;</string>
        <string>Camera_USB</string>
       </property>
      </item>
-     <item>
-      <property name="text">
-       <string>Camera_custom</string>
-      </property>
-     </item>
     </widget>
     <widget class="QTextEdit" name="Ipplc">
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>390</y>
+       <y>370</y>
        <width>221</width>
        <height>31</height>
       </rect>
@@ -300,7 +295,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>390</y>
+       <y>370</y>
        <width>71</width>
        <height>31</height>
       </rect>
@@ -323,7 +318,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>70</x>
-       <y>430</y>
+       <y>410</y>
        <width>41</width>
        <height>31</height>
       </rect>
@@ -346,7 +341,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>240</x>
-       <y>430</y>
+       <y>410</y>
        <width>31</width>
        <height>31</height>
       </rect>
@@ -365,53 +360,11 @@ border: 2px solid #CEC2B1;
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="label_14">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>260</y>
-       <width>91</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Địa chỉ Camera</string>
-     </property>
-    </widget>
-    <widget class="QTextEdit" name="diachicamera">
-     <property name="geometry">
-      <rect>
-       <x>130</x>
-       <y>260</y>
-       <width>221</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QTextEdit{
- border: 2px solid #CEC2B1;
-	border-radius: 5px;
-}</string>
-     </property>
-     <property name="verticalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOff</enum>
-     </property>
-     <property name="horizontalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOff</enum>
-     </property>
-    </widget>
     <widget class="QPushButton" name="btKetnoiplc">
      <property name="geometry">
       <rect>
        <x>370</x>
-       <y>390</y>
+       <y>370</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -452,8 +405,8 @@ QPushButton:pressed {
     <widget class="QPushButton" name="btKetnoicamera">
      <property name="geometry">
       <rect>
-       <x>370</x>
-       <y>200</y>
+       <x>130</x>
+       <y>240</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -489,8 +442,8 @@ QPushButton:pressed {
     <widget class="QPushButton" name="btNgatketnoicamera">
      <property name="geometry">
       <rect>
-       <x>370</x>
-       <y>260</y>
+       <x>280</x>
+       <y>240</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -524,7 +477,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>370</x>
-       <y>470</y>
+       <y>450</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -683,7 +636,7 @@ QPushButton:pressed {
       <rect>
        <x>10</x>
        <y>60</y>
-       <width>111</width>
+       <width>71</width>
        <height>31</height>
       </rect>
      </property>
@@ -742,7 +695,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>430</y>
+       <y>410</y>
        <width>71</width>
        <height>31</height>
       </rect>
@@ -761,7 +714,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>280</x>
-       <y>430</y>
+       <y>410</y>
        <width>71</width>
        <height>31</height>
       </rect>
@@ -780,7 +733,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>70</x>
-       <y>480</y>
+       <y>460</y>
        <width>41</width>
        <height>31</height>
       </rect>
@@ -803,7 +756,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>230</x>
-       <y>480</y>
+       <y>460</y>
        <width>41</width>
        <height>31</height>
       </rect>
@@ -826,7 +779,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>480</y>
+       <y>460</y>
        <width>71</width>
        <height>31</height>
       </rect>
@@ -842,7 +795,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>280</x>
-       <y>480</y>
+       <y>460</y>
        <width>71</width>
        <height>31</height>
       </rect>
@@ -858,7 +811,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>350</y>
+       <y>330</y>
        <width>221</width>
        <height>31</height>
       </rect>
@@ -893,7 +846,7 @@ border-radius: 5px;
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>350</y>
+       <y>330</y>
        <width>71</width>
        <height>31</height>
       </rect>
