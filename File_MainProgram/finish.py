@@ -284,8 +284,8 @@ class Controller:
         # VỊ TRÍ THAY ĐỔI TÊN ĐĂNG NHẬP VÀ MẬT KHẨU Ở ĐÂY
         # Bạn có thể thay đổi 'admin' và '123456' bằng thông tin bạn muốn
         # ================================================================
-        USER_SETUP = "ad"
-        PASS_SETUP = "1"
+        USER_SETUP = "admin"
+        PASS_SETUP = "123"
         # ================================================================
 
         if username == USER_SETUP and password == PASS_SETUP:
