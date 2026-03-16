@@ -220,6 +220,9 @@ class Controller:
         self.current_failed = 0
         self.current_result = "WAIT"
 
+        # Số ô khuôn chuẩn của vỉ thuốc (hằng số vật lý — thay đổi ở đây nếu đổi khuôn)
+        self.SO_O_KHUON = 6
+
         # Timer cập nhật thời gian nội bộ
         self.time_timer = QtCore.QTimer()
         self.time_timer.timeout.connect(self.update_datetime)
@@ -513,52 +516,70 @@ class Controller:
         #     + Nếu TẤT CẢ là 'full' -> OK (Nền xanh)
         #     + Nếu chỉ cần có 1 cái 'partial' hoặc 'empty' -> NG (Nền đỏ)
         
-        color_wait = "background-color: white; color: black; border: 2px solid #47A3A7; border-radius: 8px;"
-        color_ok = "background-color: #349d00; color: white; border: 2px solid #47A3A7; border-radius: 8px;"
-        color_ng = "background-color: red; color: white; border: 2px solid #47A3A7; border-radius: 8px;"
+        # --- 5 MÀU TƯƠNG ỨNG 5 TRẠNG THÁI ---
+        _border       = "border: 2px solid #47A3A7; border-radius: 8px;"
+        color_wait    = f"background-color: white;   color: black; {_border}"
+        color_missing = f"background-color: #FF8C00; color: white; {_border}"
+        color_ok      = f"background-color: #349d00; color: white; {_border}"
+        color_ng_l    = f"background-color: #FFC300; color: black; {_border}"
+        color_ng_h    = f"background-color: #CC0000; color: white; {_border}"
 
-        if not labels:
-            # Không phát hiện vật gì -> WAIT
+        # --- ĐẾM SỐ LƯỢNG ---
+        tong_so  = len(labels)
+        vien_dat = sum(1 for lb in labels if lb.strip().lower() == 'full')
+        vien_loi = tong_so - vien_dat
+
+        # Cập nhật ô đếm (luôn cập nhật, WAIT sẽ hiển thị 0)
+        self.ui_main.Tongsovien.setText(str(tong_so))
+        self.ui_main.Viendat.setText(str(vien_dat))
+        self.ui_main.Vienloi.setText(str(vien_loi))
+
+        # =============================================================
+        # LOGIC PHÂN LOẠI 5 TRẠNG THÁI
+        # =============================================================
+        if tong_so == 0:
+            # WAIT: Chưa phát hiện vỉ nào trong khung hình
+            ket_qua = "WAIT"
             self.ui_main.hienthiKQ.setStyleSheet(color_wait)
             self.ui_main.hienthiKQ.setText("WAIT")
-            self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
-            
-            # Reset các ô đếm về 0 khi không có vật
-            self.ui_main.Tongsovien.setText("0")
-            self.ui_main.Viendat.setText("0")
-            self.ui_main.Vienloi.setText("0")
-        else:
-            # --- ĐẾM SỐ LƯỢNG ---
-            tong_so = len(labels)
-            vien_dat = 0
-            for label in labels:
-                if label.strip().lower() == 'full':
-                    vien_dat += 1
-            
-            vien_loi = tong_so - vien_dat
-            
-            # Hiển thị lên các ô đếm
-            self.ui_main.Tongsovien.setText(str(tong_so))
-            self.ui_main.Viendat.setText(str(vien_dat))
-            self.ui_main.Vienloi.setText(str(vien_loi))
 
-            # --- LOGIC OK/NG ---
-            # 'OK' chỉ khi TẤT CẢ các vật detect được là 'Full'
-            if vien_dat == tong_so:
+        elif tong_so < self.SO_O_KHUON:
+            # MISSING: Phát hiện ít hơn số ô khuôn chuẩn (6)
+            # → Vỉ chưa vào đúng vị trí hoặc thiếu viên ngay từ đầu
+            ket_qua = "MISSING"
+            self.ui_main.hienthiKQ.setStyleSheet(color_missing)
+            self.ui_main.hienthiKQ.setText("MISSING")
+
+        else:
+            # detect >= SO_O_KHUON: Đủ số ô → đánh giá chất lượng
+            # Chỉ tính trên SO_O_KHUON ô chuẩn (tránh sai lệch khi over-detect nhẹ)
+            full_chuan = min(vien_dat, self.SO_O_KHUON)
+
+            if full_chuan == self.SO_O_KHUON:
+                # OK: Tất cả 6 ô đều full, đạt chuẩn hoàn toàn
+                ket_qua = "OK"
                 self.ui_main.hienthiKQ.setStyleSheet(color_ok)
                 self.ui_main.hienthiKQ.setText("OK")
-                self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
-            else:
-                # Bất kỳ trường hợp nào khác (có ít nhất 1 viên không phải 'Full') -> NG
-                self.ui_main.hienthiKQ.setStyleSheet(color_ng)
-                self.ui_main.hienthiKQ.setText("NG")
-                self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
 
-            # Lưu kết quả hiện tại để timer ghi sau
-            self.current_total = tong_so
-            self.current_passed = vien_dat
-            self.current_failed = vien_loi
-            self.current_result = "OK" if vien_dat == tong_so else "NG"
+            elif full_chuan > self.SO_O_KHUON // 2:
+                # NG_L: Hơn 50% đạt (>3/6) → lỗi nhẹ, có thể bổ sung thủ công
+                ket_qua = "NG_L"
+                self.ui_main.hienthiKQ.setStyleSheet(color_ng_l)
+                self.ui_main.hienthiKQ.setText("NG_L")
+
+            else:
+                # NG_H: ≤50% đạt (≤3/6) → lỗi nặng, loại bỏ toàn bộ vỉ
+                ket_qua = "NG_H"
+                self.ui_main.hienthiKQ.setStyleSheet(color_ng_h)
+                self.ui_main.hienthiKQ.setText("NG_H")
+
+        self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
+
+        # Lưu kết quả hiện tại (dùng khi Trigger để ghi dữ liệu)
+        self.current_total  = tong_so
+        self.current_passed = vien_dat
+        self.current_failed = vien_loi
+        self.current_result = ket_qua
 
     def convert_cv_qt(self, cv_img):
         """Chuyển đổi hình ảnh từ OpenCV sang QPixmap"""
