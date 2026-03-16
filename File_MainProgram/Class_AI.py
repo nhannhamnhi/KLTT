@@ -75,8 +75,8 @@ class YOLO_Detector:
                     detected_classes = [names[int(cls_id)] for cls_id in cls_indices]
 
             # Lấy ảnh kết quả (annotated frame)
-            # line_width=1: Giảm độ dày nét vẽ khung để nhìn thanh thoát hơn
-            annotated_frame = results[0].plot(line_width=2)
+            # line_width=2: Giảm độ dày nét vẽ khung để nhìn thanh thoát hơn
+            annotated_frame = results[0].plot(line_width=2, conf=False)
             
             # Trả về cả ảnh và danh sách nhãn
             return annotated_frame, detected_classes
