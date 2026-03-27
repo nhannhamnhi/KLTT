@@ -43,6 +43,10 @@ from Main import Ui_Main
 # Import module quản lý dữ liệu
 from data_manager import get_data_manager
 
+# Import module quản lý kết nối PLC
+import re
+from Class_dataplc import PLCConnector, PLCPollingThread
+
 # ================================================================
 # LỚP XỬ LÝ LUỒNG CAMERA (CAMERA THREAD)
 # Giúp việc đọc camera và XỬ LÝ AI không làm treo giao diện chính
@@ -191,6 +195,17 @@ class Controller:
         # Biến quản lý luồng camera
         self.thread_camera = None
 
+        # --- PHẦN MỚI: Khởi tạo kết nối PLC ---
+        self.plc = PLCConnector()
+        self.plc_polling_thread = None
+
+        # Thiết lập giá trị mặc định cho các widget PLC
+        self.ui_main.Ipplc.setPlainText("192.168.0.1")
+        self.ui_main.Rackplc.setRange(0, 7)
+        self.ui_main.Slotplc.setRange(0, 31)
+        self.ui_main.Rackplc.setValue(0)
+        self.ui_main.Slotplc.setValue(1)
+
         # Thiết lập phạm vi và giá trị mặc định cho các Slider (-100 đến 100, mốc 0 ở giữa)
         self.ui_main.Slider_Dosang.setRange(-100, 100)
         self.ui_main.Slider_baohoa.setRange(-100, 100)
@@ -272,6 +287,11 @@ class Controller:
         self.ui_main.btTaimodel.clicked.connect(self.handle_load_model)
         self.ui_main.btKhoiphuc.clicked.connect(self.handle_restore_model)
 
+        # --- PHẦN MỚI: Kết nối các nút và sự kiện PLC ---
+        self.ui_main.btKetnoiplc.clicked.connect(self.ket_noi_plc)
+        self.ui_main.btNgatketnoiplc.clicked.connect(self.ngat_ket_noi_plc)
+        self.ui_main.CPU_PLC.currentIndexChanged.connect(self.on_cpu_plc_changed)
+
     def show_background(self):
         self.background_win.show()
 
@@ -335,6 +355,143 @@ class Controller:
         """Xử lý khi thay đổi lựa chọn loại camera trong combobox (nếu cần thêm logic gì khác)"""
         pass
 
+    # ================================================================
+    # CÁC HÀM XỬ LÝ KẾT NỐI PLC
+    # ================================================================
+    def on_cpu_plc_changed(self):
+        """Auto-fill Rack/Slot khi thay đổi lựa chọn CPU PLC."""
+        cpu = self.ui_main.CPU_PLC.currentText()
+        # Mapping CPU → (rack, slot) theo chuẩn Siemens
+        cpu_defaults = {
+            "S7-1200": (0, 1),
+            "S7-1500": (0, 1),
+            "S7-300":  (0, 2),
+            "S7-400":  (0, 3),
+        }
+        rack, slot = cpu_defaults.get(cpu, (0, 1))
+        self.ui_main.Rackplc.setValue(rack)
+        self.ui_main.Slotplc.setValue(slot)
+
+    def ket_noi_plc(self):
+        """Xử lý khi nhấn nút Kết nối PLC."""
+        # 1. Lấy thông tin từ GUI
+        ip = self.ui_main.Ipplc.toPlainText().strip()
+        rack = self.ui_main.Rackplc.value()
+        slot = self.ui_main.Slotplc.value()
+
+        # 2. Validate IP — kiểm tra format IPv4
+        if not ip:
+            QMessageBox.warning(self.main_win, "Cảnh báo", "Vui lòng nhập địa chỉ IP của PLC!")
+            return
+
+        # Regex kiểm tra IPv4 hợp lệ (VD: 192.168.0.1)
+        ip_pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
+        if not re.match(ip_pattern, ip):
+            QMessageBox.warning(
+                self.main_win, "Lỗi IP",
+                f"Địa chỉ IP không hợp lệ: {ip}\n\n"
+                "Định dạng đúng: xxx.xxx.xxx.xxx\n"
+                "Ví dụ: 192.168.0.1"
+            )
+            return
+
+        # Kiểm tra từng octet (0–255)
+        octets = ip.split('.')
+        for octet in octets:
+            if int(octet) > 255:
+                QMessageBox.warning(
+                    self.main_win, "Lỗi IP",
+                    f"Địa chỉ IP không hợp lệ: {ip}\n"
+                    f"Giá trị '{octet}' vượt quá 255."
+                )
+                return
+
+        # 3. Ngắt kết nối cũ nếu đang có
+        if self.plc.is_connected:
+            self.ngat_ket_noi_plc()
+
+        # 4. Thực hiện kết nối
+        print(f"[PLC GUI] Đang kết nối tới {ip} (rack={rack}, slot={slot})...")
+        success = self.plc.connect(ip, rack, slot)
+
+        if success:
+            QMessageBox.information(
+                self.main_win, "Thành công",
+                f"✅ Đã kết nối PLC thành công!\n\n"
+                f"IP: {ip}\n"
+                f"CPU: {self.ui_main.CPU_PLC.currentText()}\n"
+                f"Rack: {rack} | Slot: {slot}"
+            )
+            # Cập nhật status bar
+            if hasattr(self, 'lb_stt_plc'):
+                self.lb_stt_plc.setText(f"PLC: ✅ {ip}")
+                self.lb_stt_plc.setStyleSheet("color: green; font-weight: bold; padding-right: 15px")
+
+            # Khởi động luồng polling đọc DB_PUT
+            self.plc_polling_thread = PLCPollingThread(self.plc, poll_interval_ms=200)
+            self.plc_polling_thread.plc_status_changed.connect(self.on_plc_status_changed)
+            self.plc_polling_thread.plc_connection_lost.connect(self.on_plc_connection_lost)
+            self.plc_polling_thread.start()
+        else:
+            QMessageBox.critical(
+                self.main_win, "Lỗi kết nối PLC",
+                f"❌ Không thể kết nối tới PLC!\n\n"
+                f"IP: {ip} | Rack: {rack} | Slot: {slot}\n\n"
+                "📋 Checklist kiểm tra:\n"
+                "  1. PLC đã bật nguồn và ở trạng thái RUN?\n"
+                "  2. IP PLC và PC có cùng subnet?\n"
+                "  3. Đã bật PUT/GET trong TIA Portal?\n"
+                "  4. Nếu dùng PLCSim → đã mở NetToPLCSim?"
+            )
+
+    def ngat_ket_noi_plc(self):
+        """Xử lý khi nhấn nút Ngắt kết nối PLC."""
+        # 1. Dừng luồng polling trước
+        if self.plc_polling_thread is not None:
+            self.plc_polling_thread.stop()
+            self.plc_polling_thread = None
+
+        # 2. Ngắt kết nối PLC
+        self.plc.disconnect()
+
+        # 3. Cập nhật status bar
+        if hasattr(self, 'lb_stt_plc'):
+            self.lb_stt_plc.setText("PLC: ❌ Chưa kết nối")
+            self.lb_stt_plc.setStyleSheet("color: gray; padding-right: 15px")
+        if hasattr(self, 'lb_stt_mode'):
+            self.lb_stt_mode.setText("--")
+            self.lb_stt_mode.setStyleSheet("font-weight: bold; padding-right: 15px")
+        if hasattr(self, 'lb_stt_sensors'):
+            self.lb_stt_sensors.setText("S0:⚫ S1:⚫ S2:⚫")
+
+    def on_plc_status_changed(self, status):
+        """Slot nhận signal từ PLCPollingThread khi trạng thái PLC thay đổi."""
+        # Cập nhật chế độ Manual/Auto
+        if hasattr(self, 'lb_stt_mode'):
+            if status["mode"]:
+                self.lb_stt_mode.setText("🟠 AUTO")
+                self.lb_stt_mode.setStyleSheet("color: #FF8C00; font-weight: bold; padding-right: 15px")
+            else:
+                self.lb_stt_mode.setText("🔵 MANUAL")
+                self.lb_stt_mode.setStyleSheet("color: #0078D7; font-weight: bold; padding-right: 15px")
+
+        # Cập nhật trạng thái sensor (dùng emoji đèn LED)
+        if hasattr(self, 'lb_stt_sensors'):
+            s0 = "🟢" if status["trigger_req"] else "⚫"
+            s1 = "🟢" if status["sensor1"] else "⚫"
+            s2 = "🟢" if status["sensor2"] else "⚫"
+            self.lb_stt_sensors.setText(f"S0:{s0} S1:{s1} S2:{s2}")
+
+    def on_plc_connection_lost(self):
+        """Slot nhận signal khi mất kết nối PLC."""
+        if hasattr(self, 'lb_stt_plc'):
+            self.lb_stt_plc.setText("PLC: ⚠️ Mất kết nối")
+            self.lb_stt_plc.setStyleSheet("color: red; font-weight: bold; padding-right: 15px")
+        if hasattr(self, 'lb_stt_mode'):
+            self.lb_stt_mode.setText("--")
+        if hasattr(self, 'lb_stt_sensors'):
+            self.lb_stt_sensors.setText("S0:⚫ S1:⚫ S2:⚫")
+
     def init_statusbar(self):
         """Khởi tạo các widget trên thanh trạng thái (Status Bar)"""
         # Kiểm tra xem giao diện có statusbar không (thường QMainWindow mặc định có)
@@ -358,8 +515,23 @@ class Controller:
             self.lb_stt_fps = QtWidgets.QLabel("FPS: --")
             self.lb_stt_fps.setStyleSheet("color: red; font-weight: bold; padding-right: 15px")
             self.ui_main.statusbar.addWidget(self.lb_stt_fps)
+
+            # 5. Label trạng thái PLC
+            self.lb_stt_plc = QtWidgets.QLabel("PLC: ❌ Chưa kết nối")
+            self.lb_stt_plc.setStyleSheet("color: gray; padding-right: 15px")
+            self.ui_main.statusbar.addWidget(self.lb_stt_plc)
+
+            # 6. Label chế độ Manual/Auto
+            self.lb_stt_mode = QtWidgets.QLabel("--")
+            self.lb_stt_mode.setStyleSheet("font-weight: bold; padding-right: 15px")
+            self.ui_main.statusbar.addWidget(self.lb_stt_mode)
+
+            # 7. Label trạng thái Sensor (S0 = TriggerReq, S1, S2)
+            self.lb_stt_sensors = QtWidgets.QLabel("S0:⚫ S1:⚫ S2:⚫")
+            self.lb_stt_sensors.setStyleSheet("padding-right: 15px")
+            self.ui_main.statusbar.addWidget(self.lb_stt_sensors)
             
-            # 5. Label Thời gian (Nằm về phía bên phải)
+            # 8. Label Thời gian (Nằm về phía bên phải)
             self.lb_stt_time = QtWidgets.QLabel("--:--:--")
             self.ui_main.statusbar.addPermanentWidget(self.lb_stt_time)
         else:
