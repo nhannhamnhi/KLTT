@@ -252,6 +252,21 @@ class Controller:
         # self.data_timer.timeout.connect(self.save_current_data)
         # self.data_timer.start(10000)
 
+        # --- PHẦN MỚI: Khởi tạo trạng thái chế độ Auto/Manual ---
+        self.current_mode = None  # None = chưa chọn, "AUTO" hoặc "MANUAL"
+
+        # Toggle state cho các nút điều khiển Manual
+        self.conveyor_state = False
+        self.cylinder1_state = False
+        self.cylinder2_state = False
+
+        # Ẩn các nút điều khiển Manual khi khởi động (chỉ hiện khi chọn Manual)
+        self.ui_main.btTrigger.hide()
+        self.ui_main.btContinue.hide()
+        self.ui_main.btConveyor.hide()
+        self.ui_main.btCylinder1.hide()
+        self.ui_main.btCylinder2.hide()
+
     def setup_connections(self):
         # Khi nhấn nút btBatdau ở Background -> Hiện Login
         self.ui_background.btBatdau.clicked.connect(self.show_login)
@@ -295,6 +310,15 @@ class Controller:
         self.ui_main.btKetnoiplc.clicked.connect(self.ket_noi_plc)
         self.ui_main.btNgatketnoiplc.clicked.connect(self.ngat_ket_noi_plc)
         self.ui_main.CPU_PLC.currentIndexChanged.connect(self.on_cpu_plc_changed)
+
+        # --- PHẦN MỚI: Kết nối các nút chọn chế độ Auto/Manual ---
+        self.ui_main.btAuto.clicked.connect(self.handle_mode_auto)
+        self.ui_main.btManual.clicked.connect(self.handle_mode_manual)
+
+        # --- PHẦN MỚI: Kết nối các nút điều khiển Manual ---
+        self.ui_main.btConveyor.clicked.connect(self.handle_conveyor)
+        self.ui_main.btCylinder1.clicked.connect(self.handle_cylinder1)
+        self.ui_main.btCylinder2.clicked.connect(self.handle_cylinder2)
 
     def show_background(self):
         self.background_win.show()
@@ -374,6 +398,167 @@ class Controller:
         rack, slot = cpu_defaults.get(cpu, (0, 1))
         self.ui_main.Rackplc.setValue(rack)
         self.ui_main.Slotplc.setValue(slot)
+
+    # ================================================================
+    # CÁC HÀM XỬ LÝ CHẾ ĐỘ AUTO / MANUAL
+    # ================================================================
+
+    # --- Style constants cho nút chế độ ---
+    _STYLE_MODE_ACTIVE = (
+        "QPushButton { background-color: #006666; color: white; "
+        "border: 2px solid #006666; border-radius: 5px; font-weight: bold; }"
+    )
+    _STYLE_MODE_INACTIVE = (
+        "QPushButton { color: #169393; background-color: #FFFFFF; "
+        "border: 2px solid #CEC2B1; border-radius: 5px; }"
+        "QPushButton:hover { background-color: #E2C0B2; color: #FFFFFF; }"
+    )
+    _STYLE_TOGGLE_ON = (
+        "QPushButton { background-color: #CC4400; color: white; "
+        "border: 2px solid #CC4400; border-radius: 5px; padding: 5px; font-weight: bold; }"
+    )
+    _STYLE_TOGGLE_OFF = (
+        "QPushButton { background-color: #006666; color: white; "
+        "border: 2px solid #CEC2B1; border-radius: 5px; padding: 5px; font-weight: bold; }"
+        "QPushButton:hover { background-color: #008080; }"
+        "QPushButton:pressed { background-color: #0F6A6A; }"
+    )
+
+    def handle_mode_auto(self):
+        """Xử lý khi nhấn nút Auto — ẩn nút Manual, ghi PC_Auto xuống PLC."""
+        self.current_mode = "AUTO"
+        print("[MODE] 🟠 Chuyển sang chế độ AUTO")
+
+        # Ẩn tất cả nút điều khiển Manual
+        self.ui_main.btTrigger.hide()
+        self.ui_main.btContinue.hide()
+        self.ui_main.btConveyor.hide()
+        self.ui_main.btCylinder1.hide()
+        self.ui_main.btCylinder2.hide()
+        self.ui_main.lbGoiY.hide()
+
+        # Reset toggle state (tránh trạng thái cũ khi chuyển lại Manual)
+        self.conveyor_state = False
+        self.cylinder1_state = False
+        self.cylinder2_state = False
+
+        # Cập nhật style nút chế độ
+        self.ui_main.btAuto.setStyleSheet(self._STYLE_MODE_ACTIVE)
+        self.ui_main.btManual.setStyleSheet(self._STYLE_MODE_INACTIVE)
+
+        # Ghi PC_Auto=TRUE xuống PLC (nếu đang kết nối)
+        if self.plc.is_connected:
+            self.plc.write_mode_auto()
+
+        # Cập nhật status bar
+        if hasattr(self, 'lb_stt_mode'):
+            self.lb_stt_mode.setText("🟠 AUTO")
+            self.lb_stt_mode.setStyleSheet("color: #FF8C00; font-weight: bold; padding-right: 15px")
+
+    def handle_mode_manual(self):
+        """Xử lý khi nhấn nút Manual — hiện nút điều khiển, ghi PC_Man xuống PLC."""
+        self.current_mode = "MANUAL"
+        print("[MODE] 🔵 Chuyển sang chế độ MANUAL")
+
+        # Hiện tất cả nút điều khiển Manual
+        self.ui_main.btTrigger.show()
+        self.ui_main.btContinue.show()
+        self.ui_main.btConveyor.show()
+        self.ui_main.btCylinder1.show()
+        self.ui_main.btCylinder2.show()
+        self.ui_main.lbGoiY.show()
+
+        # Reset toggle state và style nút
+        self.conveyor_state = False
+        self.cylinder1_state = False
+        self.cylinder2_state = False
+        self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_OFF)
+        self.ui_main.btConveyor.setText("▶ Conveyor")
+        self.ui_main.btCylinder1.setStyleSheet(self._STYLE_TOGGLE_OFF)
+        self.ui_main.btCylinder1.setText("Cylinder 1")
+        self.ui_main.btCylinder2.setStyleSheet(self._STYLE_TOGGLE_OFF)
+        self.ui_main.btCylinder2.setText("Cylinder 2")
+
+        # Cập nhật style nút chế độ
+        self.ui_main.btAuto.setStyleSheet(self._STYLE_MODE_INACTIVE)
+        self.ui_main.btManual.setStyleSheet(self._STYLE_MODE_ACTIVE)
+
+        # Ghi PC_Man=TRUE xuống PLC (nếu đang kết nối)
+        if self.plc.is_connected:
+            self.plc.write_mode_manual()
+
+        # Cập nhật status bar
+        if hasattr(self, 'lb_stt_mode'):
+            self.lb_stt_mode.setText("🔵 MANUAL")
+            self.lb_stt_mode.setStyleSheet("color: #0078D7; font-weight: bold; padding-right: 15px")
+
+        # Cập nhật label gợi ý
+        self.update_goiy("📌 Đặt vỉ vào vị trí → Nhấn TRIGGER")
+
+    def handle_conveyor(self):
+        """Toggle bật/tắt băng tải (Manual only)."""
+        self.conveyor_state = not self.conveyor_state
+        if self.plc.is_connected:
+            self.plc.write_conveyor(self.conveyor_state)
+
+        if self.conveyor_state:
+            self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_ON)
+            self.ui_main.btConveyor.setText("■ Conveyor")
+            print("[MANUAL] ▶ Băng tải BẬT")
+        else:
+            self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btConveyor.setText("▶ Conveyor")
+            print("[MANUAL] ■ Băng tải TẮT")
+
+    def handle_cylinder1(self):
+        """Toggle kích/thu xy-lanh 1 (Manual only)."""
+        self.cylinder1_state = not self.cylinder1_state
+        if self.plc.is_connected:
+            self.plc.write_cylinder1(self.cylinder1_state)
+
+        if self.cylinder1_state:
+            self.ui_main.btCylinder1.setStyleSheet(self._STYLE_TOGGLE_ON)
+            self.ui_main.btCylinder1.setText("■ Cylinder 1")
+            print("[MANUAL] 🔴 Xy-lanh 1 KÍCH")
+        else:
+            self.ui_main.btCylinder1.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btCylinder1.setText("Cylinder 1")
+            print("[MANUAL] ⚫ Xy-lanh 1 THU")
+
+    def handle_cylinder2(self):
+        """Toggle kích/thu xy-lanh 2 (Manual only)."""
+        self.cylinder2_state = not self.cylinder2_state
+        if self.plc.is_connected:
+            self.plc.write_cylinder2(self.cylinder2_state)
+
+        if self.cylinder2_state:
+            self.ui_main.btCylinder2.setStyleSheet(self._STYLE_TOGGLE_ON)
+            self.ui_main.btCylinder2.setText("■ Cylinder 2")
+            print("[MANUAL] 🔴 Xy-lanh 2 KÍCH")
+        else:
+            self.ui_main.btCylinder2.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btCylinder2.setText("Cylinder 2")
+            print("[MANUAL] ⚫ Xy-lanh 2 THU")
+
+    def update_goiy(self, text, color="info"):
+        """
+        Cập nhật label gợi ý hành động theo ngữ cảnh.
+
+        Tham số:
+            text (str): Nội dung gợi ý
+            color (str): "info" (xanh), "warning" (vàng), "danger" (đỏ), "success" (xanh lá)
+        """
+        styles = {
+            "info":    "background-color: #E8F4FD; color: #006666; border: 1px solid #B0D4E3;",
+            "warning": "background-color: #FFF3CD; color: #856404; border: 1px solid #FFEAA7;",
+            "danger":  "background-color: #F8D7DA; color: #721C24; border: 1px solid #F5C6CB;",
+            "success": "background-color: #D4EDDA; color: #155724; border: 1px solid #C3E6CB;",
+        }
+        base = styles.get(color, styles["info"])
+        self.ui_main.lbGoiY.setStyleSheet(
+            f"QLabel {{ {base} border-radius: 5px; padding: 5px; }}"
+        )
+        self.ui_main.lbGoiY.setText(text)
 
     def ket_noi_plc(self):
         """Xử lý khi nhấn nút Kết nối PLC."""

@@ -217,6 +217,46 @@ class PLCConnector:
         """
         return self._write_bool_db_get(2, 3, state, "Cylinder2")
 
+    def write_mode_auto(self):
+        """
+        Ghi chế độ Auto xuống PLC: PC_Auto=TRUE, PC_Man=FALSE.
+        Offset 2.4 = PC_Auto, Offset 2.5 = PC_Man (cùng byte 2).
+        """
+        if not self.is_connected:
+            print("[PLC] ⚠️ Chưa kết nối PLC, không thể ghi chế độ Auto.")
+            return False
+        try:
+            data = self.client.db_read(DB_GET, 2, 1)
+            set_bool(data, 0, 4, True)   # PC_Auto = TRUE
+            set_bool(data, 0, 5, False)  # PC_Man = FALSE
+            self.client.db_write(DB_GET, 2, data)
+            print("[PLC] 📤 Ghi chế độ: AUTO (PC_Auto=TRUE, PC_Man=FALSE)")
+            return True
+        except Exception as e:
+            print(f"[PLC] ❌ Lỗi ghi chế độ Auto: {e}")
+            self._connected = False
+            return False
+
+    def write_mode_manual(self):
+        """
+        Ghi chế độ Manual xuống PLC: PC_Auto=FALSE, PC_Man=TRUE.
+        Offset 2.4 = PC_Auto, Offset 2.5 = PC_Man (cùng byte 2).
+        """
+        if not self.is_connected:
+            print("[PLC] ⚠️ Chưa kết nối PLC, không thể ghi chế độ Manual.")
+            return False
+        try:
+            data = self.client.db_read(DB_GET, 2, 1)
+            set_bool(data, 0, 4, False)  # PC_Auto = FALSE
+            set_bool(data, 0, 5, True)   # PC_Man = TRUE
+            self.client.db_write(DB_GET, 2, data)
+            print("[PLC] 📤 Ghi chế độ: MANUAL (PC_Auto=FALSE, PC_Man=TRUE)")
+            return True
+        except Exception as e:
+            print(f"[PLC] ❌ Lỗi ghi chế độ Manual: {e}")
+            self._connected = False
+            return False
+
     def _write_bool_db_get(self, byte_offset, bit_offset, value, name=""):
         """
         Hàm nội bộ: Ghi 1 bit BOOL vào DB_GET.
