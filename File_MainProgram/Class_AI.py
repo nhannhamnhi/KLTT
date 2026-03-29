@@ -22,33 +22,28 @@ DEFAULT_MODEL_PATH = r"D:\KL_2025\KLTT\File_modelYOLO\model\yolov8-obb\yolov8_op
 
 class YOLO_Detector:
     def __init__(self, model_path=None):
-        # Tải mô hình YOLO (hỗ trợ cả .pt và folder OpenVINO)
-        if model_path is None:
-            model_path = DEFAULT_MODEL_PATH
-        
-        self.model_path_loaded = model_path
-
+        """Khởi tạo Detector. Nếu model_path=None hoặc trống, sẽ không nạp model."""
+        if not model_path:
+            self.model = None
+            self.model_path_loaded = ""
+            print("AI Detector khởi tạo ở trạng thái Chờ (không nạp model).")
+            return
             
+        self.model_path_loaded = model_path
         try:
             # Sử dụng task='obb' vì mô hình của bạn là loại Oriented Bounding Box
             self.model = YOLO(model_path, task='obb')
-            print(f"Đã tải thành công model AI (OpenVINO): {model_path}")
+            print(f"Đã tải thành công model AI: {model_path}")
         except Exception as e:
-            print(f"Lỗi khi tải model AI: {e}")
-            # Nếu OpenVINO lỗi, thử quay lại load file .pt mặc định nếu có
-            try:
-                self.model = YOLO("yolov8.pt")
-                print("Đã quay lại sử dụng model .pt mặc định")
-            except Exception as e2:
-                print(f"Không thể nạp model dự phòng: {e2}")
-                self.model = None
+            print(f"Lỗi khi tải model AI từ {model_path}: {e}")
+            self.model = None
 
     def detect_objects(self, frame):
         """
         Nhận frame từ camera, chạy nhận diện và trả về ảnh đã được vẽ kết quả.
         """
         if self.model is None:
-            return frame
+            return frame, []
         
         try:
             # Chạy dự đoán trên frame với ngưỡng tin cậy thấp hơn (conf=0.25)
