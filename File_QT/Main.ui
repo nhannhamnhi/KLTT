@@ -234,7 +234,7 @@ color: rgb(255, 255, 255);</string>
       <rect>
        <x>130</x>
        <y>200</y>
-       <width>281</width>
+       <width>321</width>
        <height>31</height>
       </rect>
      </property>
@@ -259,13 +259,18 @@ border-radius: 5px;</string>
        <string>Webcam_2</string>
       </property>
      </item>
+     <item>
+      <property name="text">
+       <string>Camera_custom</string>
+      </property>
+     </item>
     </widget>
     <widget class="QTextEdit" name="Ipplc">
      <property name="geometry">
       <rect>
        <x>130</x>
        <y>370</y>
-       <width>221</width>
+       <width>321</width>
        <height>31</height>
       </rect>
      </property>
@@ -363,8 +368,8 @@ border: 2px solid #CEC2B1;
     <widget class="QPushButton" name="btKetnoiplc">
      <property name="geometry">
       <rect>
-       <x>370</x>
-       <y>370</y>
+       <x>130</x>
+       <y>470</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -406,7 +411,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>240</y>
+       <y>250</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -442,8 +447,8 @@ QPushButton:pressed {
     <widget class="QPushButton" name="btNgatketnoicamera">
      <property name="geometry">
       <rect>
-       <x>280</x>
-       <y>240</y>
+       <x>320</x>
+       <y>250</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -476,8 +481,8 @@ QPushButton:pressed {
     <widget class="QPushButton" name="btNgatketnoiplc">
      <property name="geometry">
       <rect>
-       <x>370</x>
-       <y>450</y>
+       <x>320</x>
+       <y>470</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -511,7 +516,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>120</y>
+       <y>130</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -570,7 +575,7 @@ border: 2px solid #CEC2B1;
      <property name="geometry">
       <rect>
        <x>320</x>
-       <y>120</y>
+       <y>130</y>
        <width>131</width>
        <height>41</height>
       </rect>
@@ -698,90 +703,12 @@ border: 2px solid #CEC2B1;
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="label_18">
-     <property name="geometry">
-      <rect>
-       <x>70</x>
-       <y>460</y>
-       <width>41</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>DB</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_19">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>460</y>
-       <width>41</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Offset</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QTextEdit" name="Db">
-     <property name="geometry">
-      <rect>
-       <x>130</x>
-       <y>460</y>
-       <width>71</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QTextEdit{
-border: 2px solid #CEC2B1;
-	border-radius: 5px;
-}</string>
-     </property>
-    </widget>
-    <widget class="QTextEdit" name="Offset">
-     <property name="geometry">
-      <rect>
-       <x>280</x>
-       <y>460</y>
-       <width>71</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QTextEdit{
-border: 2px solid #CEC2B1;
-	border-radius: 5px;
-}</string>
-     </property>
-    </widget>
     <widget class="QComboBox" name="CPU_PLC">
      <property name="geometry">
       <rect>
        <x>130</x>
        <y>330</y>
-       <width>221</width>
+       <width>321</width>
        <height>31</height>
       </rect>
      </property>
@@ -803,11 +730,6 @@ border-radius: 5px;
      <item>
       <property name="text">
        <string>S7-400</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>S7-300</string>
       </property>
      </item>
     </widget>
