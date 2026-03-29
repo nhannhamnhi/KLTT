@@ -195,7 +195,8 @@ class PLCConnector:
 
         Trả về dict:
             {
-                "mode":        bool,  # FALSE=Manual, TRUE=Auto
+                "auto":        bool,  # TRUE=Auto active
+                "manual":      bool,  # TRUE=Manual active
                 "running":     bool,  # Hệ thống sẵn sàng
                 "trigger_req": bool,  # Sensor 0 yêu cầu chụp (Auto)
                 "sensor1":     bool,  # Sensor 1 — vị trí xy-lanh 1
@@ -209,11 +210,12 @@ class PLCConnector:
         try:
             data = self.client.db_read(DB_PUT, 0, DB_PUT_SIZE)
             status = {
-                "mode":        get_bool(data, 0, 0),  # Offset 0.0: PLC_Mode
-                "running":     get_bool(data, 0, 1),  # Offset 0.1: PLC_Running
-                "trigger_req": get_bool(data, 0, 2),  # Offset 0.2: PLC_TriggerReq
-                "sensor1":     get_bool(data, 0, 3),  # Offset 0.3: PLC_Sensor1
-                "sensor2":     get_bool(data, 0, 4),  # Offset 0.4: PLC_Sensor2
+                "auto":        get_bool(data, 0, 0),  # Offset 0.0: PLC_Auto
+                "manual":      get_bool(data, 0, 1),  # Offset 0.1: PLC_Manual
+                "running":     get_bool(data, 0, 2),  # Offset 0.2: PLC_Running
+                "trigger_req": get_bool(data, 0, 3),  # Offset 0.3: PLC_TriggerReq
+                "sensor1":     get_bool(data, 0, 4),  # Offset 0.4: PLC_Sensor1
+                "sensor2":     get_bool(data, 0, 5),  # Offset 0.5: PLC_Sensor2
             }
             return status
         except Exception as e:
@@ -249,8 +251,17 @@ class PLCPollingThread(QtCore.QThread):
         self.poll_interval_ms = poll_interval_ms
         self._run_flag = True
 
-        # Lưu trạng thái trước đó để so sánh, chỉ phát signal khi có thay đổi
-        self._prev_status = None
+        # ================================================================
+        # THAY ĐỔI: Mặc định ban đầu là AUTO (True)
+        # ================================================================
+        self._prev_status = {
+            "auto":        True,  # Mặc định là Auto khi chưa có dữ liệu mới
+            "manual":      False,
+            "running":     False,
+            "trigger_req": False,
+            "sensor1":     False,
+            "sensor2":     False,
+        }
 
     def run(self):
         """Vòng lặp chính: đọc DB_PUT liên tục."""
@@ -271,7 +282,22 @@ class PLCPollingThread(QtCore.QThread):
                 self.msleep(1000)
                 continue
 
-            # Chỉ phát signal khi trạng thái thay đổi so với lần trước
+            # ================================================================
+            # THAY ĐỔI: Nếu các biến dữ liệu (sensor/trigger) thay đổi, 
+            # tự động chuyển mode sang MANUAL (False)
+            # ================================================================
+            data_changed = (
+                status["trigger_req"] != self._prev_status["trigger_req"] or
+                status["sensor1"]     != self._prev_status["sensor1"]     or
+                status["sensor2"]     != self._prev_status["sensor2"]
+            )
+
+            if data_changed:
+                status["auto"]   = False  # Ngắt Auto
+                status["manual"] = True   # Chuyển sang Manual khi có biến dữ liệu thay đổi
+                print("[PLC Polling] ⚠️ Dữ liệu thay đổi -> Tự động chuyển MANUAL")
+
+            # Chỉ phát signal khi trạng thái có sự khác biệt so với lần quét trước
             if status != self._prev_status:
                 self._prev_status = status.copy()
                 self.plc_status_changed.emit(status)

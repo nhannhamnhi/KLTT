@@ -72,12 +72,12 @@ DB_GET (DB1) — Non-Optimized (3 bytes)
 
 | Offset | Tên biến | Kiểu | Giá trị | Chức năng |
 |--------|----------|------|---------|-----------|
-| 0.0 | `PLC_Mode` | BOOL | FALSE = Manual | Nút vật lý → Manual → PC enable nút GUI |
-| | | | TRUE = Auto | Nút vật lý → Auto → PC disable nút GUI |
-| 0.1 | `PLC_Running` | BOOL | TRUE/FALSE | PLC báo hệ thống sẵn sàng / dừng (E-Stop, lỗi) |
-| 0.2 | `PLC_TriggerReq` | BOOL | TRUE/FALSE | Sensor 0 phát hiện vỉ → yêu cầu PC chụp (Auto) |
-| 0.3 | `PLC_Sensor1` | BOOL | TRUE/FALSE | Sensor 1 — vỉ tới vị trí xy-lanh 1 |
-| 0.4 | `PLC_Sensor2` | BOOL | TRUE/FALSE | Sensor 2 — vỉ tới vị trí xy-lanh 2 |
+| 0.0 | `PLC_Auto` | BOOL | TRUE/FALSE | Kích hoạt chế độ Tự động |
+| 0.1 | `PLC_Manual` | BOOL | TRUE/FALSE | Kích hoạt chế độ Thủ công |
+| 0.2 | `PLC_Running` | BOOL | TRUE/FALSE | PLC báo hệ thống sẵn sàng / dừng (E-Stop, lỗi) |
+| 0.3 | `PLC_TriggerReq` | BOOL | TRUE/FALSE | Sensor 0 phát hiện vỉ → yêu cầu PC chụp (Auto) |
+| 0.4 | `PLC_Sensor1` | BOOL | TRUE/FALSE | Sensor 1 — vỉ tới vị trí xy-lanh 1 |
+| 0.5 | `PLC_Sensor2` | BOOL | TRUE/FALSE | Sensor 2 — vỉ tới vị trí xy-lanh 2 |
 
 ### Bản đồ bộ nhớ DB_PUT
 
@@ -86,11 +86,12 @@ DB_PUT (DB2) — Non-Optimized (1 byte)
 ┌─────────┬───────────────┬──────┬──────────────────────────┐
 │ Offset  │ Tên           │ Kiểu │ Mô tả                    │
 ├─────────┼───────────────┼──────┼──────────────────────────┤
-│  0.0    │ PLC_Mode      │ BOOL │ Manual/Auto              │
-│  0.1    │ PLC_Running   │ BOOL │ Hệ thống sẵn sàng       │
-│  0.2    │ PLC_TriggerReq│ BOOL │ Sensor 0 trigger         │
-│  0.3    │ PLC_Sensor1   │ BOOL │ Sensor 1                 │
-│  0.4    │ PLC_Sensor2   │ BOOL │ Sensor 2                 │
+│  0.0    │ PLC_Auto      │ BOOL │ Chế độ Tự động           │
+│  0.1    │ PLC_Manual    │ BOOL │ Chế độ Thủ công          │
+│  0.2    │ PLC_Running   │ BOOL │ Hệ thống sẵn sàng       │
+│  0.3    │ PLC_TriggerReq│ BOOL │ Sensor 0 trigger         │
+│  0.4    │ PLC_Sensor1   │ BOOL │ Sensor 1                 │
+│  0.5    │ PLC_Sensor2   │ BOOL │ Sensor 2                 │
 └─────────┴───────────────┴──────┴──────────────────────────┘
 ```
 
@@ -121,11 +122,12 @@ client.db_write(1, 0, data)
 # Đọc 1 byte từ DB_PUT (vùng PLC → PC) — offset bắt đầu từ 0
 data = client.db_read(2, 0, 1)
 
-mode      = snap7.util.get_bool(data, 0, 0)  # PLC_Mode
-running   = snap7.util.get_bool(data, 0, 1)  # PLC_Running
-trigger   = snap7.util.get_bool(data, 0, 2)  # PLC_TriggerReq
-sensor1   = snap7.util.get_bool(data, 0, 3)  # PLC_Sensor1
-sensor2   = snap7.util.get_bool(data, 0, 4)  # PLC_Sensor2
+auto      = snap7.util.get_bool(data, 0, 0)  # PLC_Auto
+manual    = snap7.util.get_bool(data, 0, 1)  # PLC_Manual
+running   = snap7.util.get_bool(data, 0, 2)  # PLC_Running
+trigger   = snap7.util.get_bool(data, 0, 3)  # PLC_TriggerReq
+sensor1   = snap7.util.get_bool(data, 0, 4)  # PLC_Sensor1
+sensor2   = snap7.util.get_bool(data, 0, 5)  # PLC_Sensor2
 ```
 
 ### 3.3 Điều khiển cơ cấu Manual (DB_GET)
