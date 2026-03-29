@@ -369,7 +369,6 @@ class Controller:
         cpu_defaults = {
             "S7-1200": (0, 1),
             "S7-1500": (0, 1),
-            "S7-300":  (0, 2),
             "S7-400":  (0, 3),
         }
         rack, slot = cpu_defaults.get(cpu, (0, 1))
@@ -419,13 +418,39 @@ class Controller:
         success = self.plc.connect(ip, rack, slot)
 
         if success:
-            QMessageBox.information(
-                self.main_win, "Thành công",
+            # ============================================================
+            # BƯỚC XÁC MINH: Kiểm tra dòng CPU thực tế có khớp với lựa chọn
+            # ============================================================
+            selected_cpu = self.ui_main.CPU_PLC.currentText()  # VD: "S7-1200"
+            actual_cpu = self.plc.get_cpu_family()              # VD: "S7-1200" hoặc None
+
+            if actual_cpu is not None and actual_cpu != selected_cpu:
+                # CPU không khớp → Ngắt kết nối và thông báo lỗi
+                self.plc.disconnect()
+                QMessageBox.critical(
+                    self.main_win, "Sai dòng CPU",
+                    f"❌ Dòng CPU không khớp!\n\n"
+                    f"🔧 CPU đã chọn trên giao diện: {selected_cpu}\n"
+                    f"📋 CPU thực tế của PLC: {actual_cpu}\n\n"
+                    f"Vui lòng chọn đúng dòng CPU '{actual_cpu}' "
+                    f"trong ô CPU_PLC rồi kết nối lại."
+                )
+                return
+
+            # Kết nối thành công + CPU khớp (hoặc không đọc được order code → cho qua)
+            info_msg = (
                 f"✅ Đã kết nối PLC thành công!\n\n"
                 f"IP: {ip}\n"
-                f"CPU: {self.ui_main.CPU_PLC.currentText()}\n"
-                f"Rack: {rack} | Slot: {slot}"
+                f"CPU: {selected_cpu}"
             )
+            if actual_cpu:
+                info_msg += f" (Xác minh: {actual_cpu} ✓)"
+            else:
+                info_msg += " (⚠️ Không xác minh được dòng CPU)"
+            info_msg += f"\nRack: {rack} | Slot: {slot}"
+
+            QMessageBox.information(self.main_win, "Thành công", info_msg)
+
             # Cập nhật status bar
             if hasattr(self, 'lb_stt_plc'):
                 self.lb_stt_plc.setText(f"PLC: ✅ {ip}")
@@ -437,16 +462,16 @@ class Controller:
             self.plc_polling_thread.plc_connection_lost.connect(self.on_plc_connection_lost)
             self.plc_polling_thread.start()
         else:
-            QMessageBox.critical(
-                self.main_win, "Lỗi kết nối PLC",
-                f"❌ Không thể kết nối tới PLC!\n\n"
-                f"IP: {ip} | Rack: {rack} | Slot: {slot}\n\n"
-                "📋 Checklist kiểm tra:\n"
-                "  1. PLC đã bật nguồn và ở trạng thái RUN?\n"
-                "  2. IP PLC và PC có cùng subnet?\n"
-                "  3. Đã bật PUT/GET trong TIA Portal?\n"
-                "  4. Nếu dùng PLCSim → đã mở NetToPLCSim?"
-            )
+                QMessageBox.critical(
+                    self.main_win, "Lỗi kết nối PLC",
+                    f"❌ Không thể kết nối tới PLC!\n\n"
+                    f"IP: {ip} | Rack: {rack} | Slot: {slot}\n\n"
+                    "📋 Checklist kiểm tra:\n"
+                    "  1. PLC đã bật nguồn và ở trạng thái RUN?\n"
+                    "  2. IP PLC và PC có cùng subnet?\n"
+                    "  3. Đã bật PUT/GET trong TIA Portal?\n"
+                    "  4. Nếu dùng PLCSim → đã mở NetToPLCSim?"
+                )
 
     def ngat_ket_noi_plc(self):
         """Xử lý khi nhấn nút Ngắt kết nối PLC."""
@@ -581,12 +606,30 @@ class Controller:
             self.ngat_ket_noi_camera()
 
         loai_camera = self.ui_main.cbKetnoicamera.currentText()
-        camera_source = 0 # Mặc định là webcam laptop
+        camera_source = 0  # Mặc định là webcam laptop
 
         if loai_camera == "Webcam_1":
             camera_source = 0
         elif loai_camera == "Webcam_2":
-            camera_source = 1 # Webcam rời thường có ID là 1
+            camera_source = 1  # Webcam rời thường có ID là 1
+        elif loai_camera == "Camera_custom":
+            # Hiện dialog nhập URL HTTP cho camera mạng (DroidCam, IP Webcam, v.v.)
+            url, ok = QtWidgets.QInputDialog.getText(
+                self.main_win,
+                "Kết nối Camera HTTP",
+                "Nhập URL stream của camera:\n\n"
+                "Ví dụ:\n"
+                "  • DroidCam: http://192.168.1.100:4747/video\n"
+                "  • IP Webcam: http://192.168.1.100:8080/video\n"
+                "  • RTSP: rtsp://192.168.1.100:554/stream",
+                QtWidgets.QLineEdit.Normal,
+                # Giá trị mặc định gợi ý cho DroidCam
+                "http://192.168.1.100:4747/video"
+            )
+            if not ok or not url.strip():
+                # Người dùng nhấn Cancel hoặc không nhập gì
+                return
+            camera_source = url.strip()
 
         # Khởi tạo và kết nối các signal
         self.thread_camera = CameraThread(detector=self.detector, camera_source=camera_source)
@@ -600,7 +643,11 @@ class Controller:
         if hasattr(self, 'lb_stt_system'):
             self.lb_stt_system.setText("Hệ thống: 🟢 Đang chạy")
         if hasattr(self, 'lb_stt_cam'):
-            self.lb_stt_cam.setText(f"Cam: {loai_camera}")
+            # Hiển thị tên ngắn gọn trên status bar
+            if loai_camera == "Camera_custom":
+                self.lb_stt_cam.setText(f"Cam: HTTP ({camera_source[:30]}...)")
+            else:
+                self.lb_stt_cam.setText(f"Cam: {loai_camera}")
 
     def ngat_ket_noi_camera(self):
         """Hàm xử lý khi nhấn nút Ngắt kết nối camera"""
