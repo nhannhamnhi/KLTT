@@ -120,8 +120,8 @@ class CameraThread(QtCore.QThread):
                     try:
                         # detect_objects giờ trả về 2 giá trị: ảnh và list nhãn
                         processed_img, labels = self.detector.detect_objects(cv_img.copy())
-                    except Exception as e:
-                        print(f"Lỗi AI detect trong thread: {e}")
+                    except Exception:
+                        # print(f"Lỗi AI detect trong thread: {e}")
                         processed_img = cv_img.copy()
                         labels = []
                 else:
@@ -185,8 +185,12 @@ class Controller:
         # Khởi tạo Detector AI (mặc định sẽ dùng OpenVINO trong folder bạn đã cung cấp)
         # Lưu ý: Việc load model có thể mất vài giây, làm treo nhẹ lúc khởi động.
         # Nếu muốn mượt hơn nữa, có thể chuyển việc load model sang QThread khác.
-        print("Đang khởi tạo AI Model...")
-        self.detector = YOLO_Detector()
+        print("Đang khởi tạo AI Model (Chế độ chờ)...")
+        self.detector = YOLO_Detector(model_path=None)
+        
+        # Cập nhật trạng thái model trên status bar ngay lúc khởi động
+        # (Nếu DEFAULT_MODEL_PATH sai hoặc không có, detector.model sẽ là None)
+        QtCore.QTimer.singleShot(500, self.update_initial_model_status)
         
         # Thiết lập đường dẫn model mặc định và cập nhật UI ban đầu
         # Thiết lập UI cho việc nạp model
@@ -463,17 +467,36 @@ class Controller:
             self.lb_stt_mode.setStyleSheet("font-weight: bold; padding-right: 15px")
         if hasattr(self, 'lb_stt_sensors'):
             self.lb_stt_sensors.setText("S0:⚫ S1:⚫ S2:⚫")
+        if hasattr(self, 'lb_stt_running'):
+            self.lb_stt_running.setText("Hệ thống: ⚪")
+            self.lb_stt_running.setStyleSheet("color: gray; padding-right: 15px")
 
     def on_plc_status_changed(self, status):
         """Slot nhận signal từ PLCPollingThread khi trạng thái PLC thay đổi."""
         # Cập nhật chế độ Manual/Auto
         if hasattr(self, 'lb_stt_mode'):
-            if status["mode"]:
+            # Ưu tiên Auto trước, sau đó tới Manual
+            if status.get("auto", False):
                 self.lb_stt_mode.setText("🟠 AUTO")
                 self.lb_stt_mode.setStyleSheet("color: #FF8C00; font-weight: bold; padding-right: 15px")
-            else:
+                self.lb_stt_mode.setEnabled(True)
+            elif status.get("manual", False):
                 self.lb_stt_mode.setText("🔵 MANUAL")
                 self.lb_stt_mode.setStyleSheet("color: #0078D7; font-weight: bold; padding-right: 15px")
+                self.lb_stt_mode.setEnabled(True)
+            else:
+                # Không có chế độ nào được kích hoạt -> Bỏ trống và làm mờ
+                self.lb_stt_mode.setText("")
+                self.lb_stt_mode.setEnabled(False)
+
+        # Cập nhật trạng thái PLC_Running
+        if hasattr(self, 'lb_stt_running'):
+            if status.get("running", False):
+                self.lb_stt_running.setText("Hệ thống: 🟢 RUNNING")
+                self.lb_stt_running.setStyleSheet("color: green; font-weight: bold; padding-right: 15px")
+            else:
+                self.lb_stt_running.setText("Hệ thống: 🔴 STOPPED")
+                self.lb_stt_running.setStyleSheet("color: red; font-weight: bold; padding-right: 15px")
 
         # Cập nhật trạng thái sensor (dùng emoji đèn LED)
         if hasattr(self, 'lb_stt_sensors'):
@@ -491,6 +514,9 @@ class Controller:
             self.lb_stt_mode.setText("--")
         if hasattr(self, 'lb_stt_sensors'):
             self.lb_stt_sensors.setText("S0:⚫ S1:⚫ S2:⚫")
+        if hasattr(self, 'lb_stt_running'):
+            self.lb_stt_running.setText("Hệ thống: ⚪")
+            self.lb_stt_running.setStyleSheet("color: gray; padding-right: 15px")
 
     def init_statusbar(self):
         """Khởi tạo các widget trên thanh trạng thái (Status Bar)"""
@@ -521,12 +547,17 @@ class Controller:
             self.lb_stt_plc.setStyleSheet("color: gray; padding-right: 15px")
             self.ui_main.statusbar.addWidget(self.lb_stt_plc)
 
-            # 6. Label chế độ Manual/Auto
-            self.lb_stt_mode = QtWidgets.QLabel("--")
-            self.lb_stt_mode.setStyleSheet("font-weight: bold; padding-right: 15px")
+            # 6. Label chế độ Manual/Auto (Mặc định khởi tạo là AUTO)
+            self.lb_stt_mode = QtWidgets.QLabel("🟠 AUTO")
+            self.lb_stt_mode.setStyleSheet("color: #FF8C00; font-weight: bold; padding-right: 15px")
             self.ui_main.statusbar.addWidget(self.lb_stt_mode)
 
-            # 7. Label trạng thái Sensor (S0 = TriggerReq, S1, S2)
+            # 7. Label Trạng thái PLC_Running (Hệ thống sẵn sàng)
+            self.lb_stt_running = QtWidgets.QLabel("Hệ thống: ⚪")
+            self.lb_stt_running.setStyleSheet("color: gray; padding-right: 15px")
+            self.ui_main.statusbar.addWidget(self.lb_stt_running)
+
+            # 8. Label trạng thái Sensor (S0 = TriggerReq, S1, S2)
             self.lb_stt_sensors = QtWidgets.QLabel("S0:⚫ S1:⚫ S2:⚫")
             self.lb_stt_sensors.setStyleSheet("padding-right: 15px")
             self.ui_main.statusbar.addWidget(self.lb_stt_sensors)
@@ -863,18 +894,37 @@ class Controller:
                 if hasattr(self, 'lb_stt_model'):
                     model_info = self.detector.get_model_info()
                     self.lb_stt_model.setText(f"Model: {os.path.basename(path)} [{model_info}]")
+                    self.lb_stt_model.setStyleSheet("color: #349d00; font-weight: bold; padding-right: 15px")
             else:
                 QMessageBox.critical(self.main_win, "Lỗi", "Không thể nạp model. Vui lòng kiểm tra lại file!")
         except Exception as e:
             QMessageBox.critical(self.main_win, "Lỗi hệ thống", f"Phát sinh lỗi khi tải model: {e}")
 
     def handle_restore_model(self):
-        """Xóa trống đường dẫn model"""
+        """Ngắt kết nối AI (Xóa model đang nạp)"""
         self.ui_main.duongdanmodel.clear()
-        print("Đã xóa đường dẫn model.")
+        
+        # Thực hiện ngắt kết nối model thực tế
+        if self.detector:
+            self.detector.model = None
+            print("Đã ngắt kết nối Model AI (Model set to None).")
         
         if hasattr(self, 'lb_stt_model'):
-            self.lb_stt_model.setText("Model: -- [Chưa nạp]")
+            self.lb_stt_model.setText("Model: -- [Đã ngắt kết nối]")
+            self.lb_stt_model.setStyleSheet("color: red; padding-right: 15px")
+
+    def update_initial_model_status(self):
+        """Cập nhật trạng thái model AI lên thanh status bar lúc khởi động"""
+        if hasattr(self, 'lb_stt_model'):
+            if self.detector and self.detector.model is not None:
+                model_info = self.detector.get_model_info()
+                # Lấy tên folder hoặc file cuối cùng trong đường dẫn
+                model_name = os.path.basename(self.detector.model_path_loaded)
+                self.lb_stt_model.setText(f"Model: {model_name} [{model_info}]")
+                self.lb_stt_model.setStyleSheet("color: #349d00; font-weight: bold; padding-right: 15px")
+            else:
+                self.lb_stt_model.setText("Model: -- [Chưa nạp / Lỗi]")
+                self.lb_stt_model.setStyleSheet("color: red; padding-right: 15px")
 
     def update_data_list(self):
         """Cập nhật danh sách hiển thị từ dữ liệu ngày hôm nay"""
