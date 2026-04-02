@@ -171,6 +171,9 @@ class Controller:
         self.ui_main = Ui_Main()
         self.ui_main.setupUi(self.main_win)
 
+        # Tắt ApplicationModal (set trong .ui) để Login có thể nhận input khi Main đang mở
+        self.main_win.setWindowModality(QtCore.Qt.NonModal)
+
         # Cấu hình cho cửa sổ Login
         # Ghim giao diện Login lên trên đầu (Always on Top)
         self.login_win.setWindowFlags(self.login_win.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
@@ -254,13 +257,16 @@ class Controller:
 
         # --- PHẦN MỚI: Khởi tạo trạng thái chế độ Auto/Manual ---
         self.current_mode = None  # None = chưa chọn, "AUTO" hoặc "MANUAL"
+        self.master_locked = False  # Trạng thái nút Master (FALSE = mở khóa)
 
         # Toggle state cho các nút điều khiển Manual
         self.conveyor_state = False
         self.cylinder1_state = False
         self.cylinder2_state = False
 
-        # Ẩn các nút điều khiển Manual khi khởi động (chỉ hiện khi chọn Manual)
+        # Khởi động: Ẩn tất cả, chỉ hiện nút Master
+        self.ui_main.btAuto.hide()
+        self.ui_main.btManual.hide()
         self.ui_main.btTrigger.hide()
         self.ui_main.btContinue.hide()
         self.ui_main.btConveyor.hide()
@@ -268,8 +274,8 @@ class Controller:
         self.ui_main.btCylinder2.hide()
 
     def setup_connections(self):
-        # Khi nhấn nút btBatdau ở Background -> Hiện Login
-        self.ui_background.btBatdau.clicked.connect(self.show_login)
+        # Khi nhấn nút btBatdau ở Background -> Đi thẳng vào Main
+        self.ui_background.btBatdau.clicked.connect(self.show_main_from_background)
         
         # Khi nhấn nút btDangnhap ở Login -> Kiểm tra thông tin
         self.ui_login.btDangnhap.clicked.connect(self.handle_login)
@@ -311,7 +317,9 @@ class Controller:
         self.ui_main.btNgatketnoiplc.clicked.connect(self.ngat_ket_noi_plc)
         self.ui_main.CPU_PLC.currentIndexChanged.connect(self.on_cpu_plc_changed)
 
-        # --- PHẦN MỚI: Kết nối các nút chọn chế độ Auto/Manual ---
+        # --- PHẦN MỚI: Kết nối nút Master + các nút chọn chế độ ---
+        # Nhấn Master → Nếu chưa khóa thì hiện Login, nếu đã khóa thì toggle tắt
+        self.ui_main.btMaster.clicked.connect(self.handle_master_click)
         self.ui_main.btAuto.clicked.connect(self.handle_mode_auto)
         self.ui_main.btManual.clicked.connect(self.handle_mode_manual)
 
@@ -323,10 +331,33 @@ class Controller:
     def show_background(self):
         self.background_win.show()
 
-    def show_login(self):
+    def show_main_from_background(self):
+        """Nhấn btBatdau ở Background → Đi thẳng vào Main (bỏ qua Login)."""
+        self.background_win.close()
+        self.main_win.show()
+
+    def show_login_for_master(self):
+        """Hiện cửa sổ Login để xác thực trước khi bật Master."""
+        # Reset ô nhập liệu
+        self.ui_login.nhapten.clear()
+        self.ui_login.matkhau.clear()
+        # Hiện cửa sổ trước, sau đó mới set focus (widget phải visible mới nhận focus)
         self.login_win.show()
+        self.login_win.raise_()           # Đưa lên trên cùng
+        self.login_win.activateWindow()   # Kích hoạt cửa sổ để nhận input
+        self.ui_login.nhapten.setFocus()  # Focus vào ô nhập tên
+
+    def handle_master_click(self):
+        """Xử lý khi nhấn nút Master: nếu chưa khóa → mở Login, nếu đã khóa → tắt Master."""
+        if self.master_locked:
+            # Đã khóa → Toggle tắt Master (mở khóa)
+            self.handle_master_toggle()
+        else:
+            # Chưa khóa → Hiện Login để xác thực
+            self.show_login_for_master()
 
     def handle_login(self):
+        """Xử lý đăng nhập: thành công → kích hoạt Master mode."""
         # Lấy dữ liệu từ ô nhập liệu
         username = self.ui_login.nhapten.text()
         password = self.ui_login.matkhau.text()
@@ -340,10 +371,9 @@ class Controller:
         # ================================================================
 
         if username == USER_SETUP and password == PASS_SETUP:
-            # Đăng nhập thành công: Đóng Background và Login, hiện Main
+            # Đăng nhập thành công → Đóng Login, kích hoạt Master
             self.login_win.close()
-            self.background_win.close()
-            self.main_win.show()
+            self.handle_master_toggle()  # Bật Master mode
         else:
             # Đăng nhập thất bại: Hiển thị cảnh báo
             msg = QMessageBox(self.login_win) # Gắn msg vào login_win để nó hiện trên cùng
@@ -423,6 +453,86 @@ class Controller:
         "QPushButton:hover { background-color: #008080; }"
         "QPushButton:pressed { background-color: #0F6A6A; }"
     )
+    _STYLE_MASTER_ON = (
+        "QPushButton { background-color: #CC0000; color: white; "
+        "border: 2px solid #CC0000; border-radius: 5px; font-weight: bold; }"
+    )
+    _STYLE_MASTER_OFF = (
+        "QPushButton { color: #169393; background-color: #FFFFFF; "
+        "border: 2px solid #CEC2B1; border-radius: 5px; }"
+        "QPushButton:hover { background-color: #E2C0B2; color: #FFFFFF; }"
+    )
+
+    def handle_master_toggle(self):
+        """Toggle nút Master: Khóa/Mở khóa phần cứng PLC."""
+        self.master_locked = not self.master_locked
+
+        if self.master_locked:
+            # ── BẬT Master → Khóa cứng phần cứng ──
+            print("[MASTER] 🔒 Khóa phần cứng — BẬT")
+
+            # Hiện 2 nút chọn chế độ
+            self.ui_main.btAuto.show()
+            self.ui_main.btManual.show()
+
+            # Ghi PC_Master=TRUE xuống PLC
+            if self.plc.is_connected:
+                self.plc.write_master(True)
+
+            # Cập nhật style nút Master (đỏ = đang khóa)
+            self.ui_main.btMaster.setStyleSheet(self._STYLE_MASTER_ON)
+            self.ui_main.btMaster.setText("🔒 Master — LOCKED")
+
+            # Cập nhật status bar
+            if hasattr(self, 'lb_stt_master'):
+                self.lb_stt_master.setText("🔒 LOCKED")
+                self.lb_stt_master.setStyleSheet("color: #CC0000; font-weight: bold; padding-right: 15px")
+
+        else:
+            # ── TẮT Master → Mở khóa phần cứng ──
+            print("[MASTER] 🔓 Mở khóa phần cứng — TẮT")
+
+            # Tắt an toàn: gửi lệnh tắt tất cả xuống PLC trước khi mở khóa
+            if self.plc.is_connected:
+                self.plc.write_conveyor(False)
+                self.plc.write_cylinder1(False)
+                self.plc.write_cylinder2(False)
+
+            # Ẩn tất cả nút chế độ + điều khiển Manual
+            self.ui_main.btAuto.hide()
+            self.ui_main.btManual.hide()
+            self.ui_main.btTrigger.hide()
+            self.ui_main.btContinue.hide()
+            self.ui_main.btConveyor.hide()
+            self.ui_main.btCylinder1.hide()
+            self.ui_main.btCylinder2.hide()
+
+
+            # Reset trạng thái
+            self.current_mode = None
+            self.conveyor_state = False
+            self.cylinder1_state = False
+            self.cylinder2_state = False
+
+            # Reset style Auto/Manual về mặc định
+            self.ui_main.btAuto.setStyleSheet(self._STYLE_MODE_INACTIVE)
+            self.ui_main.btManual.setStyleSheet(self._STYLE_MODE_INACTIVE)
+
+            # Ghi PC_Master=FALSE + reset mode xuống PLC
+            if self.plc.is_connected:
+                self.plc.write_master(False)
+
+            # Cập nhật style nút Master (trắng = mở khóa)
+            self.ui_main.btMaster.setStyleSheet(self._STYLE_MASTER_OFF)
+            self.ui_main.btMaster.setText("🔓 Master")
+
+            # Cập nhật status bar
+            if hasattr(self, 'lb_stt_master'):
+                self.lb_stt_master.setText("🔓 UNLOCKED")
+                self.lb_stt_master.setStyleSheet("color: gray; padding-right: 15px")
+            if hasattr(self, 'lb_stt_mode'):
+                self.lb_stt_mode.setText("--")
+                self.lb_stt_mode.setStyleSheet("font-weight: bold; padding-right: 15px")
 
     def handle_mode_auto(self):
         """Xử lý khi nhấn nút Auto — ẩn nút Manual, ghi PC_Auto xuống PLC."""
@@ -435,7 +545,7 @@ class Controller:
         self.ui_main.btConveyor.hide()
         self.ui_main.btCylinder1.hide()
         self.ui_main.btCylinder2.hide()
-        self.ui_main.lbGoiY.hide()
+
 
         # Reset toggle state (tránh trạng thái cũ khi chuyển lại Manual)
         self.conveyor_state = False
@@ -466,7 +576,7 @@ class Controller:
         self.ui_main.btConveyor.show()
         self.ui_main.btCylinder1.show()
         self.ui_main.btCylinder2.show()
-        self.ui_main.lbGoiY.show()
+
 
         # Reset toggle state và style nút
         self.conveyor_state = False
@@ -492,8 +602,7 @@ class Controller:
             self.lb_stt_mode.setText("🔵 MANUAL")
             self.lb_stt_mode.setStyleSheet("color: #0078D7; font-weight: bold; padding-right: 15px")
 
-        # Cập nhật label gợi ý
-        self.update_goiy("📌 Đặt vỉ vào vị trí → Nhấn TRIGGER")
+
 
     def handle_conveyor(self):
         """Toggle bật/tắt băng tải (Manual only)."""
@@ -540,25 +649,7 @@ class Controller:
             self.ui_main.btCylinder2.setText("Cylinder 2")
             print("[MANUAL] ⚫ Xy-lanh 2 THU")
 
-    def update_goiy(self, text, color="info"):
-        """
-        Cập nhật label gợi ý hành động theo ngữ cảnh.
 
-        Tham số:
-            text (str): Nội dung gợi ý
-            color (str): "info" (xanh), "warning" (vàng), "danger" (đỏ), "success" (xanh lá)
-        """
-        styles = {
-            "info":    "background-color: #E8F4FD; color: #006666; border: 1px solid #B0D4E3;",
-            "warning": "background-color: #FFF3CD; color: #856404; border: 1px solid #FFEAA7;",
-            "danger":  "background-color: #F8D7DA; color: #721C24; border: 1px solid #F5C6CB;",
-            "success": "background-color: #D4EDDA; color: #155724; border: 1px solid #C3E6CB;",
-        }
-        base = styles.get(color, styles["info"])
-        self.ui_main.lbGoiY.setStyleSheet(
-            f"QLabel {{ {base} border-radius: 5px; padding: 5px; }}"
-        )
-        self.ui_main.lbGoiY.setText(text)
 
     def ket_noi_plc(self):
         """Xử lý khi nhấn nút Kết nối PLC."""
@@ -680,6 +771,23 @@ class Controller:
         if hasattr(self, 'lb_stt_running'):
             self.lb_stt_running.setText("Hệ thống: ⚪")
             self.lb_stt_running.setStyleSheet("color: gray; padding-right: 15px")
+        if hasattr(self, 'lb_stt_master'):
+            self.lb_stt_master.setText("🔓 UNLOCKED")
+            self.lb_stt_master.setStyleSheet("color: gray; padding-right: 15px")
+
+        # Reset trạng thái Master về mặc định
+        self.master_locked = False
+        self.current_mode = None
+        self.ui_main.btMaster.setStyleSheet(self._STYLE_MASTER_OFF)
+        self.ui_main.btMaster.setText("🔓 Master")
+        self.ui_main.btAuto.hide()
+        self.ui_main.btManual.hide()
+        self.ui_main.btTrigger.hide()
+        self.ui_main.btContinue.hide()
+        self.ui_main.btConveyor.hide()
+        self.ui_main.btCylinder1.hide()
+        self.ui_main.btCylinder2.hide()
+
 
     def on_plc_status_changed(self, status):
         """Slot nhận signal từ PLCPollingThread khi trạng thái PLC thay đổi."""
@@ -757,9 +865,14 @@ class Controller:
             self.lb_stt_plc.setStyleSheet("color: gray; padding-right: 15px")
             self.ui_main.statusbar.addWidget(self.lb_stt_plc)
 
-            # 6. Label chế độ Manual/Auto (Mặc định khởi tạo là AUTO)
-            self.lb_stt_mode = QtWidgets.QLabel("🟠 AUTO")
-            self.lb_stt_mode.setStyleSheet("color: #FF8C00; font-weight: bold; padding-right: 15px")
+            # 6. Label trạng thái Master (Khóa/Mở khóa phần cứng)
+            self.lb_stt_master = QtWidgets.QLabel("🔓 UNLOCKED")
+            self.lb_stt_master.setStyleSheet("color: gray; padding-right: 15px")
+            self.ui_main.statusbar.addWidget(self.lb_stt_master)
+
+            # 7. Label chế độ Manual/Auto
+            self.lb_stt_mode = QtWidgets.QLabel("--")
+            self.lb_stt_mode.setStyleSheet("font-weight: bold; padding-right: 15px")
             self.ui_main.statusbar.addWidget(self.lb_stt_mode)
 
             # 7. Label Trạng thái PLC_Running (Hệ thống sẵn sàng)

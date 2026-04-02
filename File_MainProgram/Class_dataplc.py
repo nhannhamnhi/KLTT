@@ -179,7 +179,7 @@ class PLCConnector:
             return True
         except Exception as e:
             print(f"[PLC] ❌ Lỗi ghi kết quả: {e}")
-            self._connected = False
+            # self._connected = False
             return False
 
     def reset_data_ready(self):
@@ -193,7 +193,7 @@ class PLCConnector:
             return True
         except Exception as e:
             print(f"[PLC] ❌ Lỗi reset DataReady: {e}")
-            self._connected = False
+            # self._connected = False
             return False
 
     def write_conveyor(self, state):
@@ -234,7 +234,7 @@ class PLCConnector:
             return True
         except Exception as e:
             print(f"[PLC] ❌ Lỗi ghi chế độ Auto: {e}")
-            self._connected = False
+            # self._connected = False
             return False
 
     def write_mode_manual(self):
@@ -254,8 +254,18 @@ class PLCConnector:
             return True
         except Exception as e:
             print(f"[PLC] ❌ Lỗi ghi chế độ Manual: {e}")
-            self._connected = False
+            # self._connected = False
             return False
+
+    def write_master(self, state):
+        """
+        Ghi tín hiệu khóa cứng phần cứng xuống PLC (PC_Master).
+        Khi PC_Master=TRUE → PLC vô hiệu hóa các nút vật lý trên tủ điện.
+
+        Tham số:
+            state (bool): True = khóa phần cứng, False = mở khóa
+        """
+        return self._write_bool_db_get(2, 6, state, "PC_Master")
 
     def _write_bool_db_get(self, byte_offset, bit_offset, value, name=""):
         """
@@ -273,7 +283,7 @@ class PLCConnector:
             return True
         except Exception as e:
             print(f"[PLC] ❌ Lỗi ghi {name}: {e}")
-            self._connected = False
+            # self._connected = False
             return False
 
     # ────────────────────────────────────────────
@@ -310,7 +320,7 @@ class PLCConnector:
             return status
         except Exception as e:
             print(f"[PLC] ❌ Lỗi đọc trạng thái PLC: {e}")
-            self._connected = False
+            # self._connected = False
             return None
 
 

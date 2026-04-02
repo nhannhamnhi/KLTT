@@ -17,7 +17,8 @@
                                     ↓                   ↓
                                Thùng NG_L          Thùng NG_H
 
-  [NÚT VẬT LÝ] ← Chuyển Manual ↔ Auto (nối vào PLC Input)
+   [NÚT VẬT LÝ] ← Chuyển Manual ↔ Auto (nối vào PLC Input)
+   [NÚT MASTER]  ← PC khóa cứng nút vật lý qua Snap7
 ```
 
 ### 1.2 Danh sách phần cứng
@@ -193,6 +194,9 @@ Chi tiết đầy đủ tham khảo tại [Snap7_DataMap.md](file:///d:/KL_2025/
 | 2.1 | `PC_Conveyor` | BOOL | Lệnh chạy băng tải (Manual) |
 | 2.2 | `PC_Cylinder1` | BOOL | Lệnh kích XL1 (Manual) |
 | 2.3 | `PC_Cylinder2` | BOOL | Lệnh kích XL2 (Manual) |
+| 2.4 | `PC_Auto` | BOOL | Chế độ Auto |
+| 2.5 | `PC_Man` | BOOL | Chế độ Manual |
+| **2.6** | **`PC_Master`** | **BOOL** | **Khóa phần cứng (PC Master)** |
 
 #### DB_PUT — PLC → PC (Python đọc)
 
@@ -212,6 +216,7 @@ Chi tiết đầy đủ tham khảo tại [Snap7_DataMap.md](file:///d:/KL_2025/
 
 | Widget | Loại | Chức năng |
 |--------|------|-----------|
+| `btMaster` | QPushButton | **Khóa phần cứng (Toggle)** — BẬT: hiện Auto/Man, TẮT: ẩn tất cả |
 | `btConveyor` | QPushButton | Điều khiển băng tải (Manual) |
 | `btCylinder1` | QPushButton | Kích xy-lanh 1 — NG_L (Manual) |
 | `btCylinder2` | QPushButton | Kích xy-lanh 2 — NG_H (Manual) |
@@ -227,15 +232,18 @@ Chi tiết đầy đủ tham khảo tại [Snap7_DataMap.md](file:///d:/KL_2025/
 
 ### 5.3 Enable/Disable theo chế độ
 
-| Widget | Manual | Auto |
-|--------|--------|------|
-| btTrigger | ✅ Enabled | ❌ Disabled |
-| btContinue | ✅ Enabled | ❌ Disabled |
-| btConveyor | ✅ Enabled | ❌ Disabled |
-| btCylinder1 | ✅ Enabled | ❌ Disabled |
-| btCylinder2 | ✅ Enabled | ❌ Disabled |
-| Camera | Chạy | Chạy |
-| hienthiKQ | Hiện kết quả | Hiện kết quả |
+| Widget | Master OFF | Master ON + Auto | Master ON + Manual |
+|--------|-----------|-----------------|--------------------|
+| btMaster | ✅ Hiện | ✅ Hiện | ✅ Hiện |
+| btAuto | ❌ Ẩn | ✅ Hiện | ✅ Hiện |
+| btManual | ❌ Ẩn | ✅ Hiện | ✅ Hiện |
+| btTrigger | ❌ Ẩn | ❌ Ẩn | ✅ Hiện |
+| btContinue | ❌ Ẩn | ❌ Ẩn | ✅ Hiện |
+| btConveyor | ❌ Ẩn | ❌ Ẩn | ✅ Hiện |
+| btCylinder1 | ❌ Ẩn | ❌ Ẩn | ✅ Hiện |
+| btCylinder2 | ❌ Ẩn | ❌ Ẩn | ✅ Hiện |
+| Camera | Chạy | Chạy | Chạy |
+| hienthiKQ | Hiện kết quả | Hiện kết quả | Hiện kết quả |
 
 ---
 

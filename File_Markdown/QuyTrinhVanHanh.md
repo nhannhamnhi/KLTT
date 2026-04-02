@@ -24,7 +24,13 @@ Trước khi chạy máy, người vận hành thực hiện các bước trên 
 
 ## 2. CHẾ ĐỘ HOẠT ĐỘNG (ROUTING)
 
-Người vận hành bắt buộc phải chọn 1 trong 2 chế độ bằng cách nhấn nút tương ứng (Auto hoặc Manual).
+### 🔒 2.0 Kích hoạt Master (Khóa Phần Cứng)
+Trước khi chọn chế độ Auto hay Manual, người vận hành **bắt buộc** nhấn nút **"🔓 Master"** trên giao diện:
+- Khi nhấn Master → PC gửi tín hiệu `PC_Master = TRUE` xuống PLC → PLC vô hiệu hóa các nút vật lý trên tủ điện.
+- Giao diện hiển thị thêm 2 nút **Auto** và **Manual** để chọn chế độ.
+- Khi tắt Master → Tất cả nút chế độ ẩn đi, PLC mở khóa cho nút vật lý hoạt động trở lại.
+
+Người vận hành chọn 1 trong 2 chế độ bằng cách nhấn nút tương ứng (Auto hoặc Manual).
 
 ### 🟢 2A. Chế độ Tự Động (AUTO MODE)
 **Đặc điểm:** Phần mềm tự động giám sát cảm biến quang, chạy vòng lặp suy luận và gửi lệnh cho PLC loại bỏ tự động mà không cần can thiệp tay. Sự tương tác diễn ra 100% qua Snap7 ở Back-ground.

@@ -837,11 +837,45 @@ QScrollArea #scrollAreaWidgetContents {
       </widget>
      </widget>
     </widget>
-    <widget class="QPushButton" name="btAuto">
+    <widget class="QPushButton" name="btMaster">
      <property name="geometry">
       <rect>
        <x>505</x>
        <y>38</y>
+       <width>255</width>
+       <height>38</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+	color: #169393;
+	background-color: #FFFFFF;
+	border: 2px solid #CEC2B1;
+	border-radius: 5px;
+}
+QPushButton:hover {
+	background-color: #E2C0B2;
+	color: #FFFFFF;
+}
+QPushButton:pressed {
+	background-color: #B5A08C;
+}</string>
+     </property>
+     <property name="text">
+      <string>🔓 Master</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btAuto">
+     <property name="geometry">
+      <rect>
+       <x>505</x>
+       <y>85</y>
        <width>120</width>
        <height>38</height>
       </rect>
@@ -875,7 +909,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>640</x>
-       <y>38</y>
+       <y>85</y>
        <width>120</width>
        <height>38</height>
       </rect>
@@ -909,7 +943,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>505</x>
-       <y>90</y>
+       <y>350</y>
        <width>255</width>
        <height>45</height>
       </rect>
@@ -1115,41 +1149,6 @@ QPushButton:pressed {
      </property>
      <property name="text">
       <string>Cylinder 2</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lbGoiY">
-     <property name="geometry">
-      <rect>
-       <x>505</x>
-       <y>338</y>
-       <width>255</width>
-       <height>55</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>9</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
-    background-color: #E8F4FD;
-    color: #006666;
-    border: 1px solid #B0D4E3;
-    border-radius: 5px;
-    padding: 5px;
-}</string>
-     </property>
-     <property name="text">
-      <string>📌 Chọn chế độ Auto hoặc Manual</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
      </property>
     </widget>
    </widget>

@@ -405,8 +405,28 @@ class Ui_Main(object):
         self.Hienthidulieu.setGeometry(QtCore.QRect(0, 0, 461, 341))
         self.Hienthidulieu.setObjectName("Hienthidulieu")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents_2)
+        self.btMaster = QtWidgets.QPushButton(self.groupBox_hienthidl)
+        self.btMaster.setGeometry(QtCore.QRect(505, 38, 255, 38))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.btMaster.setFont(font)
+        self.btMaster.setStyleSheet("QPushButton {\n"
+"    color: #169393;\n"
+"    background-color: #FFFFFF;\n"
+"    border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #E2C0B2;\n"
+"    color: #FFFFFF;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #B5A08C;\n"
+"}")
+        self.btMaster.setObjectName("btMaster")
         self.btAuto = QtWidgets.QPushButton(self.groupBox_hienthidl)
-        self.btAuto.setGeometry(QtCore.QRect(505, 38, 120, 38))
+        self.btAuto.setGeometry(QtCore.QRect(505, 85, 120, 38))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -426,7 +446,7 @@ class Ui_Main(object):
 "}")
         self.btAuto.setObjectName("btAuto")
         self.btManual = QtWidgets.QPushButton(self.groupBox_hienthidl)
-        self.btManual.setGeometry(QtCore.QRect(640, 38, 120, 38))
+        self.btManual.setGeometry(QtCore.QRect(640, 85, 120, 38))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -446,7 +466,7 @@ class Ui_Main(object):
 "}")
         self.btManual.setObjectName("btManual")
         self.btXuat = QtWidgets.QPushButton(self.groupBox_hienthidl)
-        self.btXuat.setGeometry(QtCore.QRect(505, 90, 255, 45))
+        self.btXuat.setGeometry(QtCore.QRect(505, 350, 255, 45))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -571,23 +591,6 @@ class Ui_Main(object):
 "    background-color: #0F6A6A;\n"
 "}")
         self.btCylinder2.setObjectName("btCylinder2")
-        self.lbGoiY = QtWidgets.QLabel(self.groupBox_hienthidl)
-        self.lbGoiY.setGeometry(QtCore.QRect(505, 338, 255, 55))
-        font = QtGui.QFont()
-        font.setPointSize(9)
-        font.setBold(False)
-        font.setWeight(50)
-        self.lbGoiY.setFont(font)
-        self.lbGoiY.setStyleSheet("QLabel {\n"
-"    background-color: #E8F4FD;\n"
-"    color: #006666;\n"
-"    border: 1px solid #B0D4E3;\n"
-"    border-radius: 5px;\n"
-"    padding: 5px;\n"
-"}")
-        self.lbGoiY.setAlignment(QtCore.Qt.AlignCenter)
-        self.lbGoiY.setWordWrap(True)
-        self.lbGoiY.setObjectName("lbGoiY")
         self.groupBox_tuychinhcamera = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_tuychinhcamera.setGeometry(QtCore.QRect(10, 620, 1121, 281))
         font = QtGui.QFont()
@@ -824,6 +827,7 @@ class Ui_Main(object):
         self.CPU_PLC.setItemText(2, _translate("Main", "S7-400"))
         self.label_20.setText(_translate("Main", "CPU_PLC"))
         self.groupBox_hienthidl.setTitle(_translate("Main", "HIỂN THỊ DL"))
+        self.btMaster.setText(_translate("Main", "🔓 Master"))
         self.btAuto.setText(_translate("Main", "🟠 Auto"))
         self.btManual.setText(_translate("Main", "🔵 Manual"))
         self.btXuat.setText(_translate("Main", "Xuất Excel"))
@@ -832,7 +836,6 @@ class Ui_Main(object):
         self.btContinue.setText(_translate("Main", "Continue"))
         self.btCylinder1.setText(_translate("Main", "Cylinder 1"))
         self.btCylinder2.setText(_translate("Main", "Cylinder 2"))
-        self.lbGoiY.setText(_translate("Main", "📌 Chọn chế độ Auto hoặc Manual"))
         self.groupBox_tuychinhcamera.setTitle(_translate("Main", "TÙY CHỈNH CAMERA"))
         self.label_16.setText(_translate("Main", "Độ sáng (Brightness)"))
         self.label_17.setText(_translate("Main", "Độ bão hòa (Saturation)"))
