@@ -72,9 +72,6 @@ class CameraThread(QtCore.QThread):
         # Cờ báo hiệu có thay đổi thông số
         self.params_changed = False
         
-        # Cờ báo hiệu tạm dừng hình ảnh (đóng băng)
-        self.is_paused = False
-        
         # Biến tính FPS
         self.prev_time = 0
 
@@ -128,18 +125,17 @@ class CameraThread(QtCore.QThread):
                     processed_img = cv_img.copy()
                     labels = []
 
-                # Gửi cả 2 ảnh và danh sách nhãn về giao diện (chỉ gửi khi không bị pause)
-                if not self.is_paused:
-                    # Tính FPS
-                    curr_time = time.time()
-                    fps = 0
-                    if self.prev_time != 0:
-                        delta = curr_time - self.prev_time
-                        if delta > 0:
-                            fps = 1.0 / delta
-                    self.prev_time = curr_time
-                    
-                    self.change_pixmap_signal.emit(cv_img, processed_img, labels, fps)
+                # Tính FPS (luôn tính, không bao giờ pause)
+                curr_time = time.time()
+                fps = 0
+                if self.prev_time != 0:
+                    delta = curr_time - self.prev_time
+                    if delta > 0:
+                        fps = 1.0 / delta
+                self.prev_time = curr_time
+
+                # Luôn emit mọi frame về giao diện (không bao giờ dừng)
+                self.change_pixmap_signal.emit(cv_img, processed_img, labels, fps)
             
             # Thêm một chút delay nhỏ để giảm tải CPU nếu cần (không bắt buộc)
             # self.msleep(10) 
@@ -258,6 +254,8 @@ class Controller:
         # --- PHẦN MỚI: Khởi tạo trạng thái chế độ Auto/Manual ---
         self.manual_authenticated = False  # Đánh dấu đã đăng nhập thủ công hay chưa
         self._prev_trigger_req = False  # Track trạng thái trigger (S0) từ PLC
+        self.has_triggered = False  # Cờ đóng băng: False = Anhdaxuly chạy real-time, True = đóng băng
+        self._latest_processed_frame = None  # Lưu frame AI mới nhất để dùng khi trigger
 
         # Toggle state cho các nút điều khiển Manual
         self.conveyor_state = False
@@ -269,8 +267,6 @@ class Controller:
         self.ui_main.btControlManual.setStyleSheet(self._STYLE_MASTER_OFF)
 
         # Khởi động: Ẩn tất cả các nút điều khiển thủ công
-        self.ui_main.btTrigger.hide()
-        self.ui_main.btContinue.hide()
         self.ui_main.btConveyor.hide()
         self.ui_main.btCylinder1.hide()
         self.ui_main.btCylinder2.hide()
@@ -304,9 +300,8 @@ class Controller:
         # Kết nối nút Xuất Excel
         self.ui_main.btXuat.clicked.connect(self.export_excel)
 
-        # Kết nối các nút mô phỏng cảm biến (Trigger và Continue)
-        self.ui_main.btTrigger.clicked.connect(self.handle_trigger)
-        self.ui_main.btContinue.clicked.connect(self.handle_continue)
+        # Ghi chú: Nút Trigger và Continue đã được loại bỏ.
+        # Camera đóng băng/mở băng tự động qua cảm biến S0 (PLC).
 
         # --- PHẦN MỚI: Kết nối các nút quản lý Model AI ---
         # Kết nối các nút quản lý Model AI
@@ -485,8 +480,6 @@ class Controller:
 
         if self.manual_authenticated and is_plc_manual:
             # Cho phép điều khiển (Vì đã vặn Manual cứng + Đã Login phần mềm)
-            self.ui_main.btTrigger.show()
-            self.ui_main.btContinue.show()
             self.ui_main.btConveyor.show()
             self.ui_main.btCylinder1.show()
             self.ui_main.btCylinder2.show()
@@ -503,8 +496,6 @@ class Controller:
             self.ui_main.btCylinder2.setText("Cylinder 2")
         else:
             # Ẩn nút (Nếu ai gạt lại tũ vật lý qua Auto, HOẶC lỡ tay log out màn hình)
-            self.ui_main.btTrigger.hide()
-            self.ui_main.btContinue.hide()
             self.ui_main.btConveyor.hide()
             self.ui_main.btCylinder1.hide()
             self.ui_main.btCylinder2.hide()
@@ -724,23 +715,24 @@ class Controller:
             s2 = "🟢" if status["sensor2"] else "⚫"
             self.lb_stt_sensors.setText(f"S0:{s0} S1:{s1} S2:{s2}")
 
-        # XỬ LÝ TRIGGER TỪ PLC (Cạnh lên và Cạnh xuống) TRONG CHẾ ĐỘ AUTO
-        if status.get("auto", False):
-            # Cạnh lên: PLC yêu cầu trả kết quả (False -> True)
-            if status["trigger_req"] and not getattr(self, '_prev_trigger_req', False):
-                print(f"[AUTO] 📸 Cảm biến S0 kích hoạt! KQ AI hiện tại: {getattr(self, 'current_result', 'WAIT')}")
-                if hasattr(self, 'current_result') and self.current_result != "WAIT":
-                    # Ghi xuống PLC và đóng dấu DataReady = True
-                    self.plc.write_result(self.current_result, data_ready=True)
-                    # Lưu lại lịch sử đo đếm vào Excel/Log
-                    self.save_current_data()
-                else:
-                    print("[AUTO] ⚠️ AI chưa có kết quả (Đang WAIT/Không vỉ), bỏ qua gửi PLC.")
+        # XỬ LÝ TRIGGER TỪ SENSOR S0 (CẢ AUTO LẪN MANUAL)
+        # Cạnh lên: S0 phát hiện vỉ mới (False → True)
+        if status["trigger_req"] and not getattr(self, '_prev_trigger_req', False):
+            print(f"[TRIGGER] 📸 Cảm biến S0 kích hoạt! KQ AI hiện tại: {getattr(self, 'current_result', 'WAIT')}")
+            if hasattr(self, 'current_result') and self.current_result != "WAIT":
+                # 1. Đóng băng Anhdaxuly + số liệu với kết quả hiện tại
+                self.freeze_anhdaxuly()
+                # 2. Ghi xuống PLC và đóng dấu DataReady = True
+                self.plc.write_result(self.current_result, data_ready=True)
+                # 3. Lưu lại lịch sử đo đếm vào Excel/Log
+                self.save_current_data()
+            else:
+                print("[TRIGGER] ⚠️ AI chưa có kết quả (Đang WAIT/Không vỉ), bỏ qua.")
 
-            # Cạnh xuống: PLC đã lấy xong dữ liệu, tắt biến yêu cầu (True -> False)
-            elif not status["trigger_req"] and getattr(self, '_prev_trigger_req', False):
-                print("[AUTO] ✅ PLC đã nhận dữ liệu, hạ cờ DataReady về False.")
-                self.plc.reset_data_ready()
+        # Cạnh xuống: PLC đã lấy xong dữ liệu (True → False)
+        elif not status["trigger_req"] and getattr(self, '_prev_trigger_req', False):
+            print("[TRIGGER] ✅ PLC đã nhận dữ liệu, hạ cờ DataReady về False.")
+            self.plc.reset_data_ready()
 
         # Lưu lại cờ trigger_req cho chu kỳ quét tiếp theo
         self._prev_trigger_req = status.get("trigger_req", False)
@@ -858,6 +850,9 @@ class Controller:
         self.thread_camera.change_pixmap_signal.connect(self.update_image)
         self.thread_camera.error_signal.connect(self.handle_camera_error)
         
+        # Reset trạng thái đóng băng khi kết nối camera mới
+        self.has_triggered = False
+        
         self.thread_camera.start()
         print(f"Đang thử kết nối tới camera nguồn: {camera_source}")
         
@@ -935,134 +930,142 @@ class Controller:
             self.ket_noi_camera()
             print("Đã Reset Camera về mặc định phần cứng.")
 
-    def handle_trigger(self):
-        """Xử lý khi nhấn nút Trigger: Dừng hình, Lưu dữ liệu và GỬI XUỐNG PLC (Test)"""
-        if self.thread_camera is not None and self.thread_camera.isRunning():
-            # 1. Đóng băng hình ảnh
-            self.thread_camera.is_paused = True
-            
-            # 2. Phát tín hiệu ghi xuống PLC (Test gửi thủ công)
-            if self.plc.is_connected:
-                if hasattr(self, 'current_result') and self.current_result != "WAIT":
-                    self.plc.write_result(self.current_result, data_ready=True)
-                    print(f"[MANUAL TRIGGER] 📤 Đã gửi kết quả {self.current_result} xuống PLC.")
-                else:
-                    print("[MANUAL TRIGGER] ⚠️ AI chưa có kết quả (Đang WAIT/Không vỉ), bỏ qua gửi PLC.")
-            else:
-                print("[MANUAL TRIGGER] ⚠️ PLC chưa kết nối.")
-                
-            # 3. Lưu dữ liệu hiện tại ngay lập tức vào Excel/Log
-            self.save_current_data()
-            print("[TRIGGER] Đã đóng băng camera và lưu dữ liệu.")
-            
-            if hasattr(self, 'lb_stt_system'):
-                self.lb_stt_system.setText("Hệ thống camera: ⚠️ Tạm dừng")
-        else:
-            QMessageBox.warning(self.main_win, "Thông báo", "Vui lòng kết nối Camera trước khi Trigger!")
+    def freeze_anhdaxuly(self):
+        """
+        Đóng băng khung Anhdaxuly + số liệu với kết quả AI hiện tại.
+        Gọi khi sensor S0 kích (cả Auto & Manual).
+        Sau khi gọi hàm này, update_image() sẽ bỏ qua cập nhật Anhdaxuly.
+        """
+        # Bật cờ đóng băng — update_image() sẽ không đổi Anhdaxuly nữa
+        self.has_triggered = True
 
-    def handle_continue(self):
-        """Xử lý khi nhấn nút Continue: Tiếp tục luồng camera"""
-        if self.thread_camera is not None and self.thread_camera.isRunning():
-            self.thread_camera.is_paused = False
-            print("[CONTINUE] Camera đã hoạt động trở lại.")
-            
-            # Reset DataReady về False để tạo sườn lên cho lần Trigger tiếp theo
-            if self.plc.is_connected:
-                self.plc.reset_data_ready()
-                print("[MANUAL TRIGGER] 📉 Đã reset DataReady về FALSE.")
-            
-            if hasattr(self, 'lb_stt_system'):
-                self.lb_stt_system.setText("Hệ thống camera: 🟢 Đang chạy")
+        # === CẬP NHẬT HÌNH ẢNH AI MỚI NHẤT LÊN Anhdaxuly ===
+        # Sử dụng frame AI mới nhất đã lưu (luôn có sẵn từ update_image)
+        if self._latest_processed_frame is not None:
+            qt_img_xuly = self.convert_cv_qt(self._latest_processed_frame)
+            self.scene_xuly.clear()
+            self.scene_xuly.addPixmap(qt_img_xuly)
+            self.ui_main.Anhdaxuly.fitInView(
+                self.scene_xuly.itemsBoundingRect(), QtCore.Qt.IgnoreAspectRatio
+            )
+
+        # Cập nhật số liệu lên UI (đóng băng tại khoảnh khắc này)
+        self.ui_main.Tongsovien.setText(str(self.current_total))
+        self.ui_main.Viendat.setText(str(self.current_passed))
+        self.ui_main.Vienloi.setText(str(self.current_failed))
+
+        # Cập nhật nhãn kết quả hienthiKQ với style tương ứng
+        _border = "border: 2px solid #47A3A7; border-radius: 8px;"
+        styles = {
+            "WAIT":    f"background-color: white;   color: black; {_border}",
+            "MISSING": f"background-color: #FF8C00; color: white; {_border}",
+            "OK":      f"background-color: #349d00; color: white; {_border}",
+            "NG_L":    f"background-color: #FFC300; color: black; {_border}",
+            "NG_H":    f"background-color: #CC0000; color: white; {_border}",
+        }
+        self.ui_main.hienthiKQ.setStyleSheet(styles.get(self.current_result, ""))
+        self.ui_main.hienthiKQ.setText(self.current_result)
+        self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
+
+        print(f"[FREEZE] 🧊 Đóng băng Anhdaxuly: {self.current_result} | "
+              f"Tổng: {self.current_total}, Đạt: {self.current_passed}, Lỗi: {self.current_failed}")
 
     def update_image(self, cv_img_goc, cv_img_xuly, labels, fps):
-        """Cập nhật hình ảnh lên giao diện khi có frame mới"""
+        """Cập nhật hình ảnh lên giao diện khi có frame mới.
         
-        # Cập nhật FPS lên status bar
+        Kiến trúc hiển thị:
+        - Anhgoc: LUÔN cập nhật ảnh thô (raw) từ camera — quan sát băng tải real-time
+        - Anhdaxuly: Có 2 trạng thái:
+          + Trước trigger đầu tiên (has_triggered=False): hiển thị real-time ảnh AI (có bbox)
+          + Sau trigger (has_triggered=True): ĐÓNG BĂNG ảnh AI tại khoảnh khắc trigger
+        - Số liệu + nhãn kết quả: Đóng băng cùng Anhdaxuly khi có trigger
+        """
+        # Cập nhật FPS lên status bar (luôn cập nhật)
         if hasattr(self, 'lb_stt_fps'):
             self.lb_stt_fps.setText(f"FPS: {fps:.1f}")
-        
-        # Chuyển đổi từ OpenCV (BGR) sang QImage (RGB)
+
+        # === KHUNG 1: Anhgoc — LUÔN CẬP NHẬT ảnh thô (raw, không AI bbox) ===
         qt_img_goc = self.convert_cv_qt(cv_img_goc)
-        qt_img_xuly = self.convert_cv_qt(cv_img_xuly)
-        
-        # Hiển thị lên Ảnh gốc
         self.scene_goc.clear()
         self.scene_goc.addPixmap(qt_img_goc)
-        # Sử dụng IgnoreAspectRatio để phóng full khung nếu cần, hoặc KeepAspectRatioByExpanding
-        self.ui_main.Anhgoc.fitInView(self.scene_goc.itemsBoundingRect(), QtCore.Qt.IgnoreAspectRatio)
-        
-        # Hiển thị lên Ảnh đã xử lý (Ảnh đã được AI vẽ khung)
-        self.scene_xuly.clear()
-        self.scene_xuly.addPixmap(qt_img_xuly)
-        self.ui_main.Anhdaxuly.fitInView(self.scene_xuly.itemsBoundingRect(), QtCore.Qt.IgnoreAspectRatio)
+        self.ui_main.Anhgoc.fitInView(
+            self.scene_goc.itemsBoundingRect(), QtCore.Qt.IgnoreAspectRatio
+        )
 
-        # --- XỬ LÝ LOGIC HIỂN THỊ KẾT QUẢ OK/NG/WAIT ---
-        # Logic:
-        # - Chưa phát hiện vật (list rỗng) -> WAIT (Nền trắng)
-        # - Có phát hiện:
-        #     + Nếu TẤT CẢ là 'full' -> OK (Nền xanh)
-        #     + Nếu chỉ cần có 1 cái 'partial' hoặc 'empty' -> NG (Nền đỏ)
-        
-        # --- 5 MÀU TƯƠNG ỨNG 5 TRẠNG THÁI ---
-        _border       = "border: 2px solid #47A3A7; border-radius: 8px;"
-        color_wait    = f"background-color: white;   color: black; {_border}"
-        color_missing = f"background-color: #FF8C00; color: white; {_border}"
-        color_ok      = f"background-color: #349d00; color: white; {_border}"
-        color_ng_l    = f"background-color: #FFC300; color: black; {_border}"
-        color_ng_h    = f"background-color: #CC0000; color: white; {_border}"
+        # === KHUNG 2: Anhdaxuly — CÓ ĐIỀU KIỆN ===
+        if not self.has_triggered:
+            # Chưa có trigger lần nào → hiển thị ảnh AI real-time (có bounding box)
+            qt_img_xuly = self.convert_cv_qt(cv_img_xuly)
+            self.scene_xuly.clear()
+            self.scene_xuly.addPixmap(qt_img_xuly)
+            self.ui_main.Anhdaxuly.fitInView(
+                self.scene_xuly.itemsBoundingRect(), QtCore.Qt.IgnoreAspectRatio
+            )
 
-        # --- ĐẾM SỐ LƯỢNG ---
+            # Cập nhật số liệu + nhãn kết quả real-time (khi chưa đóng băng)
+            tong_so  = len(labels)
+            vien_dat = sum(1 for lb in labels if lb.strip().lower() == 'full')
+            vien_loi = tong_so - vien_dat
+
+            self.ui_main.Tongsovien.setText(str(tong_so))
+            self.ui_main.Viendat.setText(str(vien_dat))
+            self.ui_main.Vienloi.setText(str(vien_loi))
+
+            # --- 5 MÀU TƯƠNG ỨNG 5 TRẠNG THÁI ---
+            _border       = "border: 2px solid #47A3A7; border-radius: 8px;"
+            color_wait    = f"background-color: white;   color: black; {_border}"
+            color_missing = f"background-color: #FF8C00; color: white; {_border}"
+            color_ok      = f"background-color: #349d00; color: white; {_border}"
+            color_ng_l    = f"background-color: #FFC300; color: black; {_border}"
+            color_ng_h    = f"background-color: #CC0000; color: white; {_border}"
+
+            if tong_so == 0:
+                ket_qua = "WAIT"
+                self.ui_main.hienthiKQ.setStyleSheet(color_wait)
+                self.ui_main.hienthiKQ.setText("WAIT")
+            elif tong_so < self.SO_O_KHUON:
+                ket_qua = "MISSING"
+                self.ui_main.hienthiKQ.setStyleSheet(color_missing)
+                self.ui_main.hienthiKQ.setText("MISSING")
+            else:
+                full_chuan = min(vien_dat, self.SO_O_KHUON)
+                if full_chuan == self.SO_O_KHUON:
+                    ket_qua = "OK"
+                    self.ui_main.hienthiKQ.setStyleSheet(color_ok)
+                    self.ui_main.hienthiKQ.setText("OK")
+                elif full_chuan > self.SO_O_KHUON // 2:
+                    ket_qua = "NG_L"
+                    self.ui_main.hienthiKQ.setStyleSheet(color_ng_l)
+                    self.ui_main.hienthiKQ.setText("NG_L")
+                else:
+                    ket_qua = "NG_H"
+                    self.ui_main.hienthiKQ.setStyleSheet(color_ng_h)
+                    self.ui_main.hienthiKQ.setText("NG_H")
+            self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
+        # Nếu has_triggered = True → Anhdaxuly + số liệu + nhãn giữ nguyên (đóng băng)
+
+        # === LUÔN LƯU FRAME AI MỚI NHẤT (để freeze_anhdaxuly dùng khi trigger) ===
+        self._latest_processed_frame = cv_img_xuly.copy()
+
+        # === LUÔN TÍNH NỘI BỘ current_result (để sẵn cho PLC khi trigger tiếp theo) ===
         tong_so  = len(labels)
         vien_dat = sum(1 for lb in labels if lb.strip().lower() == 'full')
         vien_loi = tong_so - vien_dat
 
-        # Cập nhật ô đếm (luôn cập nhật, WAIT sẽ hiển thị 0)
-        self.ui_main.Tongsovien.setText(str(tong_so))
-        self.ui_main.Viendat.setText(str(vien_dat))
-        self.ui_main.Vienloi.setText(str(vien_loi))
-
-        # =============================================================
-        # LOGIC PHÂN LOẠI 5 TRẠNG THÁI
-        # =============================================================
         if tong_so == 0:
-            # WAIT: Chưa phát hiện vỉ nào trong khung hình
             ket_qua = "WAIT"
-            self.ui_main.hienthiKQ.setStyleSheet(color_wait)
-            self.ui_main.hienthiKQ.setText("WAIT")
-
         elif tong_so < self.SO_O_KHUON:
-            # MISSING: Phát hiện ít hơn số ô khuôn chuẩn (6)
-            # → Vỉ chưa vào đúng vị trí hoặc thiếu viên ngay từ đầu
             ket_qua = "MISSING"
-            self.ui_main.hienthiKQ.setStyleSheet(color_missing)
-            self.ui_main.hienthiKQ.setText("MISSING")
-
         else:
-            # detect >= SO_O_KHUON: Đủ số ô → đánh giá chất lượng
-            # Chỉ tính trên SO_O_KHUON ô chuẩn (tránh sai lệch khi over-detect nhẹ)
             full_chuan = min(vien_dat, self.SO_O_KHUON)
-
             if full_chuan == self.SO_O_KHUON:
-                # OK: Tất cả 6 ô đều full, đạt chuẩn hoàn toàn
                 ket_qua = "OK"
-                self.ui_main.hienthiKQ.setStyleSheet(color_ok)
-                self.ui_main.hienthiKQ.setText("OK")
-
             elif full_chuan > self.SO_O_KHUON // 2:
-                # NG_L: Hơn 50% đạt (>3/6) → lỗi nhẹ, có thể bổ sung thủ công
                 ket_qua = "NG_L"
-                self.ui_main.hienthiKQ.setStyleSheet(color_ng_l)
-                self.ui_main.hienthiKQ.setText("NG_L")
-
             else:
-                # NG_H: ≤50% đạt (≤3/6) → lỗi nặng, loại bỏ toàn bộ vỉ
                 ket_qua = "NG_H"
-                self.ui_main.hienthiKQ.setStyleSheet(color_ng_h)
-                self.ui_main.hienthiKQ.setText("NG_H")
 
-        self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
-
-        # Lưu kết quả hiện tại (dùng khi Trigger để ghi dữ liệu)
+        # Lưu kết quả nội bộ (luôn cập nhật ngầm, dù UI có đóng băng)
         self.current_total  = tong_so
         self.current_passed = vien_dat
         self.current_failed = vien_loi

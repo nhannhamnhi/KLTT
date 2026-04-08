@@ -426,7 +426,7 @@ class Ui_Main(object):
 "}")
         self.btControlManual.setObjectName("btControlManual")
         self.btXuat = QtWidgets.QPushButton(self.groupBox_hienthidl)
-        self.btXuat.setGeometry(QtCore.QRect(505, 290, 255, 45))
+        self.btXuat.setGeometry(QtCore.QRect(505, 240, 255, 45))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -447,55 +447,13 @@ class Ui_Main(object):
 "    background-color: #0F6A6A;\n"
 "}")
         self.btXuat.setObjectName("btXuat")
-        self.btTrigger = QtWidgets.QPushButton(self.groupBox_hienthidl)
-        self.btTrigger.setGeometry(QtCore.QRect(505, 90, 120, 50))
-        font = QtGui.QFont()
-        font.setBold(True)
-        font.setWeight(75)
-        self.btTrigger.setFont(font)
-        self.btTrigger.setStyleSheet("QPushButton {\n"
-"    background-color: #006666;\n"
-"    color: white;\n"
-"    border: 2px solid #CEC2B1;\n"
-"    border-radius: 5px;\n"
-"    padding: 5px;\n"
-"    font-weight: bold;\n"
-"}\n"
-"QPushButton:hover {\n"
-"    background-color: #008080; /* Hiệu ứng khi di chuột */\n"
-"}\n"
-"QPushButton:pressed {\n"
-"    background-color: #0F6A6A;\n"
-"}")
-        self.btTrigger.setObjectName("btTrigger")
         self.btConveyor = QtWidgets.QPushButton(self.groupBox_hienthidl)
-        self.btConveyor.setGeometry(QtCore.QRect(640, 90, 120, 50))
+        self.btConveyor.setGeometry(QtCore.QRect(509, 90, 251, 50))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
         self.btConveyor.setFont(font)
         self.btConveyor.setStyleSheet("QPushButton {\n"
-"    background-color: #006666;\n"
-"    color: white;\n"
-"    border: 2px solid #CEC2B1;\n"
-"    border-radius: 5px;\n"
-"    padding: 5px;\n"
-"    font-weight: bold;\n"
-"}\n"
-"QPushButton:hover {\n"
-"    background-color: #008080;\n"
-"}\n"
-"QPushButton:pressed {\n"
-"    background-color: #0F6A6A;\n"
-"}")
-        self.btConveyor.setObjectName("btConveyor")
-        self.btContinue = QtWidgets.QPushButton(self.groupBox_hienthidl)
-        self.btContinue.setGeometry(QtCore.QRect(505, 155, 255, 42))
-        font = QtGui.QFont()
-        font.setBold(True)
-        font.setWeight(75)
-        self.btContinue.setFont(font)
-        self.btContinue.setStyleSheet("QPushButton {\n"
 "    color: #169393;\n"
 "    background-color: #FFFFFF;\n"
 "    border: 2px solid #CEC2B1;\n"
@@ -508,9 +466,9 @@ class Ui_Main(object):
 "QPushButton:pressed {\n"
 "    background-color: #B5A08C;\n"
 "}")
-        self.btContinue.setObjectName("btContinue")
+        self.btConveyor.setObjectName("btConveyor")
         self.btCylinder1 = QtWidgets.QPushButton(self.groupBox_hienthidl)
-        self.btCylinder1.setGeometry(QtCore.QRect(505, 212, 120, 50))
+        self.btCylinder1.setGeometry(QtCore.QRect(505, 162, 120, 50))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -531,7 +489,7 @@ class Ui_Main(object):
 "}")
         self.btCylinder1.setObjectName("btCylinder1")
         self.btCylinder2 = QtWidgets.QPushButton(self.groupBox_hienthidl)
-        self.btCylinder2.setGeometry(QtCore.QRect(640, 212, 120, 50))
+        self.btCylinder2.setGeometry(QtCore.QRect(640, 162, 120, 50))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -789,9 +747,7 @@ class Ui_Main(object):
         self.groupBox_hienthidl.setTitle(_translate("Main", "HIỂN THỊ DL"))
         self.btControlManual.setText(_translate("Main", "🔓 ControlManual"))
         self.btXuat.setText(_translate("Main", "Xuất Excel"))
-        self.btTrigger.setText(_translate("Main", "Trigger"))
         self.btConveyor.setText(_translate("Main", "▶ Conveyor"))
-        self.btContinue.setText(_translate("Main", "Continue"))
         self.btCylinder1.setText(_translate("Main", "Cylinder 1"))
         self.btCylinder2.setText(_translate("Main", "Cylinder 2"))
         self.groupBox_tuychinhcamera.setTitle(_translate("Main", "TÙY CHỈNH CAMERA"))
