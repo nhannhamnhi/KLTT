@@ -96,6 +96,56 @@ class PLCConnector:
                 self._connected = False
         return self._connected
 
+    def get_cpu_family(self):
+        """
+        Đọc order code từ PLC để xác định dòng CPU thực tế.
+
+        Mapping prefix mã order → dòng CPU Siemens:
+            6ES7 2xx → S7-1200 (hoặc S7-200, nhưng S7-200 dùng giao thức khác)
+            6ES7 5xx → S7-1500
+            6ES7 3xx → S7-300
+            6ES7 4xx → S7-400
+
+        Trả về:
+            str: Tên dòng CPU (VD: "S7-1200") hoặc None nếu không xác định được.
+        """
+        if not self.is_connected:
+            return None
+
+        # Mapping: ký tự thứ 5 trong order code → dòng CPU
+        prefix_map = {
+            "2": "S7-1200",
+            "5": "S7-1500",
+            "4": "S7-400",
+        }
+
+        try:
+            order_code_obj = self.client.get_order_code()
+            # Order code trả về dạng bytes, VD: b'6ES7 214-1AG40-0XB0'
+            code_str = order_code_obj.OrderCode.decode('utf-8').strip().rstrip('\x00')
+            print(f"[PLC] 📋 Order Code đọc được: {code_str}")
+
+            # Tìm ký tự đầu tiên sau "6ES7 " (vị trí thứ 5) để xác định dòng
+            # Format chuẩn: "6ES7 Xxx-xxxx-xxxx"
+            if len(code_str) >= 6 and code_str.startswith("6ES7"):
+                # Ký tự xác định dòng CPU nằm ngay sau "6ES7 " (hoặc "6ES7")
+                # Loại bỏ khoảng trắng nếu có
+                family_char = code_str.replace(" ", "")[4]  # "6ES7" + ký tự thứ 5
+                cpu_family = prefix_map.get(family_char, None)
+                if cpu_family:
+                    print(f"[PLC] ✅ Xác định dòng CPU: {cpu_family}")
+                    return cpu_family
+                else:
+                    print(f"[PLC] ⚠️ Không nhận diện được dòng CPU từ prefix '{family_char}'")
+                    return None
+            else:
+                print(f"[PLC] ⚠️ Order code không đúng định dạng Siemens: {code_str}")
+                return None
+
+        except Exception as e:
+            print(f"[PLC] ⚠️ Không thể đọc order code: {e}")
+            return None
+
     # ────────────────────────────────────────────
     # GHI DỮ LIỆU XUỐNG PLC (DB_GET — PC → PLC)
     # ────────────────────────────────────────────
@@ -129,7 +179,7 @@ class PLCConnector:
             return True
         except Exception as e:
             print(f"[PLC] ❌ Lỗi ghi kết quả: {e}")
-            self._connected = False
+            # self._connected = False
             return False
 
     def reset_data_ready(self):
@@ -143,7 +193,7 @@ class PLCConnector:
             return True
         except Exception as e:
             print(f"[PLC] ❌ Lỗi reset DataReady: {e}")
-            self._connected = False
+            # self._connected = False
             return False
 
     def write_conveyor(self, state):
@@ -167,6 +217,8 @@ class PLCConnector:
         """
         return self._write_bool_db_get(2, 3, state, "Cylinder2")
 
+
+
     def _write_bool_db_get(self, byte_offset, bit_offset, value, name=""):
         """
         Hàm nội bộ: Ghi 1 bit BOOL vào DB_GET.
@@ -183,7 +235,7 @@ class PLCConnector:
             return True
         except Exception as e:
             print(f"[PLC] ❌ Lỗi ghi {name}: {e}")
-            self._connected = False
+            # self._connected = False
             return False
 
     # ────────────────────────────────────────────
@@ -220,7 +272,7 @@ class PLCConnector:
             return status
         except Exception as e:
             print(f"[PLC] ❌ Lỗi đọc trạng thái PLC: {e}")
-            self._connected = False
+            # self._connected = False
             return None
 
 
@@ -281,21 +333,6 @@ class PLCPollingThread(QtCore.QThread):
                 self.plc_connection_lost.emit()
                 self.msleep(1000)
                 continue
-
-            # ================================================================
-            # THAY ĐỔI: Nếu các biến dữ liệu (sensor/trigger) thay đổi, 
-            # tự động chuyển mode sang MANUAL (False)
-            # ================================================================
-            data_changed = (
-                status["trigger_req"] != self._prev_status["trigger_req"] or
-                status["sensor1"]     != self._prev_status["sensor1"]     or
-                status["sensor2"]     != self._prev_status["sensor2"]
-            )
-
-            if data_changed:
-                status["auto"]   = False  # Ngắt Auto
-                status["manual"] = True   # Chuyển sang Manual khi có biến dữ liệu thay đổi
-                print("[PLC Polling] ⚠️ Dữ liệu thay đổi -> Tự động chuyển MANUAL")
 
             # Chỉ phát signal khi trạng thái có sự khác biệt so với lần quét trước
             if status != self._prev_status:

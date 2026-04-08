@@ -17,6 +17,7 @@
 - [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng)
 - [Quản Lý Model AI](#-quản-lý-model-ai)
 - [Quản Lý Dữ Liệu](#-quản-lý-dữ-liệu)
+- [Cấu Hình Truyền Thông PLC](#-cấu-hình-truyền-thông-plc)
 - [Lưu Ý Quan Trọng](#-lưu-ý-quan-trọng)
 
 ---
@@ -30,6 +31,7 @@
 | **Mô hình AI** | **YOLOv8** (OBB - Oriented Bounding Box) | Nhận diện và phân loại viên thuốc |
 | **Tăng tốc AI** | **Intel OpenVINO™** | Tối ưu inference trên CPU Intel |
 | **Xử lý ảnh** | **OpenCV** | Đọc camera, điều chỉnh ảnh |
+| **Truyền thông PLC** | **python-snap7** | Giao tiếp với PLC Siemens qua S7 Protocol |
 | **Dữ liệu** | **JSON** + **openpyxl** | Lưu trữ kết quả và xuất Excel |
 
 ---
@@ -41,6 +43,8 @@ KLTT/
 ├── File_MainProgram/          # 🧠 Code xử lý chính
 │   ├── finish.py              # File khởi chạy - Điều phối toàn bộ hệ thống
 │   ├── Class_AI.py            # Lớp YOLO_Detector - Xử lý nhận diện AI
+│   ├── Class_dataplc.py       # Lớp PLCConnector - Truyền thông PLC Siemens
+│   ├── plc_diagnostics.py     # Script chẩn đoán kiểm tra cấu hình DB PLC
 │   ├── data_manager.py        # Lớp DataManager - Quản lý lưu/xuất dữ liệu
 │   └── data/
 │       └── data_history.json  # File lưu lịch sử kết quả phát hiện
@@ -61,6 +65,7 @@ KLTT/
 ├── File_modelYOLO/            # 🤖 Thư mục chứa model AI
 │   └── model/yolov8-obb/      # Model YOLOv8-OBB định dạng OpenVINO
 │
+├── Snap7_DataMap.md           # 📋 Tài liệu chi tiết bản đồ dữ liệu PLC
 ├── images/                    # Hình ảnh minh họa cho README
 ├── venv/                      # Môi trường ảo Python
 └── README.md                  # File hướng dẫn này
@@ -74,6 +79,8 @@ KLTT/
 
 ```
 Khởi động → Đăng nhập → Kết nối Camera → AI nhận diện → Hiển thị OK/NG → Lưu dữ liệu
+                                                              ↓
+                                               Kết nối PLC → Gửi kết quả → Điều khiển cơ cấu
 ```
 
 ### Các bước hoạt động chính
@@ -99,10 +106,17 @@ Khởi động → Đăng nhập → Kết nối Camera → AI nhận diện →
 
 **④ Đánh giá kết quả**
 - **WAIT** (nền trắng): Chưa phát hiện vỉ thuốc trong khung hình
+- **MISSING** (nền cam): Phát hiện ít hơn số ô khuôn chuẩn (6 ô)
 - **OK** (nền xanh): Tất cả viên đều là `Full`
-- **NG** (nền đỏ): Có bất kỳ viên `Partial` hoặc `Empty` nào
+- **NG_L** (nền vàng): Lỗi nhẹ — hơn 50% viên đạt
+- **NG_H** (nền đỏ): Lỗi nặng — ≤50% viên đạt
 
-**⑤ Lưu trữ & Xuất dữ liệu**
+**⑤ Truyền thông PLC**
+- Kết quả AI được gửi xuống PLC qua **Snap7** (S7 Protocol)
+- PLC điều khiển cơ cấu: băng tải, xy-lanh phân loại
+- Hỗ trợ 2 chế độ: **Auto** (PLC tự động) và **Manual** (điều khiển từ PC)
+
+**⑥ Lưu trữ & Xuất dữ liệu**
 - Nhấn **Trigger** để đóng băng hình ảnh và lưu kết quả kiểm tra vào file JSON
 - Nhấn **Continue** để tiếp tục quét
 - Hỗ trợ **xuất Excel** theo ngày với format chuyên nghiệp
@@ -131,7 +145,7 @@ venv\Scripts\activate
 ### Bước 3: Cài đặt thư viện
 
 ```bash
-pip install PyQt5 opencv-python ultralytics openvino openpyxl
+pip install PyQt5 opencv-python ultralytics openvino openpyxl python-snap7
 ```
 
 > **Lưu ý:** Nên cài đặt `ultralytics` và `openvino` cùng phiên bản đã dùng để huấn luyện model.
@@ -189,11 +203,13 @@ Sau khi vào giao diện chính, nạp model AI theo các bước:
 | | Ảnh đã xử lý | Hình ảnh có vẽ khung nhận diện AI |
 | | Ô kết quả (OK/NG/WAIT) | Kết quả tổng hợp với màu trực quan |
 | | Bộ đếm | Tổng số viên / Viên đạt / Viên lỗi |
+| **PLC** | Kết nối PLC | Nhập IP, Rack, Slot → Kết nối PLC Siemens |
+| | Chế độ Auto/Manual | Hiển thị trên Status Bar |
 | **Cảm biến** | Nút **Trigger** | Đóng băng camera + Lưu dữ liệu |
 | | Nút **Continue** | Tiếp tục quét sau khi Trigger |
 | **Dữ liệu** | Danh sách kết quả | Hiển thị lịch sử kiểm tra hôm nay |
 | | Nút **Xuất Excel** | Chọn ngày → Xuất file `.xlsx` |
-| **Status Bar** | Thanh trạng thái | Hệ thống / Model / Camera / FPS / Thời gian |
+| **Status Bar** | Thanh trạng thái | Hệ thống / Model / Camera / FPS / PLC / Mode / Sensor |
 
 ---
 
@@ -246,13 +262,99 @@ Nếu huấn luyện model trên **Google Colab** rồi mang về sử dụng:
 
 ---
 
+## 🔌 Cấu Hình Truyền Thông PLC
+
+Hệ thống sử dụng **python-snap7** để giao tiếp với PLC Siemens qua giao thức S7 (TCP/IP cổng 102). Cấu hình biến PLC được khai báo trực tiếp trong mã nguồn file `Class_dataplc.py`.
+
+> 📋 Tài liệu chi tiết về bản đồ dữ liệu: xem file `Snap7_DataMap.md`
+
+### Kiến trúc 2 DB tách biệt
+
+```
+┌──────────────────┐         Snap7 (TCP/IP)         ┌──────────────────┐
+│   PC (Python)    │  ──── GHI → DB_GET ─────────→  │   PLC Siemens    │
+│                  │  ←─── ĐỌC ← DB_PUT ────────   │   (S7-1200/1500) │
+│  Class_dataplc   │         Port 102               │  DB_GET + DB_PUT │
+└──────────────────┘                                └──────────────────┘
+```
+
+### Bảng biến DB_GET — PC GHI xuống PLC (DB1, 3 bytes)
+
+| Offset | Tên biến | Kiểu | Giá trị | Mô tả |
+| :--- | :--- | :--- | :--- | :--- |
+| 0 - 1 | `PC_KetQua` | INT | 0=WAIT, 1=OK, 2=NG_L, 3=NG_H | Kết quả phân loại AI |
+| 2.0 | `PC_DataReady` | BOOL | TRUE/FALSE | Cờ báo PLC có kết quả mới cần đọc |
+| 2.1 | `PC_Conveyor` | BOOL | TRUE/FALSE | Lệnh chạy/dừng băng tải (Manual) |
+| 2.2 | `PC_Cylinder1` | BOOL | TRUE/FALSE | Kích/thu xy-lanh 1 — đẩy vỉ NG_L |
+| 2.3 | `PC_Cylinder2` | BOOL | TRUE/FALSE | Kích/thu xy-lanh 2 — đẩy vỉ NG_H |
+
+### Bảng biến DB_PUT — PLC GỬI lên PC (DB2, 1 byte)
+
+| Offset | Tên biến | Kiểu | Mô tả |
+| :--- | :--- | :--- | :--- |
+| 0.0 | `PLC_Auto` | BOOL | Chế độ Tự động đang kích hoạt |
+| 0.1 | `PLC_Manual` | BOOL | Chế độ Thủ công đang kích hoạt |
+| 0.2 | `PLC_Running` | BOOL | Hệ thống sẵn sàng (FALSE khi E-Stop/lỗi) |
+| 0.3 | `PLC_TriggerReq` | BOOL | Sensor 0 phát hiện vỉ → yêu cầu chụp |
+| 0.4 | `PLC_Sensor1` | BOOL | Sensor 1 — vỉ tới vị trí xy-lanh 1 |
+| 0.5 | `PLC_Sensor2` | BOOL | Sensor 2 — vỉ tới vị trí xy-lanh 2 |
+
+### Hướng dẫn chỉnh sửa biến PLC
+
+Khi cần **thêm biến mới** hoặc **thay đổi offset**, chỉnh sửa theo các bước sau:
+
+**Bước 1:** Cập nhật hằng số trong `Class_dataplc.py` (dòng 11-18)
+
+```python
+# File: File_MainProgram/Class_dataplc.py
+
+DB_GET = 1            # Số hiệu DB (đổi nếu dùng DB khác trong TIA Portal)
+DB_GET_SIZE = 3       # Tổng kích thước DB_GET (bytes) — tăng nếu thêm biến
+
+DB_PUT = 2            # Số hiệu DB
+DB_PUT_SIZE = 1       # Tổng kích thước DB_PUT (bytes) — tăng nếu thêm biến
+```
+
+**Bước 2:** Thêm/sửa hàm đọc-ghi tương ứng trong class `PLCConnector`
+
+```python
+# Ví dụ: Thêm biến PLC_Sensor3 tại offset 0.6 trong DB_PUT
+# → Sửa hàm read_plc_status(), thêm dòng:
+"sensor3": get_bool(data, 0, 6),  # Offset 0.6: PLC_Sensor3
+
+# → Nhớ tăng DB_PUT_SIZE nếu biến mới nằm ở byte mới
+```
+
+**Bước 3:** Cập nhật luồng polling trong class `PLCPollingThread` (nếu cần)
+
+**Bước 4:** Cập nhật giao diện `finish.py` để hiển thị biến mới (nếu cần)
+
+> ⚠️ **Quan trọng:** Sau khi chỉnh sửa Python, phải đảm bảo DB trong TIA Portal cũng được cập nhật tương ứng (cùng offset, cùng kiểu dữ liệu, tắt "Optimized block access").
+
+### Kiểm tra đồng bộ Python ↔ TIA Portal
+
+Sử dụng script chẩn đoán để xác minh cấu hình DB trong PLC khớp với Python:
+
+```bash
+python File_MainProgram/plc_diagnostics.py
+```
+
+Script sẽ tự động kiểm tra:
+1. ✅ DB có tồn tại và đúng kích thước
+2. ✅ Đọc thử tất cả biến → offset nào lỗi sẽ báo ngay
+3. ✅ Ghi pattern test (VD: `PC_KetQua = 42`) → đối chiếu trong Watch Table
+4. ✅ Ghi/Đọc ngược → xác minh tính toàn vẹn dữ liệu
+
+---
+
 ## ⚠️ Lưu Ý Quan Trọng
 
 1. **Camera:** Đảm bảo Camera/Webcam đã được **kết nối vật lý** trước khi nhấn nút Kết nối
 2. **Model AI:** Phải nạp model thành công (kiểm tra Status Bar) trước khi kết quả nhận diện hoạt động
 3. **Hiệu năng:** OpenVINO tối ưu nhất trên CPU Intel. FPS hiển thị trên Status Bar giúp đánh giá hiệu suất
-4. **Tài khoản đăng nhập mặc định:** Có thể thay đổi trong `finish.py` tại biến `USER_SETUP` và `PASS_SETUP`
-5. **Giao diện UI:** Các file `.py` trong `File_QTtoPY/` được **sinh tự động** từ Qt Designer → Không nên chỉnh sửa trực tiếp. Nếu muốn thay đổi UI, hãy sửa file `.ui` trong `File_QT/` rồi chạy lại `pyuic5`
+4. **PLC:** Phải bật **PUT/GET** trong TIA Portal (Properties → Protection). Nếu dùng PLCSim, cần mở **NetToPLCSim**
+5. **Tài khoản đăng nhập mặc định:** Có thể thay đổi trong `finish.py` tại biến `USER_SETUP` và `PASS_SETUP`
+6. **Giao diện UI:** Các file `.py` trong `File_QTtoPY/` được **sinh tự động** từ Qt Designer → Không nên chỉnh sửa trực tiếp. Nếu muốn thay đổi UI, hãy sửa file `.ui` trong `File_QT/` rồi chạy lại `pyuic5`
 
 ---
 
@@ -265,6 +367,7 @@ PyQt5          - Giao diện Desktop
 opencv-python  - Xử lý hình ảnh và camera
 ultralytics    - Framework YOLO cho nhận diện vật thể
 openvino       - Tăng tốc inference trên CPU Intel
+python-snap7   - Giao tiếp PLC Siemens qua S7 Protocol
 openpyxl       - Đọc/ghi file Excel
 numpy          - Xử lý mảng và tính toán số học
 ```

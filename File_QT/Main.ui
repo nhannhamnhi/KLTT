@@ -719,12 +719,12 @@ border-radius: 5px;
      </property>
      <item>
       <property name="text">
-       <string>S7-1500</string>
+       <string>S7-1200</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>S7-1200</string>
+       <string>S7-1500</string>
       </property>
      </item>
      <item>
@@ -837,13 +837,47 @@ QScrollArea #scrollAreaWidgetContents {
       </widget>
      </widget>
     </widget>
+    <widget class="QPushButton" name="btControlManual">
+     <property name="geometry">
+      <rect>
+       <x>505</x>
+       <y>38</y>
+       <width>255</width>
+       <height>38</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+	color: #169393;
+	background-color: #FFFFFF;
+	border: 2px solid #CEC2B1;
+	border-radius: 5px;
+}
+QPushButton:hover {
+	background-color: #E2C0B2;
+	color: #FFFFFF;
+}
+QPushButton:pressed {
+	background-color: #B5A08C;
+}</string>
+     </property>
+     <property name="text">
+      <string>🔓 ControlManual</string>
+     </property>
+    </widget>
     <widget class="QPushButton" name="btXuat">
      <property name="geometry">
       <rect>
-       <x>540</x>
-       <y>90</y>
-       <width>131</width>
-       <height>61</height>
+       <x>505</x>
+       <y>240</y>
+       <width>255</width>
+       <height>45</height>
       </rect>
      </property>
      <property name="font">
@@ -875,48 +909,13 @@ QPushButton:pressed {
       <string>Xuất Excel</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btTrigger">
+    <widget class="QPushButton" name="btConveyor">
      <property name="geometry">
       <rect>
-       <x>540</x>
-       <y>170</y>
-       <width>131</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QPushButton {
-    background-color: #006666;
-    color: white;
-    border: 2px solid #CEC2B1;
-	border-radius: 5px;
-    padding: 5px;
-    font-weight: bold;
-}
-QPushButton:hover {
-    background-color: #008080; /* Hiệu ứng khi di chuột */
-}
-QPushButton:pressed {
-	background-color: #0F6A6A;
-}</string>
-     </property>
-     <property name="text">
-      <string>Trigger</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btContinue">
-     <property name="geometry">
-      <rect>
-       <x>540</x>
-       <y>250</y>
-       <width>131</width>
-       <height>61</height>
+       <x>509</x>
+       <y>90</y>
+       <width>251</width>
+       <height>50</height>
       </rect>
      </property>
      <property name="font">
@@ -941,7 +940,77 @@ QPushButton:pressed {
 }</string>
      </property>
      <property name="text">
-      <string>Continue</string>
+      <string>▶ Conveyor</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btCylinder1">
+     <property name="geometry">
+      <rect>
+       <x>505</x>
+       <y>162</y>
+       <width>120</width>
+       <height>50</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+    background-color: #006666;
+    color: white;
+    border: 2px solid #CEC2B1;
+	border-radius: 5px;
+    padding: 5px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #008080;
+}
+QPushButton:pressed {
+	background-color: #0F6A6A;
+}</string>
+     </property>
+     <property name="text">
+      <string>Cylinder 1</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btCylinder2">
+     <property name="geometry">
+      <rect>
+       <x>640</x>
+       <y>162</y>
+       <width>120</width>
+       <height>50</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+    background-color: #006666;
+    color: white;
+    border: 2px solid #CEC2B1;
+	border-radius: 5px;
+    padding: 5px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #008080;
+}
+QPushButton:pressed {
+	background-color: #0F6A6A;
+}</string>
+     </property>
+     <property name="text">
+      <string>Cylinder 2</string>
      </property>
     </widget>
    </widget>
