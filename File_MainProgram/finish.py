@@ -765,7 +765,7 @@ class Controller:
         # Kiểm tra xem giao diện có statusbar không (thường QMainWindow mặc định có)
         if hasattr(self.ui_main, 'statusbar'):
             # 1. Label Trạng thái hệ thống
-            self.lb_stt_system = QtWidgets.QLabel("Hệ thống: Sẵn sàng")
+            self.lb_stt_system = QtWidgets.QLabel("Hệ thống camera: Sẵn sàng")
             self.lb_stt_system.setStyleSheet("color: black; font-weight: bold; padding-right: 15px")
             self.ui_main.statusbar.addWidget(self.lb_stt_system)
             
@@ -863,7 +863,7 @@ class Controller:
         
         # Cập nhật status bar
         if hasattr(self, 'lb_stt_system'):
-            self.lb_stt_system.setText("Hệ thống: 🟢 Đang chạy")
+            self.lb_stt_system.setText("Hệ thống camera: 🟢 Đang chạy")
         if hasattr(self, 'lb_stt_cam'):
             # Hiển thị tên ngắn gọn trên status bar
             if loai_camera == "Camera_custom":
@@ -901,7 +901,7 @@ class Controller:
 
         # Cập nhật status bar
         if hasattr(self, 'lb_stt_system'):
-            self.lb_stt_system.setText("Hệ thống: 🔴 Ngắt kết nối")
+            self.lb_stt_system.setText("Hệ thống camera: 🔴 Ngắt kết nối")
         if hasattr(self, 'lb_stt_fps'):
             self.lb_stt_fps.setText("FPS: --")
 
@@ -956,7 +956,7 @@ class Controller:
             print("[TRIGGER] Đã đóng băng camera và lưu dữ liệu.")
             
             if hasattr(self, 'lb_stt_system'):
-                self.lb_stt_system.setText("Hệ thống: ⚠️ Tạm dừng")
+                self.lb_stt_system.setText("Hệ thống camera: ⚠️ Tạm dừng")
         else:
             QMessageBox.warning(self.main_win, "Thông báo", "Vui lòng kết nối Camera trước khi Trigger!")
 
@@ -972,7 +972,7 @@ class Controller:
                 print("[MANUAL TRIGGER] 📉 Đã reset DataReady về FALSE.")
             
             if hasattr(self, 'lb_stt_system'):
-                self.lb_stt_system.setText("Hệ thống: 🟢 Đang chạy")
+                self.lb_stt_system.setText("Hệ thống camera: 🟢 Đang chạy")
 
     def update_image(self, cv_img_goc, cv_img_xuly, labels, fps):
         """Cập nhật hình ảnh lên giao diện khi có frame mới"""
