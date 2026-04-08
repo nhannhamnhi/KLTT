@@ -217,55 +217,7 @@ class PLCConnector:
         """
         return self._write_bool_db_get(2, 3, state, "Cylinder2")
 
-    def write_mode_auto(self):
-        """
-        Ghi chế độ Auto xuống PLC: PC_Auto=TRUE, PC_Man=FALSE.
-        Offset 2.4 = PC_Auto, Offset 2.5 = PC_Man (cùng byte 2).
-        """
-        if not self.is_connected:
-            print("[PLC] ⚠️ Chưa kết nối PLC, không thể ghi chế độ Auto.")
-            return False
-        try:
-            data = self.client.db_read(DB_GET, 2, 1)
-            set_bool(data, 0, 4, True)   # PC_Auto = TRUE
-            set_bool(data, 0, 5, False)  # PC_Man = FALSE
-            self.client.db_write(DB_GET, 2, data)
-            print("[PLC] 📤 Ghi chế độ: AUTO (PC_Auto=TRUE, PC_Man=FALSE)")
-            return True
-        except Exception as e:
-            print(f"[PLC] ❌ Lỗi ghi chế độ Auto: {e}")
-            # self._connected = False
-            return False
 
-    def write_mode_manual(self):
-        """
-        Ghi chế độ Manual xuống PLC: PC_Auto=FALSE, PC_Man=TRUE.
-        Offset 2.4 = PC_Auto, Offset 2.5 = PC_Man (cùng byte 2).
-        """
-        if not self.is_connected:
-            print("[PLC] ⚠️ Chưa kết nối PLC, không thể ghi chế độ Manual.")
-            return False
-        try:
-            data = self.client.db_read(DB_GET, 2, 1)
-            set_bool(data, 0, 4, False)  # PC_Auto = FALSE
-            set_bool(data, 0, 5, True)   # PC_Man = TRUE
-            self.client.db_write(DB_GET, 2, data)
-            print("[PLC] 📤 Ghi chế độ: MANUAL (PC_Auto=FALSE, PC_Man=TRUE)")
-            return True
-        except Exception as e:
-            print(f"[PLC] ❌ Lỗi ghi chế độ Manual: {e}")
-            # self._connected = False
-            return False
-
-    def write_master(self, state):
-        """
-        Ghi tín hiệu khóa cứng phần cứng xuống PLC (PC_Master).
-        Khi PC_Master=TRUE → PLC vô hiệu hóa các nút vật lý trên tủ điện.
-
-        Tham số:
-            state (bool): True = khóa phần cứng, False = mở khóa
-        """
-        return self._write_bool_db_get(2, 6, state, "PC_Master")
 
     def _write_bool_db_get(self, byte_offset, bit_offset, value, name=""):
         """
@@ -381,21 +333,6 @@ class PLCPollingThread(QtCore.QThread):
                 self.plc_connection_lost.emit()
                 self.msleep(1000)
                 continue
-
-            # ================================================================
-            # THAY ĐỔI: Nếu các biến dữ liệu (sensor/trigger) thay đổi, 
-            # tự động chuyển mode sang MANUAL (False)
-            # ================================================================
-            data_changed = (
-                status["trigger_req"] != self._prev_status["trigger_req"] or
-                status["sensor1"]     != self._prev_status["sensor1"]     or
-                status["sensor2"]     != self._prev_status["sensor2"]
-            )
-
-            if data_changed:
-                status["auto"]   = False  # Ngắt Auto
-                status["manual"] = True   # Chuyển sang Manual khi có biến dữ liệu thay đổi
-                print("[PLC Polling] ⚠️ Dữ liệu thay đổi -> Tự động chuyển MANUAL")
 
             # Chỉ phát signal khi trạng thái có sự khác biệt so với lần quét trước
             if status != self._prev_status:

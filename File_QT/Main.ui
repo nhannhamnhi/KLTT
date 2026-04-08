@@ -837,7 +837,7 @@ QScrollArea #scrollAreaWidgetContents {
       </widget>
      </widget>
     </widget>
-    <widget class="QPushButton" name="btMaster">
+    <widget class="QPushButton" name="btControlManual">
      <property name="geometry">
       <rect>
        <x>505</x>
@@ -868,82 +868,14 @@ QPushButton:pressed {
 }</string>
      </property>
      <property name="text">
-      <string>🔓 Master</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btAuto">
-     <property name="geometry">
-      <rect>
-       <x>505</x>
-       <y>85</y>
-       <width>120</width>
-       <height>38</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QPushButton {
-	color: #169393;
-	background-color: #FFFFFF;
-	border: 2px solid #CEC2B1;
-	border-radius: 5px;
-}
-QPushButton:hover {
-	background-color: #E2C0B2;
-	color: #FFFFFF;
-}
-QPushButton:pressed {
-	background-color: #B5A08C;
-}</string>
-     </property>
-     <property name="text">
-      <string>🟠 Auto</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btManual">
-     <property name="geometry">
-      <rect>
-       <x>640</x>
-       <y>85</y>
-       <width>120</width>
-       <height>38</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QPushButton {
-	color: #169393;
-	background-color: #FFFFFF;
-	border: 2px solid #CEC2B1;
-	border-radius: 5px;
-}
-QPushButton:hover {
-	background-color: #E2C0B2;
-	color: #FFFFFF;
-}
-QPushButton:pressed {
-	background-color: #B5A08C;
-}</string>
-     </property>
-     <property name="text">
-      <string>🔵 Manual</string>
+      <string>🔓 ControlManual</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btXuat">
      <property name="geometry">
       <rect>
        <x>505</x>
-       <y>350</y>
+       <y>290</y>
        <width>255</width>
        <height>45</height>
       </rect>
@@ -981,7 +913,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>505</x>
-       <y>150</y>
+       <y>90</y>
        <width>120</width>
        <height>50</height>
       </rect>
@@ -1016,7 +948,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>640</x>
-       <y>150</y>
+       <y>90</y>
        <width>120</width>
        <height>50</height>
       </rect>
@@ -1051,7 +983,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>505</x>
-       <y>215</y>
+       <y>155</y>
        <width>255</width>
        <height>42</height>
       </rect>
@@ -1085,7 +1017,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>505</x>
-       <y>272</y>
+       <y>212</y>
        <width>120</width>
        <height>50</height>
       </rect>
@@ -1120,7 +1052,7 @@ QPushButton:pressed {
      <property name="geometry">
       <rect>
        <x>640</x>
-       <y>272</y>
+       <y>212</y>
        <width>120</width>
        <height>50</height>
       </rect>

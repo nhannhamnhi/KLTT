@@ -50,8 +50,6 @@
 | 2.1 | `PC_Conveyor` | BOOL | TRUE/FALSE | Lệnh chạy/dừng băng tải (chỉ dùng ở Manual) |
 | 2.2 | `PC_Cylinder1` | BOOL | TRUE/FALSE | Kích/thu xy-lanh 1 — đẩy vỉ NG_L |
 | 2.3 | `PC_Cylinder2` | BOOL | TRUE/FALSE | Kích/thu xy-lanh 2 — đẩy vỉ NG_H |
-| 2.4 | `PC_Auto` | BOOL | TRUE/FALSE | Chọn chế độ Tự động từ GUI |
-| 2.5 | `PC_Man` | BOOL | TRUE/FALSE | Chọn chế độ Thủ công từ GUI |
 
 ### Bản đồ bộ nhớ DB_GET
 
@@ -65,8 +63,6 @@ DB_GET (DB1) — Non-Optimized (3 bytes)
 │  2.1    │ PC_Conveyor   │ BOOL │ Lệnh băng tải (Manual)   │
 │  2.2    │ PC_Cylinder1  │ BOOL │ Lệnh xy-lanh 1           │
 │  2.3    │ PC_Cylinder2  │ BOOL │ Lệnh xy-lanh 2           │
-│  2.4    │ PC_Auto       │ BOOL │ Xác nhận chế độ Auto     │
-│  2.5    │ PC_Man        │ BOOL │ Xác nhận chế độ Manual   │
 └─────────┴───────────────┴──────┴──────────────────────────┘
 ```
 

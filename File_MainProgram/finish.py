@@ -256,17 +256,19 @@ class Controller:
         # self.data_timer.start(10000)
 
         # --- PHẦN MỚI: Khởi tạo trạng thái chế độ Auto/Manual ---
-        self.current_mode = None  # None = chưa chọn, "AUTO" hoặc "MANUAL"
-        self.master_locked = False  # Trạng thái nút Master (FALSE = mở khóa)
+        self.manual_authenticated = False  # Đánh dấu đã đăng nhập thủ công hay chưa
+        self._prev_trigger_req = False  # Track trạng thái trigger (S0) từ PLC
 
         # Toggle state cho các nút điều khiển Manual
         self.conveyor_state = False
         self.cylinder1_state = False
         self.cylinder2_state = False
 
-        # Khởi động: Ẩn tất cả, chỉ hiện nút Master
-        self.ui_main.btAuto.hide()
-        self.ui_main.btManual.hide()
+        # Thiết lập nút Control Manual mới (thay thế nút Master cũ)
+        self.ui_main.btControlManual.setText("⚙️ Control Manual")
+        self.ui_main.btControlManual.setStyleSheet(self._STYLE_MASTER_OFF)
+
+        # Khởi động: Ẩn tất cả các nút điều khiển thủ công
         self.ui_main.btTrigger.hide()
         self.ui_main.btContinue.hide()
         self.ui_main.btConveyor.hide()
@@ -317,11 +319,8 @@ class Controller:
         self.ui_main.btNgatketnoiplc.clicked.connect(self.ngat_ket_noi_plc)
         self.ui_main.CPU_PLC.currentIndexChanged.connect(self.on_cpu_plc_changed)
 
-        # --- PHẦN MỚI: Kết nối nút Master + các nút chọn chế độ ---
-        # Nhấn Master → Nếu chưa khóa thì hiện Login, nếu đã khóa thì toggle tắt
-        self.ui_main.btMaster.clicked.connect(self.handle_master_click)
-        self.ui_main.btAuto.clicked.connect(self.handle_mode_auto)
-        self.ui_main.btManual.clicked.connect(self.handle_mode_manual)
+        # --- PHẦN MỚI: Kết nối nút Control Manual ---
+        self.ui_main.btControlManual.clicked.connect(self.handle_control_manual_click)
 
         # --- PHẦN MỚI: Kết nối các nút điều khiển Manual ---
         self.ui_main.btConveyor.clicked.connect(self.handle_conveyor)
@@ -347,33 +346,44 @@ class Controller:
         self.login_win.activateWindow()   # Kích hoạt cửa sổ để nhận input
         self.ui_login.nhapten.setFocus()  # Focus vào ô nhập tên
 
-    def handle_master_click(self):
-        """Xử lý khi nhấn nút Master: nếu chưa khóa → mở Login, nếu đã khóa → tắt Master."""
-        if self.master_locked:
-            # Đã khóa → Toggle tắt Master (mở khóa)
-            self.handle_master_toggle()
+    def handle_control_manual_click(self):
+        """Xử lý khi nhấn nút Control Manual: mở Login hoặc Đăng xuất."""
+        if self.manual_authenticated:
+            # Đã đăng nhập → Nhấn để Đăng xuất
+            self.manual_authenticated = False
+            self.ui_main.btControlManual.setText("⚙️ Control Manual")
+            self.ui_main.btControlManual.setStyleSheet(self._STYLE_MASTER_OFF)
+            print("[LOGIN] Đã đăng xuất khỏi chế độ điều khiển thủ công.")
+            self.update_manual_ui() # Cập nhật lại UI để ẩn các nút nếu đang hiện
         else:
-            # Chưa khóa → Hiện Login để xác thực
+            # Chưa đăng nhập → Hiện Login
             self.show_login_for_master()
 
     def handle_login(self):
-        """Xử lý đăng nhập: thành công → kích hoạt Master mode."""
+        """Xử lý đăng nhập: thành công → kích hoạt Control Manual."""
         # Lấy dữ liệu từ ô nhập liệu
         username = self.ui_login.nhapten.text()
         password = self.ui_login.matkhau.text()
 
         # ================================================================
         # VỊ TRÍ THAY ĐỔI TÊN ĐĂNG NHẬP VÀ MẬT KHẨU Ở ĐÂY
-        # Bạn có thể thay đổi 'admin' và '123456' bằng thông tin bạn muốn
         # ================================================================
         USER_SETUP = "admin"
         PASS_SETUP = "123"
         # ================================================================
 
         if username == USER_SETUP and password == PASS_SETUP:
-            # Đăng nhập thành công → Đóng Login, kích hoạt Master
+            # Đăng nhập thành công
             self.login_win.close()
-            self.handle_master_toggle()  # Bật Master mode
+            self.manual_authenticated = True
+            
+            # Cập nhật nút thành Đăng xuất
+            self.ui_main.btControlManual.setText("🔒 Đăng xuất")
+            self.ui_main.btControlManual.setStyleSheet(self._STYLE_MASTER_ON)  # Viền/đỏ nhạt báo hiệu quyền điều khiển
+            print("[LOGIN] Đăng nhập quyền Control Manual thành công! Chờ vặn công tắc Manual...")
+            
+            # Cập nhật lại giao diện ngay để xem PLC có đang ở Manual ko
+            self.update_manual_ui()
         else:
             # Đăng nhập thất bại: Hiển thị cảnh báo
             msg = QMessageBox(self.login_win) # Gắn msg vào login_win để nó hiện trên cùng
@@ -463,144 +473,41 @@ class Controller:
         "QPushButton:hover { background-color: #E2C0B2; color: #FFFFFF; }"
     )
 
-    def handle_master_toggle(self):
-        """Toggle nút Master: Khóa/Mở khóa phần cứng PLC."""
-        self.master_locked = not self.master_locked
+    def update_manual_ui(self):
+        """
+        Cập nhật giao diện: Ẩn/Hiện nút điều khiển thủ công 
+        dựa trên việc Đăng nhập UI và Công tắc vật lý PLC.
+        """
+        is_plc_manual = False
+        if getattr(self, 'plc_polling_thread', None) is not None:
+            # Lấy trạng thái gần nhất thread đã đọc được
+            is_plc_manual = self.plc_polling_thread._prev_status.get("manual", False)
 
-        if self.master_locked:
-            # ── BẬT Master → Khóa cứng phần cứng ──
-            print("[MASTER] 🔒 Khóa phần cứng — BẬT")
-
-            # Hiện 2 nút chọn chế độ
-            self.ui_main.btAuto.show()
-            self.ui_main.btManual.show()
-
-            # Ghi PC_Master=TRUE xuống PLC
-            if self.plc.is_connected:
-                self.plc.write_master(True)
-
-            # Cập nhật style nút Master (đỏ = đang khóa)
-            self.ui_main.btMaster.setStyleSheet(self._STYLE_MASTER_ON)
-            self.ui_main.btMaster.setText("🔒 Master — LOCKED")
-
-            # Cập nhật status bar
-            if hasattr(self, 'lb_stt_master'):
-                self.lb_stt_master.setText("🔒 LOCKED")
-                self.lb_stt_master.setStyleSheet("color: #CC0000; font-weight: bold; padding-right: 15px")
-
+        if self.manual_authenticated and is_plc_manual:
+            # Cho phép điều khiển (Vì đã vặn Manual cứng + Đã Login phần mềm)
+            self.ui_main.btTrigger.show()
+            self.ui_main.btContinue.show()
+            self.ui_main.btConveyor.show()
+            self.ui_main.btCylinder1.show()
+            self.ui_main.btCylinder2.show()
+            
+            # Khởi tạo lại giao diện nút nhấn để tránh dính màu cũ
+            self.conveyor_state = False
+            self.cylinder1_state = False
+            self.cylinder2_state = False
+            self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btConveyor.setText("▶ Conveyor")
+            self.ui_main.btCylinder1.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btCylinder1.setText("Cylinder 1")
+            self.ui_main.btCylinder2.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btCylinder2.setText("Cylinder 2")
         else:
-            # ── TẮT Master → Mở khóa phần cứng ──
-            print("[MASTER] 🔓 Mở khóa phần cứng — TẮT")
-
-            # Tắt an toàn: gửi lệnh tắt tất cả xuống PLC trước khi mở khóa
-            if self.plc.is_connected:
-                self.plc.write_conveyor(False)
-                self.plc.write_cylinder1(False)
-                self.plc.write_cylinder2(False)
-
-            # Ẩn tất cả nút chế độ + điều khiển Manual
-            self.ui_main.btAuto.hide()
-            self.ui_main.btManual.hide()
+            # Ẩn nút (Nếu ai gạt lại tũ vật lý qua Auto, HOẶC lỡ tay log out màn hình)
             self.ui_main.btTrigger.hide()
             self.ui_main.btContinue.hide()
             self.ui_main.btConveyor.hide()
             self.ui_main.btCylinder1.hide()
             self.ui_main.btCylinder2.hide()
-
-
-            # Reset trạng thái
-            self.current_mode = None
-            self.conveyor_state = False
-            self.cylinder1_state = False
-            self.cylinder2_state = False
-
-            # Reset style Auto/Manual về mặc định
-            self.ui_main.btAuto.setStyleSheet(self._STYLE_MODE_INACTIVE)
-            self.ui_main.btManual.setStyleSheet(self._STYLE_MODE_INACTIVE)
-
-            # Ghi PC_Master=FALSE + reset mode xuống PLC
-            if self.plc.is_connected:
-                self.plc.write_master(False)
-
-            # Cập nhật style nút Master (trắng = mở khóa)
-            self.ui_main.btMaster.setStyleSheet(self._STYLE_MASTER_OFF)
-            self.ui_main.btMaster.setText("🔓 Master")
-
-            # Cập nhật status bar
-            if hasattr(self, 'lb_stt_master'):
-                self.lb_stt_master.setText("🔓 UNLOCKED")
-                self.lb_stt_master.setStyleSheet("color: gray; padding-right: 15px")
-            if hasattr(self, 'lb_stt_mode'):
-                self.lb_stt_mode.setText("--")
-                self.lb_stt_mode.setStyleSheet("font-weight: bold; padding-right: 15px")
-
-    def handle_mode_auto(self):
-        """Xử lý khi nhấn nút Auto — ẩn nút Manual, ghi PC_Auto xuống PLC."""
-        self.current_mode = "AUTO"
-        print("[MODE] 🟠 Chuyển sang chế độ AUTO")
-
-        # Ẩn tất cả nút điều khiển Manual
-        self.ui_main.btTrigger.hide()
-        self.ui_main.btContinue.hide()
-        self.ui_main.btConveyor.hide()
-        self.ui_main.btCylinder1.hide()
-        self.ui_main.btCylinder2.hide()
-
-
-        # Reset toggle state (tránh trạng thái cũ khi chuyển lại Manual)
-        self.conveyor_state = False
-        self.cylinder1_state = False
-        self.cylinder2_state = False
-
-        # Cập nhật style nút chế độ
-        self.ui_main.btAuto.setStyleSheet(self._STYLE_MODE_ACTIVE)
-        self.ui_main.btManual.setStyleSheet(self._STYLE_MODE_INACTIVE)
-
-        # Ghi PC_Auto=TRUE xuống PLC (nếu đang kết nối)
-        if self.plc.is_connected:
-            self.plc.write_mode_auto()
-
-        # Cập nhật status bar
-        if hasattr(self, 'lb_stt_mode'):
-            self.lb_stt_mode.setText("🟠 AUTO")
-            self.lb_stt_mode.setStyleSheet("color: #FF8C00; font-weight: bold; padding-right: 15px")
-
-    def handle_mode_manual(self):
-        """Xử lý khi nhấn nút Manual — hiện nút điều khiển, ghi PC_Man xuống PLC."""
-        self.current_mode = "MANUAL"
-        print("[MODE] 🔵 Chuyển sang chế độ MANUAL")
-
-        # Hiện tất cả nút điều khiển Manual
-        self.ui_main.btTrigger.show()
-        self.ui_main.btContinue.show()
-        self.ui_main.btConveyor.show()
-        self.ui_main.btCylinder1.show()
-        self.ui_main.btCylinder2.show()
-
-
-        # Reset toggle state và style nút
-        self.conveyor_state = False
-        self.cylinder1_state = False
-        self.cylinder2_state = False
-        self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_OFF)
-        self.ui_main.btConveyor.setText("▶ Conveyor")
-        self.ui_main.btCylinder1.setStyleSheet(self._STYLE_TOGGLE_OFF)
-        self.ui_main.btCylinder1.setText("Cylinder 1")
-        self.ui_main.btCylinder2.setStyleSheet(self._STYLE_TOGGLE_OFF)
-        self.ui_main.btCylinder2.setText("Cylinder 2")
-
-        # Cập nhật style nút chế độ
-        self.ui_main.btAuto.setStyleSheet(self._STYLE_MODE_INACTIVE)
-        self.ui_main.btManual.setStyleSheet(self._STYLE_MODE_ACTIVE)
-
-        # Ghi PC_Man=TRUE xuống PLC (nếu đang kết nối)
-        if self.plc.is_connected:
-            self.plc.write_mode_manual()
-
-        # Cập nhật status bar
-        if hasattr(self, 'lb_stt_mode'):
-            self.lb_stt_mode.setText("🔵 MANUAL")
-            self.lb_stt_mode.setStyleSheet("color: #0078D7; font-weight: bold; padding-right: 15px")
 
 
 
@@ -775,36 +682,30 @@ class Controller:
             self.lb_stt_master.setText("🔓 UNLOCKED")
             self.lb_stt_master.setStyleSheet("color: gray; padding-right: 15px")
 
-        # Reset trạng thái Master về mặc định
-        self.master_locked = False
-        self.current_mode = None
-        self.ui_main.btMaster.setStyleSheet(self._STYLE_MASTER_OFF)
-        self.ui_main.btMaster.setText("🔓 Master")
-        self.ui_main.btAuto.hide()
-        self.ui_main.btManual.hide()
-        self.ui_main.btTrigger.hide()
-        self.ui_main.btContinue.hide()
-        self.ui_main.btConveyor.hide()
-        self.ui_main.btCylinder1.hide()
-        self.ui_main.btCylinder2.hide()
+        # Reset khóa truy cập tài khoản khi ngắt kết nối
+        self.manual_authenticated = False
+        self.ui_main.btControlManual.setStyleSheet(self._STYLE_MASTER_OFF)
+        self.ui_main.btControlManual.setText("⚙️ Control Manual")
+        self.update_manual_ui()
 
 
     def on_plc_status_changed(self, status):
         """Slot nhận signal từ PLCPollingThread khi trạng thái PLC thay đổi."""
-        # Cập nhật chế độ Manual/Auto
+        # Đồng bộ giao diện ẩn/hiện nút nhấn dựa vào chế độ vật lý của PLC
+        self.update_manual_ui()
+
+        # Cập nhật chế độ Manual/Auto hiển thị (Chỉ đọc từ PLC thôi)
         if hasattr(self, 'lb_stt_mode'):
-            # Ưu tiên Auto trước, sau đó tới Manual
             if status.get("auto", False):
-                self.lb_stt_mode.setText("🟠 AUTO")
+                self.lb_stt_mode.setText("🟠 AUTO (Vật lý)")
                 self.lb_stt_mode.setStyleSheet("color: #FF8C00; font-weight: bold; padding-right: 15px")
                 self.lb_stt_mode.setEnabled(True)
             elif status.get("manual", False):
-                self.lb_stt_mode.setText("🔵 MANUAL")
+                self.lb_stt_mode.setText("🔵 MANUAL (Vật lý)")
                 self.lb_stt_mode.setStyleSheet("color: #0078D7; font-weight: bold; padding-right: 15px")
                 self.lb_stt_mode.setEnabled(True)
             else:
-                # Không có chế độ nào được kích hoạt -> Bỏ trống và làm mờ
-                self.lb_stt_mode.setText("")
+                self.lb_stt_mode.setText("--")
                 self.lb_stt_mode.setEnabled(False)
 
         # Cập nhật trạng thái PLC_Running
@@ -822,6 +723,29 @@ class Controller:
             s1 = "🟢" if status["sensor1"] else "⚫"
             s2 = "🟢" if status["sensor2"] else "⚫"
             self.lb_stt_sensors.setText(f"S0:{s0} S1:{s1} S2:{s2}")
+
+        # XỬ LÝ TRIGGER TỪ PLC (Cạnh lên và Cạnh xuống) TRONG CHẾ ĐỘ AUTO
+        if status.get("auto", False):
+            # Cạnh lên: PLC yêu cầu trả kết quả (False -> True)
+            if status["trigger_req"] and not getattr(self, '_prev_trigger_req', False):
+                print(f"[AUTO] 📸 Cảm biến S0 kích hoạt! KQ AI hiện tại: {getattr(self, 'current_result', 'WAIT')}")
+                if hasattr(self, 'current_result') and self.current_result != "WAIT":
+                    # Ghi xuống PLC và đóng dấu DataReady = True
+                    self.plc.write_result(self.current_result, data_ready=True)
+                    # Lưu lại lịch sử đo đếm vào Excel/Log
+                    self.save_current_data()
+                else:
+                    print("[AUTO] ⚠️ AI chưa có kết quả (Đang WAIT/Không vỉ), bỏ qua gửi PLC.")
+
+            # Cạnh xuống: PLC đã lấy xong dữ liệu, tắt biến yêu cầu (True -> False)
+            elif not status["trigger_req"] and getattr(self, '_prev_trigger_req', False):
+                print("[AUTO] ✅ PLC đã nhận dữ liệu, hạ cờ DataReady về False.")
+                self.plc.reset_data_ready()
+
+        # Lưu lại cờ trigger_req cho chu kỳ quét tiếp theo
+        self._prev_trigger_req = status.get("trigger_req", False)
+
+
 
     def on_plc_connection_lost(self):
         """Slot nhận signal khi mất kết nối PLC."""
@@ -1012,12 +936,22 @@ class Controller:
             print("Đã Reset Camera về mặc định phần cứng.")
 
     def handle_trigger(self):
-        """Xử lý khi nhấn nút Trigger: Dừng hình và Lưu dữ liệu"""
+        """Xử lý khi nhấn nút Trigger: Dừng hình, Lưu dữ liệu và GỬI XUỐNG PLC (Test)"""
         if self.thread_camera is not None and self.thread_camera.isRunning():
             # 1. Đóng băng hình ảnh
             self.thread_camera.is_paused = True
             
-            # 2. Lưu dữ liệu hiện tại ngay lập tức
+            # 2. Phát tín hiệu ghi xuống PLC (Test gửi thủ công)
+            if self.plc.is_connected:
+                if hasattr(self, 'current_result') and self.current_result != "WAIT":
+                    self.plc.write_result(self.current_result, data_ready=True)
+                    print(f"[MANUAL TRIGGER] 📤 Đã gửi kết quả {self.current_result} xuống PLC.")
+                else:
+                    print("[MANUAL TRIGGER] ⚠️ AI chưa có kết quả (Đang WAIT/Không vỉ), bỏ qua gửi PLC.")
+            else:
+                print("[MANUAL TRIGGER] ⚠️ PLC chưa kết nối.")
+                
+            # 3. Lưu dữ liệu hiện tại ngay lập tức vào Excel/Log
             self.save_current_data()
             print("[TRIGGER] Đã đóng băng camera và lưu dữ liệu.")
             
@@ -1031,6 +965,11 @@ class Controller:
         if self.thread_camera is not None and self.thread_camera.isRunning():
             self.thread_camera.is_paused = False
             print("[CONTINUE] Camera đã hoạt động trở lại.")
+            
+            # Reset DataReady về False để tạo sườn lên cho lần Trigger tiếp theo
+            if self.plc.is_connected:
+                self.plc.reset_data_ready()
+                print("[MANUAL TRIGGER] 📉 Đã reset DataReady về FALSE.")
             
             if hasattr(self, 'lb_stt_system'):
                 self.lb_stt_system.setText("Hệ thống: 🟢 Đang chạy")
