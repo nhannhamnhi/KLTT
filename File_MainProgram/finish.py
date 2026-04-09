@@ -984,6 +984,11 @@ class Controller:
         if hasattr(self, 'lb_stt_fps'):
             self.lb_stt_fps.setText(f"FPS: {fps:.1f}")
 
+        # === TÍNH TOÁN SỐ LIỆU AI (TÍNH 1 LẦN DÀNH CHO CẢ UI VÀ LOGIC NỘI BỘ) ===
+        tong_so  = len(labels)
+        vien_dat = sum(1 for lb in labels if lb.strip().lower() == 'full')
+        vien_loi = tong_so - vien_dat
+
         # === KHUNG 1: Anhgoc — LUÔN CẬP NHẬT ảnh thô (raw, không AI bbox) ===
         qt_img_goc = self.convert_cv_qt(cv_img_goc)
         self.scene_goc.clear()
@@ -1003,10 +1008,6 @@ class Controller:
             )
 
             # Cập nhật số liệu + nhãn kết quả real-time (khi chưa đóng băng)
-            tong_so  = len(labels)
-            vien_dat = sum(1 for lb in labels if lb.strip().lower() == 'full')
-            vien_loi = tong_so - vien_dat
-
             self.ui_main.Tongsovien.setText(str(tong_so))
             self.ui_main.Viendat.setText(str(vien_dat))
             self.ui_main.Vienloi.setText(str(vien_loi))
@@ -1048,9 +1049,6 @@ class Controller:
         self._latest_processed_frame = cv_img_xuly.copy()
 
         # === LUÔN TÍNH NỘI BỘ current_result (để sẵn cho PLC khi trigger tiếp theo) ===
-        tong_so  = len(labels)
-        vien_dat = sum(1 for lb in labels if lb.strip().lower() == 'full')
-        vien_loi = tong_so - vien_dat
 
         if tong_so == 0:
             ket_qua = "WAIT"
@@ -1253,7 +1251,6 @@ class Controller:
                 return
 
             # 2. Hiển thị dialog chọn nơi lưu
-            today_str = datetime.now().strftime('%Y-%m-%d')
             default_filename = f"KetQua_{selected_date}.xlsx"
             
             filepath, _ = QFileDialog.getSaveFileName(
