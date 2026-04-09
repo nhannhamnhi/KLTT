@@ -1,6 +1,25 @@
 {
+    "pythonVersion": "3.13",
+    "venvPath": ".",
+    "venv": "venv",
     "extraPaths": [
         "File_QTtoPY",
         "File_MainProgram"
+    ],
+    "executionEnvironments": [
+        {
+            "root": "File_MainProgram",
+            "extraPaths": [
+                "File_MainProgram",
+                "File_QTtoPY"
+            ]
+        },
+        {
+            "root": "File_QTtoPY",
+            "extraPaths": [
+                "File_QTtoPY",
+                "File_MainProgram"
+            ]
+        }
     ]
 }

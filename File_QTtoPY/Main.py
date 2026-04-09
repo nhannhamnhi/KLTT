@@ -426,7 +426,7 @@ class Ui_Main(object):
 "}")
         self.btControlManual.setObjectName("btControlManual")
         self.btXuat = QtWidgets.QPushButton(self.groupBox_hienthidl)
-        self.btXuat.setGeometry(QtCore.QRect(505, 240, 255, 45))
+        self.btXuat.setGeometry(QtCore.QRect(505, 310, 255, 45))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -509,6 +509,47 @@ class Ui_Main(object):
 "    background-color: #0F6A6A;\n"
 "}")
         self.btCylinder2.setObjectName("btCylinder2")
+        self.btTrigger = QtWidgets.QPushButton(self.groupBox_hienthidl)
+        self.btTrigger.setGeometry(QtCore.QRect(505, 240, 120, 50))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.btTrigger.setFont(font)
+        self.btTrigger.setStyleSheet("QPushButton {\n"
+"    background-color: #006666;\n"
+"    color: white;\n"
+"    border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
+"    padding: 5px;\n"
+"    font-weight: bold;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #008080;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #0F6A6A;\n"
+"}")
+        self.btTrigger.setObjectName("btTrigger")
+        self.btContinue = QtWidgets.QPushButton(self.groupBox_hienthidl)
+        self.btContinue.setGeometry(QtCore.QRect(640, 240, 120, 50))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.btContinue.setFont(font)
+        self.btContinue.setStyleSheet("QPushButton {\n"
+"    color: #169393;\n"
+"    background-color: #FFFFFF;\n"
+"    border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #E2C0B2;\n"
+"    color: #FFFFFF;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #B5A08C;\n"
+"}")
+        self.btContinue.setObjectName("btContinue")
         self.groupBox_tuychinhcamera = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_tuychinhcamera.setGeometry(QtCore.QRect(10, 620, 1121, 281))
         font = QtGui.QFont()
@@ -750,6 +791,8 @@ class Ui_Main(object):
         self.btConveyor.setText(_translate("Main", "▶ Conveyor"))
         self.btCylinder1.setText(_translate("Main", "Cylinder 1"))
         self.btCylinder2.setText(_translate("Main", "Cylinder 2"))
+        self.btTrigger.setText(_translate("Main", "📸 Trigger"))
+        self.btContinue.setText(_translate("Main", "▶ Continue"))
         self.groupBox_tuychinhcamera.setTitle(_translate("Main", "TÙY CHỈNH CAMERA"))
         self.label_16.setText(_translate("Main", "Độ sáng (Brightness)"))
         self.label_17.setText(_translate("Main", "Độ bão hòa (Saturation)"))

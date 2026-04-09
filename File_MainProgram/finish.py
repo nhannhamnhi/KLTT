@@ -267,6 +267,8 @@ class Controller:
         self.ui_main.btControlManual.setStyleSheet(self._STYLE_MASTER_OFF)
 
         # Khởi động: Ẩn tất cả các nút điều khiển thủ công
+        self.ui_main.btTrigger.hide()
+        self.ui_main.btContinue.hide()
         self.ui_main.btConveyor.hide()
         self.ui_main.btCylinder1.hide()
         self.ui_main.btCylinder2.hide()
@@ -300,8 +302,9 @@ class Controller:
         # Kết nối nút Xuất Excel
         self.ui_main.btXuat.clicked.connect(self.export_excel)
 
-        # Ghi chú: Nút Trigger và Continue đã được loại bỏ.
-        # Camera đóng băng/mở băng tự động qua cảm biến S0 (PLC).
+        # Kết nối nút Trigger và Continue cho chế độ Manual
+        self.ui_main.btTrigger.clicked.connect(self.handle_trigger)
+        self.ui_main.btContinue.clicked.connect(self.handle_continue)
 
         # --- PHẦN MỚI: Kết nối các nút quản lý Model AI ---
         # Kết nối các nút quản lý Model AI
@@ -480,6 +483,8 @@ class Controller:
 
         if self.manual_authenticated and is_plc_manual:
             # Cho phép điều khiển (Vì đã vặn Manual cứng + Đã Login phần mềm)
+            self.ui_main.btTrigger.show()
+            self.ui_main.btContinue.show()
             self.ui_main.btConveyor.show()
             self.ui_main.btCylinder1.show()
             self.ui_main.btCylinder2.show()
@@ -496,6 +501,8 @@ class Controller:
             self.ui_main.btCylinder2.setText("Cylinder 2")
         else:
             # Ẩn nút (Nếu ai gạt lại tũ vật lý qua Auto, HOẶC lỡ tay log out màn hình)
+            self.ui_main.btTrigger.hide()
+            self.ui_main.btContinue.hide()
             self.ui_main.btConveyor.hide()
             self.ui_main.btCylinder1.hide()
             self.ui_main.btCylinder2.hide()
@@ -627,7 +634,7 @@ class Controller:
 
             # Cập nhật status bar
             if hasattr(self, 'lb_stt_plc'):
-                self.lb_stt_plc.setText(f"PLC: ✅ {ip}")
+                self.lb_stt_plc.setText("PLC: ✅ Đã kết nối")
                 self.lb_stt_plc.setStyleSheet("color: green; font-weight: bold; padding-right: 15px")
 
             # Khởi động luồng polling đọc DB_PUT
@@ -669,9 +676,7 @@ class Controller:
         if hasattr(self, 'lb_stt_running'):
             self.lb_stt_running.setText("Hệ thống: ⚪")
             self.lb_stt_running.setStyleSheet("color: gray; padding-right: 15px")
-        if hasattr(self, 'lb_stt_master'):
-            self.lb_stt_master.setText("🔓 UNLOCKED")
-            self.lb_stt_master.setStyleSheet("color: gray; padding-right: 15px")
+
 
         # Reset khóa truy cập tài khoản khi ngắt kết nối
         self.manual_authenticated = False
@@ -781,10 +786,7 @@ class Controller:
             self.lb_stt_plc.setStyleSheet("color: gray; padding-right: 15px")
             self.ui_main.statusbar.addWidget(self.lb_stt_plc)
 
-            # 6. Label trạng thái Master (Khóa/Mở khóa phần cứng)
-            self.lb_stt_master = QtWidgets.QLabel("🔓 UNLOCKED")
-            self.lb_stt_master.setStyleSheet("color: gray; padding-right: 15px")
-            self.ui_main.statusbar.addWidget(self.lb_stt_master)
+
 
             # 7. Label chế độ Manual/Auto
             self.lb_stt_mode = QtWidgets.QLabel("--")
@@ -930,6 +932,40 @@ class Controller:
             self.ket_noi_camera()
             print("Đã Reset Camera về mặc định phần cứng.")
 
+    def handle_trigger(self):
+        """Xử lý khi nhấn nút Trigger (Manual): Đóng băng Anhdaxuly, gửi PLC, lưu dữ liệu."""
+        if self.thread_camera is not None and self.thread_camera.isRunning():
+            # 1. Đóng băng Anhdaxuly + số liệu tại khoảnh khắc hiện tại
+            self.freeze_anhdaxuly()
+
+            # 2. Gửi kết quả xuống PLC (nếu có kết nối)
+            if self.plc.is_connected:
+                if hasattr(self, 'current_result') and self.current_result != "WAIT":
+                    self.plc.write_result(self.current_result, data_ready=True)
+                    print(f"[MANUAL TRIGGER] 📤 Đã gửi kết quả {self.current_result} xuống PLC.")
+                else:
+                    print("[MANUAL TRIGGER] ⚠️ AI chưa có kết quả (Đang WAIT/Không vỉ), bỏ qua gửi PLC.")
+            else:
+                print("[MANUAL TRIGGER] ⚠️ PLC chưa kết nối.")
+
+            # 3. Lưu dữ liệu hiện tại vào Excel/Log
+            self.save_current_data()
+            print("[MANUAL TRIGGER] 📸 Đã đóng băng Anhdaxuly và lưu dữ liệu.")
+        else:
+            QMessageBox.warning(self.main_win, "Thông báo", "Vui lòng kết nối Camera trước khi Trigger!")
+
+    def handle_continue(self):
+        """Xử lý khi nhấn nút Continue (Manual): Mở băng Anhdaxuly trở lại real-time."""
+        if self.thread_camera is not None and self.thread_camera.isRunning():
+            # 1. Mở băng: Anhdaxuly trở lại hiển thị real-time
+            self.has_triggered = False
+            print("[CONTINUE] 🔄 Anhdaxuly đã trở lại real-time.")
+
+            # 2. Reset DataReady về False để PLC sẵn sàng cho lần Trigger tiếp
+            if self.plc.is_connected:
+                self.plc.reset_data_ready()
+                print("[CONTINUE] 📉 Đã reset DataReady về FALSE.")
+
     def freeze_anhdaxuly(self):
         """
         Đóng băng khung Anhdaxuly + số liệu với kết quả AI hiện tại.
@@ -980,14 +1016,14 @@ class Controller:
           + Sau trigger (has_triggered=True): ĐÓNG BĂNG ảnh AI tại khoảnh khắc trigger
         - Số liệu + nhãn kết quả: Đóng băng cùng Anhdaxuly khi có trigger
         """
-        # Cập nhật FPS lên status bar (luôn cập nhật)
-        if hasattr(self, 'lb_stt_fps'):
-            self.lb_stt_fps.setText(f"FPS: {fps:.1f}")
-
         # === TÍNH TOÁN SỐ LIỆU AI (TÍNH 1 LẦN DÀNH CHO CẢ UI VÀ LOGIC NỘI BỘ) ===
         tong_so  = len(labels)
         vien_dat = sum(1 for lb in labels if lb.strip().lower() == 'full')
         vien_loi = tong_so - vien_dat
+
+        # Cập nhật FPS lên status bar (luôn cập nhật)
+        if hasattr(self, 'lb_stt_fps'):
+            self.lb_stt_fps.setText(f"FPS: {fps:.1f}")
 
         # === KHUNG 1: Anhgoc — LUÔN CẬP NHẬT ảnh thô (raw, không AI bbox) ===
         qt_img_goc = self.convert_cv_qt(cv_img_goc)
