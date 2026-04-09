@@ -1,0 +1,4 @@
+29: from PyQt5.QtGui import QImage, QPixmap
+1076: """Chuyển đổi hình ảnh từ OpenCV sang QPixmap"""
+1080: convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
+1083: return QPixmap.fromImage(convert_to_Qt_format)
