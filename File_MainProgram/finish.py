@@ -20,13 +20,13 @@ except Exception as e:
     print(f"Lưu ý: Không thể nạp DLL bổ sung cho torch: {e}")
 
 # Import AI Detector trước để nạp các DLL cần thiết
-from Class_AI import YOLO_Detector, DEFAULT_MODEL_PATH
+from Class_AI import YOLO_Detector
 
 import cv2
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox, QGraphicsScene, QFileDialog
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import QPixmap
 from datetime import datetime
 
 # Thêm đường dẫn thư mục 'File_QTtoPY' vào sys.path để có thể import các file GUI
@@ -637,16 +637,16 @@ class Controller:
             self.plc_polling_thread.plc_connection_lost.connect(self.on_plc_connection_lost)
             self.plc_polling_thread.start()
         else:
-                QMessageBox.critical(
-                    self.main_win, "Lỗi kết nối PLC",
-                    f"❌ Không thể kết nối tới PLC!\n\n"
-                    f"IP: {ip} | Rack: {rack} | Slot: {slot}\n\n"
-                    "📋 Checklist kiểm tra:\n"
-                    "  1. PLC đã bật nguồn và ở trạng thái RUN?\n"
-                    "  2. IP PLC và PC có cùng subnet?\n"
-                    "  3. Đã bật PUT/GET trong TIA Portal?\n"
-                    "  4. Nếu dùng PLCSim → đã mở NetToPLCSim?"
-                )
+            QMessageBox.critical(
+                self.main_win, "Lỗi kết nối PLC",
+                f"❌ Không thể kết nối tới PLC!\n\n"
+                f"IP: {ip} | Rack: {rack} | Slot: {slot}\n\n"
+                "📋 Checklist kiểm tra:\n"
+                "  1. PLC đã bật nguồn và ở trạng thái RUN?\n"
+                "  2. IP PLC và PC có cùng subnet?\n"
+                "  3. Đã bật PUT/GET trong TIA Portal?\n"
+                "  4. Nếu dùng PLCSim → đã mở NetToPLCSim?"
+            )
 
     def ngat_ket_noi_plc(self):
         """Xử lý khi nhấn nút Ngắt kết nối PLC."""
@@ -1021,25 +1021,20 @@ class Controller:
             color_ng_h    = f"background-color: #CC0000; color: white; {_border}"
 
             if tong_so == 0:
-                ket_qua = "WAIT"
                 self.ui_main.hienthiKQ.setStyleSheet(color_wait)
                 self.ui_main.hienthiKQ.setText("WAIT")
             elif tong_so < self.SO_O_KHUON:
-                ket_qua = "MISSING"
                 self.ui_main.hienthiKQ.setStyleSheet(color_missing)
                 self.ui_main.hienthiKQ.setText("MISSING")
             else:
                 full_chuan = min(vien_dat, self.SO_O_KHUON)
                 if full_chuan == self.SO_O_KHUON:
-                    ket_qua = "OK"
                     self.ui_main.hienthiKQ.setStyleSheet(color_ok)
                     self.ui_main.hienthiKQ.setText("OK")
                 elif full_chuan > self.SO_O_KHUON // 2:
-                    ket_qua = "NG_L"
                     self.ui_main.hienthiKQ.setStyleSheet(color_ng_l)
                     self.ui_main.hienthiKQ.setText("NG_L")
                 else:
-                    ket_qua = "NG_H"
                     self.ui_main.hienthiKQ.setStyleSheet(color_ng_h)
                     self.ui_main.hienthiKQ.setText("NG_H")
             self.ui_main.hienthiKQ.setAlignment(QtCore.Qt.AlignCenter)
