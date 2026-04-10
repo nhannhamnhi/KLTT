@@ -321,9 +321,12 @@ class Controller:
         self.ui_main.btControlManual.clicked.connect(self.handle_control_manual_click)
 
         # --- PHẦN MỚI: Kết nối các nút điều khiển Manual ---
-        self.ui_main.btConveyor.clicked.connect(self.handle_conveyor)
-        self.ui_main.btCylinder1.clicked.connect(self.handle_cylinder1)
-        self.ui_main.btCylinder2.clicked.connect(self.handle_cylinder2)
+        self.ui_main.btConveyor.pressed.connect(lambda: self.set_conveyor(True))
+        self.ui_main.btConveyor.released.connect(lambda: self.set_conveyor(False))
+        self.ui_main.btCylinder1.pressed.connect(lambda: self.set_cylinder1(True))
+        self.ui_main.btCylinder1.released.connect(lambda: self.set_cylinder1(False))
+        self.ui_main.btCylinder2.pressed.connect(lambda: self.set_cylinder2(True))
+        self.ui_main.btCylinder2.released.connect(lambda: self.set_cylinder2(False))
 
     def show_background(self):
         self.background_win.show()
@@ -509,50 +512,50 @@ class Controller:
 
 
 
-    def handle_conveyor(self):
-        """Toggle bật/tắt băng tải (Manual only)."""
-        self.conveyor_state = not self.conveyor_state
+    def set_conveyor(self, state):
+        """Bật/tắt băng tải kiểu nhấn nhả (momentary)."""
+        self.conveyor_state = state
         if self.plc.is_connected:
             self.plc.write_conveyor(self.conveyor_state)
 
         if self.conveyor_state:
             self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_ON)
             self.ui_main.btConveyor.setText("■ Conveyor")
-            print("[MANUAL] ▶ Băng tải BẬT")
+            print("[MANUAL] ▶ Băng tải BẬT (Nhấn)")
         else:
             self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_OFF)
             self.ui_main.btConveyor.setText("▶ Conveyor")
-            print("[MANUAL] ■ Băng tải TẮT")
+            print("[MANUAL] ■ Băng tải TẮT (Nhả)")
 
-    def handle_cylinder1(self):
-        """Toggle kích/thu xy-lanh 1 (Manual only)."""
-        self.cylinder1_state = not self.cylinder1_state
+    def set_cylinder1(self, state):
+        """Bật/tắt xy-lanh 1 kiểu nhấn nhả."""
+        self.cylinder1_state = state
         if self.plc.is_connected:
             self.plc.write_cylinder1(self.cylinder1_state)
 
         if self.cylinder1_state:
             self.ui_main.btCylinder1.setStyleSheet(self._STYLE_TOGGLE_ON)
             self.ui_main.btCylinder1.setText("■ Cylinder 1")
-            print("[MANUAL] 🔴 Xy-lanh 1 KÍCH")
+            print("[MANUAL] 🔴 Xy-lanh 1 KÍCH (Nhấn)")
         else:
             self.ui_main.btCylinder1.setStyleSheet(self._STYLE_TOGGLE_OFF)
             self.ui_main.btCylinder1.setText("Cylinder 1")
-            print("[MANUAL] ⚫ Xy-lanh 1 THU")
+            print("[MANUAL] ⚫ Xy-lanh 1 THU (Nhả)")
 
-    def handle_cylinder2(self):
-        """Toggle kích/thu xy-lanh 2 (Manual only)."""
-        self.cylinder2_state = not self.cylinder2_state
+    def set_cylinder2(self, state):
+        """Bật/tắt xy-lanh 2 kiểu nhấn nhả."""
+        self.cylinder2_state = state
         if self.plc.is_connected:
             self.plc.write_cylinder2(self.cylinder2_state)
 
         if self.cylinder2_state:
             self.ui_main.btCylinder2.setStyleSheet(self._STYLE_TOGGLE_ON)
             self.ui_main.btCylinder2.setText("■ Cylinder 2")
-            print("[MANUAL] 🔴 Xy-lanh 2 KÍCH")
+            print("[MANUAL] 🔴 Xy-lanh 2 KÍCH (Nhấn)")
         else:
             self.ui_main.btCylinder2.setStyleSheet(self._STYLE_TOGGLE_OFF)
             self.ui_main.btCylinder2.setText("Cylinder 2")
-            print("[MANUAL] ⚫ Xy-lanh 2 THU")
+            print("[MANUAL] ⚫ Xy-lanh 2 THU (Nhả)")
 
 
 
