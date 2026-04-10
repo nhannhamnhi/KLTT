@@ -696,11 +696,11 @@ class Controller:
         # Cập nhật chế độ Manual/Auto hiển thị (Chỉ đọc từ PLC thôi)
         if hasattr(self, 'lb_stt_mode'):
             if status.get("auto", False):
-                self.lb_stt_mode.setText("🟠 AUTO (Vật lý)")
+                self.lb_stt_mode.setText("🟠 AUTO")
                 self.lb_stt_mode.setStyleSheet("color: #FF8C00; font-weight: bold; padding-right: 15px")
                 self.lb_stt_mode.setEnabled(True)
             elif status.get("manual", False):
-                self.lb_stt_mode.setText("🔵 MANUAL (Vật lý)")
+                self.lb_stt_mode.setText("🔵 MANUAL")
                 self.lb_stt_mode.setStyleSheet("color: #0078D7; font-weight: bold; padding-right: 15px")
                 self.lb_stt_mode.setEnabled(True)
             else:
