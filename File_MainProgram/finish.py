@@ -723,24 +723,29 @@ class Controller:
             s2 = "🟢" if status["sensor2"] else "⚫"
             self.lb_stt_sensors.setText(f"S0:{s0} S1:{s1} S2:{s2}")
 
-        # XỬ LÝ TRIGGER TỪ SENSOR S0 (CẢ AUTO LẪN MANUAL)
-        # Cạnh lên: S0 phát hiện vỉ mới (False → True)
-        if status["trigger_req"] and not getattr(self, '_prev_trigger_req', False):
-            print(f"[TRIGGER] 📸 Cảm biến S0 kích hoạt! KQ AI hiện tại: {getattr(self, 'current_result', 'WAIT')}")
-            if hasattr(self, 'current_result') and self.current_result != "WAIT":
-                # 1. Đóng băng Anhdaxuly + số liệu với kết quả hiện tại
-                self.freeze_anhdaxuly()
-                # 2. Ghi xuống PLC và đóng dấu DataReady = True
-                self.plc.write_result(self.current_result, data_ready=True)
-                # 3. Lưu lại lịch sử đo đếm vào Excel/Log
-                self.save_current_data()
-            else:
-                print("[TRIGGER] ⚠️ AI chưa có kết quả (Đang WAIT/Không vỉ), bỏ qua.")
+        # XỬ LÝ TRIGGER TỪ SENSOR S0 (CHỈ TỰ ĐỘNG KHI Ở AUTO)
+        if not status.get("manual", False):
+            # Cạnh lên: S0 phát hiện vỉ mới (False → True)
+            if status["trigger_req"] and not getattr(self, '_prev_trigger_req', False):
+                print(f"[TRIGGER] 📸 Cảm biến S0 kích hoạt (AUTO)! KQ AI hiện tại: {getattr(self, 'current_result', 'WAIT')}")
+                if hasattr(self, 'current_result') and self.current_result != "WAIT":
+                    # 1. Đóng băng Anhdaxuly + số liệu với kết quả hiện tại
+                    self.freeze_anhdaxuly()
+                    # 2. Ghi xuống PLC và đóng dấu DataReady = True
+                    self.plc.write_result(self.current_result, data_ready=True)
+                    # 3. Lưu lại lịch sử đo đếm vào Excel/Log
+                    self.save_current_data()
+                else:
+                    print("[TRIGGER] ⚠️ AI chưa có kết quả (Đang WAIT/Không vỉ), bỏ qua.")
 
-        # Cạnh xuống: PLC đã lấy xong dữ liệu (True → False)
-        elif not status["trigger_req"] and getattr(self, '_prev_trigger_req', False):
-            print("[TRIGGER] ✅ PLC đã nhận dữ liệu, hạ cờ DataReady về False.")
-            self.plc.reset_data_ready()
+            # Cạnh xuống: PLC đã lấy xong dữ liệu (True → False)
+            elif not status["trigger_req"] and getattr(self, '_prev_trigger_req', False):
+                print("[TRIGGER] ✅ PLC đã nhận dữ liệu, hạ cờ DataReady về False.")
+                self.plc.reset_data_ready()
+        else:
+            # Ở chế độ MANUAL, thiết bị không tự đông chụp khi đi qua cảm biến S0
+            if status["trigger_req"] and not getattr(self, '_prev_trigger_req', False):
+                print("[TRIGGER] 📸 Cảm biến S0 kích hoạt (MANUAL) - Bỏ qua tự động chụp hình!")
 
         # Lưu lại cờ trigger_req cho chu kỳ quét tiếp theo
         self._prev_trigger_req = status.get("trigger_req", False)
