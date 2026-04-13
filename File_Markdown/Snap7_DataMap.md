@@ -215,13 +215,11 @@ Bước 4: Thêm các biến theo bảng sau:
 
 | STT | Tên biến | Data Type | Offset | Ghi chú |
 |-----|----------|-----------|--------|---------|
-| 1 | PC_KetQua | Int | 0 | Kết quả AI (0/1/2/3) |
-| 2 | PC_DataReady | Bool | 2.0 | PC có kết quả mới |
+| 1 | PC_KetQua | Int | 0 | Kết quả AI (0=WAIT, 1=OK, 2=NG_L, 3=NG_H) |
+| 2 | PC_DataReady | Bool | 2.0 | PC báo có kết quả mới |
 | 3 | PC_Conveyor | Bool | 2.1 | Lệnh băng tải (Manual) |
 | 4 | PC_Cylinder1 | Bool | 2.2 | Lệnh xy-lanh 1 |
 | 5 | PC_Cylinder2 | Bool | 2.3 | Lệnh xy-lanh 2 |
-| 6 | PC_Auto | Bool | 2.4 | Xác nhận chuyển chế độ Auto |
-| 7 | PC_Man | Bool | 2.5 | Xác nhận chuyển chế độ Manual |
 
 ### 4.5 Tạo Data Block — DB_PUT
 
@@ -233,11 +231,12 @@ Bước 3: Thêm các biến theo bảng sau:
 
 | STT | Tên biến | Data Type | Offset | Ghi chú |
 |-----|----------|-----------|--------|---------|
-| 1 | PLC_Mode | Bool | 0.0 | Manual/Auto |
-| 2 | PLC_Running | Bool | 0.1 | Hệ thống sẵn sàng |
-| 3 | PLC_TriggerReq | Bool | 0.2 | Sensor 0 trigger |
-| 4 | PLC_Sensor1 | Bool | 0.3 | Sensor 1 |
-| 5 | PLC_Sensor2 | Bool | 0.4 | Sensor 2 |
+| 1 | PLC_Auto | Bool | 0.0 | Chế độ Tự động |
+| 2 | PLC_Manual | Bool | 0.1 | Chế độ Thủ công |
+| 3 | PLC_Running | Bool | 0.2 | Hệ thống sẵn sàng |
+| 4 | PLC_TriggerReq| Bool | 0.3 | Sensor 0 trigger (Yêu cầu chụp) |
+| 5 | PLC_Sensor1 | Bool | 0.4 | Sensor 1 (Vị trí XL1) |
+| 6 | PLC_Sensor2 | Bool | 0.5 | Sensor 2 (Vị trí XL2) |
 
 > ⚠️ **Lưu ý:** Khi bỏ "Optimized block access", TIA Portal sẽ tự tính offset theo thứ tự bạn thêm biến. Kiểm tra cột **Offset** trong DB editor phải khớp với bảng trên.
 
