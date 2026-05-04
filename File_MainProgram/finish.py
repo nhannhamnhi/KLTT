@@ -1027,6 +1027,8 @@ class Controller:
         # === TÍNH TOÁN SỐ LIỆU AI (TÍNH 1 LẦN DÀNH CHO CẢ UI VÀ LOGIC NỘI BỘ) ===
         tong_so  = len(labels)
         vien_dat = sum(1 for lb in labels if lb.strip().lower() == 'full')
+        partial_count = sum(1 for lb in labels if lb.strip().lower() == 'partial')
+        empty_count = sum(1 for lb in labels if lb.strip().lower() == 'empty')
         vien_loi = tong_so - vien_dat
 
         # Cập nhật FPS lên status bar (luôn cập nhật)
@@ -1073,12 +1075,11 @@ class Controller:
                 self.ui_main.hienthiKQ.setStyleSheet(color_missing)
                 self.ui_main.hienthiKQ.setText("MISSING")
             else:
-                full_chuan = min(vien_dat, self.SO_O_KHUON)
-                if full_chuan == self.SO_O_KHUON:
+                if vien_dat == self.SO_O_KHUON:
                     ket_qua = "OK"
                     self.ui_main.hienthiKQ.setStyleSheet(color_ok)
                     self.ui_main.hienthiKQ.setText("OK")
-                elif full_chuan > self.SO_O_KHUON // 2:
+                elif (vien_dat >= 3) or ((vien_dat < 3) and (empty_count > partial_count)):
                     ket_qua = "NG_L"
                     self.ui_main.hienthiKQ.setStyleSheet(color_ng_l)
                     self.ui_main.hienthiKQ.setText("NG_L")
@@ -1099,10 +1100,9 @@ class Controller:
         elif tong_so < self.SO_O_KHUON:
             ket_qua = "MISSING"
         else:
-            full_chuan = min(vien_dat, self.SO_O_KHUON)
-            if full_chuan == self.SO_O_KHUON:
+            if vien_dat == self.SO_O_KHUON:
                 ket_qua = "OK"
-            elif full_chuan > self.SO_O_KHUON // 2:
+            elif (vien_dat >= 3) or ((vien_dat < 3) and (empty_count > partial_count)):
                 ket_qua = "NG_L"
             else:
                 ket_qua = "NG_H"

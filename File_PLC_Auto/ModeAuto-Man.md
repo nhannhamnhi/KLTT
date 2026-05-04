@@ -189,7 +189,7 @@ Chi tiết đầy đủ tham khảo tại [Snap7_DataMap.md](file:///d:/KL_2025/
 
 | Offset | Tên | Kiểu | Giá trị |
 |--------|-----|------|---------|
-| 0 | `PC_KetQua` | INT | 0=WAIT, 1=OK, 2=NG_L, 3=NG_H |
+| 0 | `PC_KetQua` | INT | 0=WAIT, 1=OK, 2=NG_L, 3=NG_H, 4=MISSING |
 | 2.0 | `PC_DataReady` | BOOL | Có kết quả mới để PLC đọc |
 | 2.1 | `PC_Conveyor` | BOOL | Lệnh chạy băng tải (Manual) |
 | 2.2 | `PC_Cylinder1` | BOOL | Lệnh kích XL1 (Manual) |

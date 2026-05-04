@@ -1,0 +1,562 @@
+FUNCTION_BLOCK FB_Auto
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+VAR_INPUT
+    btAuto          : BOOL;              // Nút chọn chế độ Auto từ phần cứng (I0.1)
+    btManual        : BOOL;              // Nút chọn chế độ Manual từ phần cứng (I0.2)
+    StartStop       : BOOL;              // Nút Start/Stop chung (I0.0), dùng kiểu toggle theo cạnh lên
+    SS0             : BOOL;              // Cảm biến tại vị trí camera (trigger AI)
+    SS1             : BOOL;              // Cảm biến tại vị trí xilanh 1 (nhánh NG_L)
+    SS2             : BOOL;              // Cảm biến tại vị trí xilanh 2 (nhánh NG_H/MISSING)
+    LS1             : BOOL;              // Limit switch xilanh 1 (1 = đã ra hết, 0 = đã thu về)
+    LS2             : BOOL;              // Limit switch xilanh 2 (1 = đã ra hết, 0 = đã thu về)
+    PC_DataReady    : BOOL;              // Cờ từ Python báo đã có kết quả AI hợp lệ
+    PC_KetQua       : INT;               // Kết quả AI: 0=WAIT, 1=OK, 2=NG_L, 3=NG_H, 4=MISSING
+    ResetFault      : BOOL;              // Reset lỗi thủ công (nên map từ HMI hoặc M bit)
+    PT_AI_Timeout   : TIME := T#2S;      // Timeout chờ AI trả kết quả sau khi TriggerReq
+    PT_SS_Stuck     : TIME := T#6S;      // Timeout cảm biến SS0 bị giữ mức 1 quá lâu
+    PT_LS_Timeout   : TIME := T#2S;      // Timeout cho mỗi pha chuyển động xilanh
+END_VAR
+
+VAR_OUTPUT
+    Conveyor        : BOOL;              // Lệnh chạy băng tải (%Q0.0)
+    Cylinder1       : BOOL;              // Lệnh xilanh 1 (%Q0.1)
+    Cylinder2       : BOOL;              // Lệnh xilanh 2 (%Q0.2)
+
+    PLC_Auto        : BOOL;              // Trạng thái Auto xuất lên DB_PUT cho Python
+    PLC_Manual      : BOOL;              // Trạng thái Manual xuất lên DB_PUT cho Python
+    PLC_Running     : BOOL;              // Trạng thái RUN thực tế (Auto + Start + không lỗi)
+    PLC_TriggerReq  : BOOL;              // Trigger yêu cầu Python chụp/AI tại SS0
+
+    ErrorActive     : BOOL;              // Cờ tổng lỗi (bất kỳ lỗi quan trọng nào)
+    ErrorCode       : INT;               // Mã lỗi tổng quát để hiển thị/debug nhanh
+    Error_AI_Timeout: BOOL;              // Lỗi chờ AI quá thời gian
+    Error_SS_Stuck  : BOOL;              // Lỗi SS0 bị kẹt mức 1
+    Error_LS1_Timeout : BOOL;            // Lỗi xilanh 1 không hoàn tất đúng timeout
+    Error_LS2_Timeout : BOOL;            // Lỗi xilanh 2 không hoàn tất đúng timeout
+    Error_QueueOverflow : BOOL;          // Lỗi FIFO đầy
+    Error_QueueUnderflow: BOOL;          // Lỗi FIFO rỗng khi cần lấy dữ liệu
+    Error_InvalidResult : BOOL;          // Lỗi kết quả AI ngoài miền [0..3]
+
+    QueueCount      : INT;               // Số phần tử hiện có trong FIFO
+    QueueHead       : INT;               // Con trỏ đầu FIFO (phần tử kế tiếp để xử lý)
+    QueueTail       : INT;               // Con trỏ đuôi FIFO (vị trí ghi mới)
+    DebugState      : INT;               // Mã state hiện tại của state machine
+END_VAR
+
+VAR
+    // -----------------------------
+    // Biến state machine chính
+    // -----------------------------
+    state           : INT;               // Trạng thái vận hành Auto
+
+    // -----------------------------
+    // Bộ nhớ trạng thái chu kỳ trước
+    // (dùng tự tạo bắt cạnh lên/xuống)
+    // -----------------------------
+    prevStartStop   : BOOL;              // Trạng thái StartStop ở scan trước
+    prevSS0         : BOOL;              // Trạng thái SS0 ở scan trước
+    prevSS1         : BOOL;              // Trạng thái SS1 ở scan trước
+    prevSS2         : BOOL;              // Trạng thái SS2 ở scan trước
+
+    // -----------------------------
+    // Xung cạnh của scan hiện tại
+    // -----------------------------
+    startStopRise   : BOOL;              // Cạnh lên StartStop
+    ss0Rise         : BOOL;              // Cạnh lên SS0
+    ss0Fall         : BOOL;              // Cạnh xuống SS0
+    ss1Rise         : BOOL;              // Cạnh lên SS1
+    ss2Rise         : BOOL;              // Cạnh lên SS2
+
+    // -----------------------------
+    // Biến nội bộ mode / run
+    // -----------------------------
+    runLatch        : BOOL;              // Chốt chạy/dừng nội bộ theo StartStop
+    localAuto       : BOOL;              // Điều kiện đang chọn Auto
+    localManual     : BOOL;              // Điều kiện đang chọn Manual
+
+    // -----------------------------
+    // Biến nội bộ cho handshake AI
+    // -----------------------------
+    triggerCycleActive  : BOOL;          // Đang ở chu kỳ Trigger SS0 hiện hành
+    aiConsumedThisCycle : BOOL;          // Đã consume DataReady trong chu kỳ SS0 này hay chưa
+
+    // -----------------------------
+    // FIFO ring-buffer (10 phần tử)
+    // -----------------------------
+    fifoResult      : ARRAY[0..9] OF INT;    // Mã kết quả AI của từng vỉ
+    fifoHandledSS1  : ARRAY[0..9] OF BOOL;   // Đánh dấu vỉ đó đã qua xử lý tại SS1 hay chưa
+    head            : INT;                    // Con trỏ đọc
+    tail            : INT;                    // Con trỏ ghi
+    count           : INT;                    // Số lượng phần tử đang có
+
+    // -----------------------------
+    // Biến tạm xử lý logic trong scan
+    // -----------------------------
+    itemResult      : INT;               // Kết quả của phần tử đầu FIFO
+    itemHandledSS1  : BOOL;              // Trạng thái đã xử lý SS1 của phần tử đầu
+    doPop           : BOOL;              // Cờ pop FIFO ngay trong state hiện tại
+    resetFaultEdge  : BOOL;              // Cạnh lên của ResetFault
+    prevResetFault  : BOOL;              // Trạng thái ResetFault scan trước
+
+    // -----------------------------
+    // IEC timer instance nội bộ FB
+    // -----------------------------
+    tAI             : TON;               // Timeout chờ AI
+    tSS0Stuck       : TON;               // Timeout SS0 stuck high
+    tLS1            : TON;               // Timeout chu kỳ xilanh 1
+    tLS2            : TON;               // Timeout chu kỳ xilanh 2
+END_VAR
+
+VAR CONSTANT
+    ST_IDLE         : INT := 0;
+    ST_RUN_READY    : INT := 10;
+    ST_WAIT_AI      : INT := 20;
+    ST_WAIT_SS1     : INT := 30;
+    ST_ACT_CYL1_EXT : INT := 40;
+    ST_ACT_CYL1_RET : INT := 50;
+    ST_WAIT_SS2     : INT := 60;
+    ST_ACT_CYL2_EXT : INT := 70;
+    ST_ACT_CYL2_RET : INT := 80;
+    ST_SAFE_STOP    : INT := 90;
+
+    RES_WAIT        : INT := 0;
+    RES_OK          : INT := 1;
+    RES_NG_L        : INT := 2;
+    RES_NG_H        : INT := 3;
+    RES_MISSING     : INT := 4;
+END_VAR
+
+BEGIN
+    // =============================================================
+    // 1) BẮT CẠNH INPUT
+    // Dùng cơ chế lưu trạng thái scan trước thay cho lệnh R_TRIG/F_TRIG
+    // để code dễ mang qua LAD nếu cần.
+    // =============================================================
+    startStopRise := StartStop AND NOT prevStartStop;
+    ss0Rise := SS0 AND NOT prevSS0;
+    ss0Fall := (NOT SS0) AND prevSS0;
+    ss1Rise := SS1 AND NOT prevSS1;
+    ss2Rise := SS2 AND NOT prevSS2;
+    resetFaultEdge := ResetFault AND NOT prevResetFault;
+
+    // =============================================================
+    // 2) LOGIC MODE + RUN LATCH
+    // - Auto ưu tiên khi btAuto=1 và btManual=0
+    // - Manual thì hạ runLatch để tránh chạy nhầm
+    // - StartStop là toggle cạnh lên trong Auto
+    // =============================================================
+    localAuto := btAuto AND NOT btManual;
+    localManual := btManual;
+
+    PLC_Auto := localAuto;
+    PLC_Manual := localManual;
+
+    IF localManual THEN
+        runLatch := FALSE;
+    ELSIF localAuto THEN
+        IF startStopRise AND NOT ErrorActive THEN
+            runLatch := NOT runLatch;
+        END_IF;
+    ELSE
+        runLatch := FALSE;
+    END_IF;
+
+    PLC_Running := localAuto AND runLatch AND NOT ErrorActive;
+
+    // =============================================================
+    // 3) TIMER GIÁM SÁT
+    // - tAI chỉ chạy khi state đang WAIT_AI
+    // - tSS0Stuck chạy khi SS0 giữ mức 1 trong lúc RUN
+    // - tLS1/tLS2 giám sát hai pha tiến/thu của xilanh
+    // =============================================================
+    tAI(IN := (state = ST_WAIT_AI), PT := PT_AI_Timeout);
+    tSS0Stuck(IN := (SS0 AND PLC_Running), PT := PT_SS_Stuck);
+    tLS1(IN := (state = ST_ACT_CYL1_EXT) OR (state = ST_ACT_CYL1_RET), PT := PT_LS_Timeout);
+    tLS2(IN := (state = ST_ACT_CYL2_EXT) OR (state = ST_ACT_CYL2_RET), PT := PT_LS_Timeout);
+
+    // =============================================================
+    // 4) PHÁT HIỆN LỖI
+    // Mỗi lỗi set cờ riêng + bật ErrorActive + gán ErrorCode.
+    // ErrorActive sẽ ép state vào SAFE_STOP.
+    // =============================================================
+    IF tAI.Q THEN
+        Error_AI_Timeout := TRUE;
+        ErrorActive := TRUE;
+        ErrorCode := 101;
+    END_IF;
+
+    IF tSS0Stuck.Q THEN
+        Error_SS_Stuck := TRUE;
+        ErrorActive := TRUE;
+        ErrorCode := 102;
+    END_IF;
+
+    IF (state = ST_ACT_CYL1_EXT OR state = ST_ACT_CYL1_RET) AND tLS1.Q THEN
+        Error_LS1_Timeout := TRUE;
+        ErrorActive := TRUE;
+        ErrorCode := 201;
+    END_IF;
+
+    IF (state = ST_ACT_CYL2_EXT OR state = ST_ACT_CYL2_RET) AND tLS2.Q THEN
+        Error_LS2_Timeout := TRUE;
+        ErrorActive := TRUE;
+        ErrorCode := 202;
+    END_IF;
+
+    // =============================================================
+    // 5) RESET LỖI THỦ CÔNG (CẠNH LÊN ResetFault)
+    // Xóa lỗi, reset state, reset FIFO, dừng toàn bộ output.
+    // =============================================================
+    IF resetFaultEdge THEN
+        ErrorActive := FALSE;
+        ErrorCode := 0;
+        Error_AI_Timeout := FALSE;
+        Error_SS_Stuck := FALSE;
+        Error_LS1_Timeout := FALSE;
+        Error_LS2_Timeout := FALSE;
+        Error_QueueOverflow := FALSE;
+        Error_QueueUnderflow := FALSE;
+        Error_InvalidResult := FALSE;
+
+        // Reset trạng thái runtime
+        state := ST_IDLE;
+        PLC_TriggerReq := FALSE;
+        triggerCycleActive := FALSE;
+        aiConsumedThisCycle := FALSE;
+        Conveyor := FALSE;
+        Cylinder1 := FALSE;
+        Cylinder2 := FALSE;
+        runLatch := FALSE;
+
+        // Xóa FIFO
+        head := 0;
+        tail := 0;
+        count := 0;
+    END_IF;
+
+    // =============================================================
+    // 6) OVERRIDE SAFE STOP
+    // Bất kỳ lỗi đang active sẽ đưa state sang SAFE_STOP ngay.
+    // =============================================================
+    IF ErrorActive THEN
+        state := ST_SAFE_STOP;
+    END_IF;
+
+    // =============================================================
+    // 7) STATE MACHINE CHÍNH
+    // =============================================================
+    CASE state OF
+        ST_IDLE:
+            // Trạng thái nghỉ: dừng mọi output và xóa trigger chu kỳ.
+            Conveyor := FALSE;
+            Cylinder1 := FALSE;
+            Cylinder2 := FALSE;
+            PLC_TriggerReq := FALSE;
+            triggerCycleActive := FALSE;
+            aiConsumedThisCycle := FALSE;
+
+            IF PLC_Running THEN
+                state := ST_RUN_READY;
+            END_IF;
+
+        ST_RUN_READY:
+            // Auto đang chạy bình thường, băng tải ON, chờ sự kiện cảm biến.
+            Conveyor := TRUE;
+            Cylinder1 := FALSE;
+            Cylinder2 := FALSE;
+
+            IF NOT PLC_Running THEN
+                state := ST_IDLE;
+            END_IF;
+
+            // SS0 cạnh lên -> bắt đầu chu kỳ trigger AI mới.
+            IF ss0Rise THEN
+                IF count >= 10 THEN
+                    // FIFO đầy: không nhận thêm để tránh lệch thứ tự.
+                    Error_QueueOverflow := TRUE;
+                    ErrorActive := TRUE;
+                    ErrorCode := 301;
+                ELSE
+                    // Bật trigger req; chờ Python trả DataReady.
+                    PLC_TriggerReq := TRUE;
+                    triggerCycleActive := TRUE;
+                    aiConsumedThisCycle := FALSE;
+                    state := ST_WAIT_AI;
+                END_IF;
+            END_IF;
+
+            // Nếu FIFO đã có item, chuyển sang nhánh chờ xử lý downstream.
+            IF count > 0 THEN
+                state := ST_WAIT_SS1;
+            END_IF;
+
+        ST_WAIT_AI:
+            // Đang đợi kết quả AI cho chu kỳ SS0 hiện tại.
+            Conveyor := TRUE;
+            Cylinder1 := FALSE;
+            Cylinder2 := FALSE;
+
+            // DataReady có thể giữ TRUE liên tục; chỉ consume đúng 1 lần.
+            IF PC_DataReady AND (NOT aiConsumedThisCycle) THEN
+                IF (PC_KetQua < RES_WAIT) OR (PC_KetQua > RES_MISSING) THEN
+                    // Kết quả ngoài miền cho phép.
+                    Error_InvalidResult := TRUE;
+                    ErrorActive := TRUE;
+                    ErrorCode := 401;
+                ELSE
+                    // Push vào FIFO theo thứ tự vỉ tại SS0.
+                    fifoResult[tail] := PC_KetQua;
+                    fifoHandledSS1[tail] := FALSE;
+                    tail := tail + 1;
+                    IF tail > 9 THEN
+                        tail := 0;
+                    END_IF;
+                    count := count + 1;
+                    aiConsumedThisCycle := TRUE;
+                END_IF;
+            END_IF;
+
+            // Theo handshake đã chốt: chỉ kết thúc trigger khi SS0 xuống mức 0.
+            IF triggerCycleActive AND ss0Fall THEN
+                PLC_TriggerReq := FALSE;
+                triggerCycleActive := FALSE;
+                aiConsumedThisCycle := FALSE;
+                state := ST_WAIT_SS1;
+            END_IF;
+
+            IF NOT PLC_Running THEN
+                state := ST_IDLE;
+            END_IF;
+
+        ST_WAIT_SS1:
+            // Chờ vỉ tới SS1 để xử lý nhánh NG_L.
+            Conveyor := TRUE;
+            Cylinder1 := FALSE;
+            Cylinder2 := FALSE;
+
+            IF NOT PLC_Running THEN
+                state := ST_IDLE;
+            END_IF;
+
+            // Có thể nhận thêm vỉ mới ở SS0 trong khi đang chờ SS1/SS2.
+            IF ss0Rise THEN
+                IF count >= 10 THEN
+                    Error_QueueOverflow := TRUE;
+                    ErrorActive := TRUE;
+                    ErrorCode := 301;
+                ELSE
+                    PLC_TriggerReq := TRUE;
+                    triggerCycleActive := TRUE;
+                    aiConsumedThisCycle := FALSE;
+                    state := ST_WAIT_AI;
+                END_IF;
+            END_IF;
+
+            // Không còn item trong FIFO -> quay về trạng thái chạy rảnh.
+            IF count = 0 THEN
+                state := ST_RUN_READY;
+            END_IF;
+
+            // Sự kiện tại SS1: quyết định có đẩy xilanh 1 hay bỏ qua.
+            IF ss1Rise THEN
+                IF count <= 0 THEN
+                    // SS1 có vỉ nhưng FIFO rỗng -> lệch đồng bộ nghiêm trọng.
+                    Error_QueueUnderflow := TRUE;
+                    ErrorActive := TRUE;
+                    ErrorCode := 302;
+                ELSE
+                    itemResult := fifoResult[head];
+                    itemHandledSS1 := fifoHandledSS1[head];
+
+                    IF itemHandledSS1 THEN
+                        // Item đầu đã từng xử lý SS1 mà SS1 lại kích -> bất thường.
+                        Error_QueueUnderflow := TRUE;
+                        ErrorActive := TRUE;
+                        ErrorCode := 303;
+                    ELSE
+                        IF itemResult = RES_NG_L THEN
+                            // NG_L: kích xilanh 1, reset theo LS1 (không reset timer).
+                            Cylinder1 := TRUE;
+                            state := ST_ACT_CYL1_EXT;
+                        ELSE
+                            // OK/NG_H/MISSING: không đẩy tại SS1, chỉ đánh dấu đã qua SS1.
+                            fifoHandledSS1[head] := TRUE;
+                            state := ST_WAIT_SS2;
+                        END_IF;
+                    END_IF;
+                END_IF;
+            END_IF;
+
+        ST_ACT_CYL1_EXT:
+            // Pha tiến xilanh 1: giữ lệnh ON tới khi LS1=1.
+            // Chế độ mới: khi đang phân loại bằng xilanh thì dừng băng tải
+            // để tránh lệch vị trí sản phẩm trong lúc cơ cấu tác động.
+            Conveyor := FALSE;
+            Cylinder1 := TRUE;
+            Cylinder2 := FALSE;
+
+            IF LS1 THEN
+                // Tới hành trình tiến -> bắt đầu pha thu về.
+                Cylinder1 := FALSE;
+                state := ST_ACT_CYL1_RET;
+            END_IF;
+
+            IF NOT PLC_Running THEN
+                state := ST_IDLE;
+            END_IF;
+
+        ST_ACT_CYL1_RET:
+            // Pha thu xilanh 1: chờ LS1 về 0.
+            // Vẫn giữ băng tải dừng cho tới khi xilanh thu về hoàn toàn.
+            Conveyor := FALSE;
+            Cylinder1 := FALSE;
+            Cylinder2 := FALSE;
+
+            // LS1=0 xác nhận đã thu về, kết thúc vòng đời item NG_L tại SS1.
+            IF NOT LS1 THEN
+                // Pop FIFO đầu hàng vì item này đã xử lý xong.
+                IF count <= 0 THEN
+                    Error_QueueUnderflow := TRUE;
+                    ErrorActive := TRUE;
+                    ErrorCode := 304;
+                ELSE
+                    head := head + 1;
+                    IF head > 9 THEN
+                        head := 0;
+                    END_IF;
+                    count := count - 1;
+                END_IF;
+                state := ST_RUN_READY;
+            END_IF;
+
+            IF NOT PLC_Running THEN
+                state := ST_IDLE;
+            END_IF;
+
+        ST_WAIT_SS2:
+            // Chờ vỉ tới SS2 để xử lý nhánh NG_H/MISSING hoặc cho OK đi thẳng.
+            Conveyor := TRUE;
+            Cylinder1 := FALSE;
+            Cylinder2 := FALSE;
+
+            IF NOT PLC_Running THEN
+                state := ST_IDLE;
+            END_IF;
+
+            // Tiếp tục cho phép nhận trigger mới từ SS0 trong lúc chờ SS2.
+            IF ss0Rise THEN
+                IF count >= 10 THEN
+                    Error_QueueOverflow := TRUE;
+                    ErrorActive := TRUE;
+                    ErrorCode := 301;
+                ELSE
+                    PLC_TriggerReq := TRUE;
+                    triggerCycleActive := TRUE;
+                    aiConsumedThisCycle := FALSE;
+                    state := ST_WAIT_AI;
+                END_IF;
+            END_IF;
+
+            IF ss2Rise THEN
+                IF count <= 0 THEN
+                    // SS2 kích mà FIFO rỗng -> lệch đồng bộ.
+                    Error_QueueUnderflow := TRUE;
+                    ErrorActive := TRUE;
+                    ErrorCode := 305;
+                ELSE
+                    itemResult := fifoResult[head];
+                    doPop := TRUE;
+
+                    IF (itemResult = RES_NG_H) OR (itemResult = RES_MISSING) THEN
+                        // NG_H/MISSING: đẩy tại SS2, pop sau khi xilanh 2 hoàn tất chu kỳ.
+                        Cylinder2 := TRUE;
+                        state := ST_ACT_CYL2_EXT;
+                        doPop := FALSE; // Pop after cylinder cycle done
+                    END_IF;
+
+                    IF doPop THEN
+                        // OK: không đẩy, pop ngay tại SS2.
+                        head := head + 1;
+                        IF head > 9 THEN
+                            head := 0;
+                        END_IF;
+                        count := count - 1;
+                        state := ST_RUN_READY;
+                    END_IF;
+                END_IF;
+            END_IF;
+
+        ST_ACT_CYL2_EXT:
+            // Pha tiến xilanh 2: giữ lệnh ON tới khi LS2=1.
+            // Chế độ mới: dừng băng tải trong lúc xilanh 2 phân loại.
+            Conveyor := FALSE;
+            Cylinder1 := FALSE;
+            Cylinder2 := TRUE;
+
+            IF LS2 THEN
+                Cylinder2 := FALSE;
+                state := ST_ACT_CYL2_RET;
+            END_IF;
+
+            IF NOT PLC_Running THEN
+                state := ST_IDLE;
+            END_IF;
+
+        ST_ACT_CYL2_RET:
+            // Pha thu xilanh 2: chờ LS2 về 0 rồi pop item.
+            // Giữ băng tải dừng đến khi xilanh 2 thu xong.
+            Conveyor := FALSE;
+            Cylinder1 := FALSE;
+            Cylinder2 := FALSE;
+
+            IF NOT LS2 THEN
+                // NG_H xử lý xong tại SS2 -> pop FIFO đầu hàng.
+                IF count <= 0 THEN
+                    Error_QueueUnderflow := TRUE;
+                    ErrorActive := TRUE;
+                    ErrorCode := 306;
+                ELSE
+                    head := head + 1;
+                    IF head > 9 THEN
+                        head := 0;
+                    END_IF;
+                    count := count - 1;
+                END_IF;
+                state := ST_RUN_READY;
+            END_IF;
+
+            IF NOT PLC_Running THEN
+                state := ST_IDLE;
+            END_IF;
+
+        ST_SAFE_STOP:
+            // Safe stop: dừng toàn bộ output vận hành và khóa trigger.
+            // Chỉ thoát khi có ResetFault cạnh lên (xử lý ở phần reset lỗi).
+            Conveyor := FALSE;
+            Cylinder1 := FALSE;
+            Cylinder2 := FALSE;
+            PLC_TriggerReq := FALSE;
+            triggerCycleActive := FALSE;
+            aiConsumedThisCycle := FALSE;
+
+        ELSE
+            // Phòng thủ: state không hợp lệ thì quay về IDLE.
+            state := ST_IDLE;
+    END_CASE;
+
+    // Xuất thông tin debug ra output để giám sát online.
+    QueueCount := count;
+    QueueHead := head;
+    QueueTail := tail;
+    DebugState := state;
+
+    // Lưu trạng thái hiện tại để scan sau bắt cạnh chính xác.
+    prevStartStop := StartStop;
+    prevSS0 := SS0;
+    prevSS1 := SS1;
+    prevSS2 := SS2;
+    prevResetFault := ResetFault;
+
+END_FUNCTION_BLOCK

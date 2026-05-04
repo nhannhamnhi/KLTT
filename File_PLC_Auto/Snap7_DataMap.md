@@ -58,7 +58,7 @@ DB_GET (DB1) — Non-Optimized (3 bytes)
 ┌─────────┬───────────────┬──────┬──────────────────────────┐
 │ Offset  │ Tên           │ Kiểu │ Mô tả                    │
 ├─────────┼───────────────┼──────┼──────────────────────────┤
-│  0 -  1 │ PC_KetQua     │ INT  │ Kết quả AI (0/1/2/3)    │
+│  0 -  1 │ PC_KetQua     │ INT  │ Kết quả AI (0/1/2/3/4)    │
 │  2.0    │ PC_DataReady  │ BOOL │ Có kết quả mới           │
 │  2.1    │ PC_Conveyor   │ BOOL │ Lệnh băng tải (Manual)   │
 │  2.2    │ PC_Cylinder1  │ BOOL │ Lệnh xy-lanh 1           │
@@ -215,7 +215,7 @@ Bước 4: Thêm các biến theo bảng sau:
 
 | STT | Tên biến | Data Type | Offset | Ghi chú |
 |-----|----------|-----------|--------|---------|
-| 1 | PC_KetQua | Int | 0 | Kết quả AI (0=WAIT, 1=OK, 2=NG_L, 3=NG_H) |
+| 1 | PC_KetQua | Int | 0 | Kết quả AI (0=WAIT, 1=OK, 2=NG_L, 3=NG_H, 4=MISSING) |
 | 2 | PC_DataReady | Bool | 2.0 | PC báo có kết quả mới |
 | 3 | PC_Conveyor | Bool | 2.1 | Lệnh băng tải (Manual) |
 | 4 | PC_Cylinder1 | Bool | 2.2 | Lệnh xy-lanh 1 |

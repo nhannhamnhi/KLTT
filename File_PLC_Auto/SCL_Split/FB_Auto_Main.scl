@@ -1,0 +1,255 @@
+FUNCTION_BLOCK FB_Auto_Main
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+VAR_INPUT
+    btAuto       : BOOL;
+    btManual     : BOOL;
+    StartStop    : BOOL;
+    SS0          : BOOL;
+    SS1          : BOOL;
+    SS2          : BOOL;
+    LS1          : BOOL;
+    LS2          : BOOL;
+    PC_DataReady : BOOL;
+    PC_KetQua    : INT;
+    ResetFault   : BOOL;
+END_VAR
+
+VAR_OUTPUT
+    Conveyor       : BOOL;
+    Cylinder1      : BOOL;
+    Cylinder2      : BOOL;
+    PLC_Auto       : BOOL;
+    PLC_Manual     : BOOL;
+    PLC_Running    : BOOL;
+    PLC_TriggerReq : BOOL;
+    ErrorActive    : BOOL;
+    ErrorCode      : INT;
+    QueueCount     : INT;
+    DebugState     : INT;
+END_VAR
+
+VAR
+    // Edge/mode memory
+    prevStartStop : BOOL;
+    prevSS0       : BOOL;
+    prevSS1       : BOOL;
+    prevSS2       : BOOL;
+    runLatch      : BOOL;
+
+    // Edge/mode outputs
+    localAuto      : BOOL;
+    localManual    : BOOL;
+    startStopRise  : BOOL;
+    ss0Rise        : BOOL;
+    ss0Fall        : BOOL;
+    ss1Rise        : BOOL;
+    ss2Rise        : BOOL;
+
+    // Handshake memory
+    triggerCycleActive  : BOOL;
+    aiConsumedThisCycle : BOOL;
+
+    // Requests
+    pushReq         : BOOL;
+    pushResult      : INT;
+    popReq          : BOOL;
+    actCyl1Req      : BOOL;
+    actCyl2Req      : BOOL;
+
+    // FIFO instance and outputs
+    fifo            : FB_FIFO10;
+    headValue       : INT;
+    fifoOverflow    : BOOL;
+    fifoUnderflow   : BOOL;
+
+    // Cylinder sequence states
+    cyl1SeqState    : INT;
+    cyl2SeqState    : INT;
+    cyl1Busy        : BOOL;
+    cyl2Busy        : BOOL;
+    cyl1Done        : BOOL;
+    cyl2Done        : BOOL;
+
+    // Error internals
+    errOverflow       : BOOL;
+    errUnderflow      : BOOL;
+    errInvalidResult  : BOOL;
+    errLS1Timeout     : BOOL;
+    errLS2Timeout     : BOOL;
+    errAITimeout      : BOOL;
+
+    // State machine
+    state           : INT;
+END_VAR
+
+VAR CONSTANT
+    ST_IDLE         : INT := 0;
+    ST_RUN          : INT := 10;
+    ST_WAIT_SS2     : INT := 20;
+    ST_ACT_CYL1     : INT := 30;
+    ST_ACT_CYL2     : INT := 40;
+    ST_SAFE_STOP    : INT := 90;
+END_VAR
+
+BEGIN
+    // ---- 1) Edge + mode ----
+    FC_EdgesAndMode(
+        btAuto := btAuto,
+        btManual := btManual,
+        StartStop := StartStop,
+        SS0 := SS0,
+        SS1 := SS1,
+        SS2 := SS2,
+        prevStartStop := prevStartStop,
+        prevSS0 := prevSS0,
+        prevSS1 := prevSS1,
+        prevSS2 := prevSS2,
+        runLatch := runLatch,
+        localAuto => localAuto,
+        localManual => localManual,
+        startStopRise => startStopRise,
+        ss0Rise => ss0Rise,
+        ss0Fall => ss0Fall,
+        ss1Rise => ss1Rise,
+        ss2Rise => ss2Rise
+    );
+
+    PLC_Auto := localAuto;
+    PLC_Manual := localManual;
+    PLC_Running := localAuto AND runLatch AND NOT ErrorActive;
+
+    // ---- 2) AI handshake ----
+    FC_AI_Handshake(
+        ss0Rise := ss0Rise,
+        ss0Fall := ss0Fall,
+        PC_DataReady := PC_DataReady,
+        PC_KetQua := PC_KetQua,
+        queueCount := QueueCount,
+        triggerReq := PLC_TriggerReq,
+        triggerCycleActive := triggerCycleActive,
+        aiConsumedThisCycle := aiConsumedThisCycle,
+        pushReq => pushReq,
+        pushResult => pushResult,
+        errOverflow => errOverflow,
+        errInvalidResult => errInvalidResult
+    );
+
+    // default one-shot requests
+    popReq := FALSE;
+    actCyl1Req := FALSE;
+    actCyl2Req := FALSE;
+
+    // ---- 3) Main state machine ----
+    CASE state OF
+        ST_IDLE:
+            Conveyor := FALSE;
+            IF PLC_Running THEN
+                state := ST_RUN;
+            END_IF;
+
+        ST_RUN:
+            Conveyor := TRUE;
+            IF NOT PLC_Running THEN
+                state := ST_IDLE;
+            END_IF;
+
+            IF ss1Rise AND (headValue = 2) THEN
+                actCyl1Req := TRUE;
+                state := ST_ACT_CYL1;
+            ELSIF ss1Rise THEN
+                state := ST_WAIT_SS2;
+            END_IF;
+
+        ST_WAIT_SS2:
+            Conveyor := TRUE;
+            IF NOT PLC_Running THEN
+                state := ST_IDLE;
+            END_IF;
+
+            IF ss2Rise THEN
+                IF (headValue = 3) OR (headValue = 4) THEN
+                    actCyl2Req := TRUE;
+                    state := ST_ACT_CYL2;
+                ELSE
+                    popReq := TRUE; // OK passes through SS2
+                    state := ST_RUN;
+                END_IF;
+            END_IF;
+
+        ST_ACT_CYL1:
+            Conveyor := FALSE;
+            IF cyl1Done THEN
+                popReq := TRUE;
+                state := ST_RUN;
+            END_IF;
+
+        ST_ACT_CYL2:
+            Conveyor := FALSE;
+            IF cyl2Done THEN
+                popReq := TRUE;
+                state := ST_RUN;
+            END_IF;
+
+        ST_SAFE_STOP:
+            Conveyor := FALSE;
+            PLC_TriggerReq := FALSE;
+            IF ResetFault THEN
+                state := ST_IDLE;
+            END_IF;
+
+        ELSE
+            state := ST_IDLE;
+    END_CASE;
+
+    // ---- 4) Cylinder sequences ----
+    FC_Cylinder1_Seq(
+        StartAction := actCyl1Req,
+        LS1 := LS1,
+        SeqState := cyl1SeqState,
+        Cylinder1Cmd => Cylinder1,
+        Busy => cyl1Busy,
+        DonePulse => cyl1Done
+    );
+
+    FC_Cylinder2_Seq(
+        StartAction := actCyl2Req,
+        LS2 := LS2,
+        SeqState := cyl2SeqState,
+        Cylinder2Cmd => Cylinder2,
+        Busy => cyl2Busy,
+        DonePulse => cyl2Done
+    );
+
+    // ---- 5) FIFO ----
+    fifo(
+        Push := pushReq,
+        PushValue := pushResult,
+        Pop := popReq,
+        HeadValue => headValue,
+        Count => QueueCount,
+        Overflow => fifoOverflow,
+        Underflow => fifoUnderflow
+    );
+
+    // ---- 6) Fault manager ----
+    errUnderflow := fifoUnderflow;
+    FC_FaultManager(
+        errOverflow := (errOverflow OR fifoOverflow),
+        errUnderflow := errUnderflow,
+        errInvalidResult := errInvalidResult,
+        errLS1Timeout := errLS1Timeout,
+        errLS2Timeout := errLS2Timeout,
+        errAITimeout := errAITimeout,
+        ErrorActive => ErrorActive,
+        ErrorCode => ErrorCode
+    );
+
+    IF ErrorActive THEN
+        state := ST_SAFE_STOP;
+    END_IF;
+
+    DebugState := state;
+END_FUNCTION_BLOCK
+

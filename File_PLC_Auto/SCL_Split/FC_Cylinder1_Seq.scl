@@ -1,0 +1,50 @@
+FUNCTION FC_Cylinder1_Seq : Void
+VERSION : 0.1
+
+VAR_INPUT
+    StartAction : BOOL;
+    LS1         : BOOL;
+END_VAR
+
+VAR_IN_OUT
+    SeqState    : INT; // 0 idle, 1 extend, 2 retract
+END_VAR
+
+VAR_OUTPUT
+    Cylinder1Cmd : BOOL;
+    Busy         : BOOL;
+    DonePulse    : BOOL;
+END_VAR
+
+BEGIN
+    DonePulse := FALSE;
+
+    CASE SeqState OF
+        0:
+            Cylinder1Cmd := FALSE;
+            Busy := FALSE;
+            IF StartAction THEN
+                SeqState := 1;
+            END_IF;
+        1:
+            // Extend until LS1 = 1
+            Cylinder1Cmd := TRUE;
+            Busy := TRUE;
+            IF LS1 THEN
+                SeqState := 2;
+            END_IF;
+        2:
+            // Retract until LS1 = 0
+            Cylinder1Cmd := FALSE;
+            Busy := TRUE;
+            IF NOT LS1 THEN
+                SeqState := 0;
+                DonePulse := TRUE;
+            END_IF;
+        ELSE
+            SeqState := 0;
+            Cylinder1Cmd := FALSE;
+            Busy := FALSE;
+    END_CASE;
+END_FUNCTION
+

@@ -1,0 +1,33 @@
+ORGANIZATION_BLOCK OB1
+TITLE = 'Main cycle split blocks'
+VERSION : 0.1
+
+BEGIN
+    // Tao instance DB cho FB_Auto_Main (vi du: DB_AutoMain)
+    DB_AutoMain(
+        btAuto := "btAuto",
+        btManual := "btManual",
+        StartStop := "Start-Stop",
+        SS0 := "SS0",
+        SS1 := "SS1",
+        SS2 := "SS2",
+        LS1 := "LS_1",
+        LS2 := "LS_2",
+        PC_DataReady := "DB_GET".PC_DataReady,
+        PC_KetQua := "DB_GET".PC_KetQua,
+        ResetFault := "M1.7_ResetFault",
+
+        Conveyor => "Conveyor",
+        Cylinder1 => "Cylinder1",
+        Cylinder2 => "Cylinder2",
+        PLC_Auto => "DB_PUT".PLC_Auto,
+        PLC_Manual => "DB_PUT".PLC_Manual,
+        PLC_Running => "DB_PUT".PLC_Running,
+        PLC_TriggerReq => "DB_PUT".PLC_TriggerReq,
+        ErrorActive => "M10.0_ErrorActive",
+        ErrorCode => "MW20_ErrorCode",
+        QueueCount => "MW30_QueueCount",
+        DebugState => "MW36_DebugState"
+    );
+END_ORGANIZATION_BLOCK
+

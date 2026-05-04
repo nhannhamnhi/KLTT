@@ -16,7 +16,7 @@ Hiện tại chương trình chưa có cơ chế chọn chế độ Auto/Manual 
 
 | Offset | Tên | Kiểu | Mô tả | Trạng thái |
 |--------|-----|------|-------|------------|
-| 0-1 | `PC_KetQua` | INT | Kết quả AI (0/1/2/3) | **Giữ nguyên** |
+| 0-1 | `PC_KetQua` | INT | Kết quả AI (0/1/2/3/4) | **Giữ nguyên** |
 | 2.0 | `PC_DataReady` | BOOL | Có kết quả mới | **Giữ nguyên** |
 | 2.1 | `PC_Conveyor` | BOOL | Lệnh băng tải | **Giữ nguyên** |
 | 2.2 | `PC_Cylinder1` | BOOL | Lệnh xy-lanh 1 | **Giữ nguyên** |
@@ -29,7 +29,7 @@ DB_GET (DB1) — Non-Optimized (3 bytes, bổ sung bit)
 ┌─────────┬───────────────┬──────┬──────────────────────────┐
 │ Offset  │ Tên           │ Kiểu │ Mô tả                    │
 ├─────────┼───────────────┼──────┼──────────────────────────┤
-│  0 -  1 │ PC_KetQua     │ INT  │ Kết quả AI (0/1/2/3)    │
+│  0 -  1 │ PC_KetQua     │ INT  │ Kết quả AI (0/1/2/3/4)    │
 │  2.0    │ PC_DataReady  │ BOOL │ Có kết quả mới           │
 │  2.1    │ PC_Conveyor   │ BOOL │ Lệnh băng tải (Manual)   │
 │  2.2    │ PC_Cylinder1  │ BOOL │ Lệnh xy-lanh 1           │
