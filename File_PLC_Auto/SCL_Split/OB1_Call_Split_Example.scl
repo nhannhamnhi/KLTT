@@ -2,6 +2,13 @@ ORGANIZATION_BLOCK OB1
 TITLE = 'Main cycle split blocks'
 VERSION : 0.1
 
+// ------------------------------------------------------------
+// Ví dụ gọi trong OB1
+// - Tạo 1 instance DB cho `FB_Auto_Main` (ví dụ DB_AutoMain).
+// - Mapping tag phần cứng (I/Q) và DB_GET/DB_PUT tại đây.
+// - Nếu tên tag của bạn khác, đổi lại cho đúng project TIA.
+// ------------------------------------------------------------
+
 BEGIN
     // Tao instance DB cho FB_Auto_Main (vi du: DB_AutoMain)
     DB_AutoMain(
@@ -30,4 +37,3 @@ BEGIN
         DebugState => "MW36_DebugState"
     );
 END_ORGANIZATION_BLOCK
-

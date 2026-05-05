@@ -1,6 +1,15 @@
 FUNCTION_BLOCK FB_FIFO10
 { S7_Optimized_Access := 'TRUE' }
 VERSION : 0.1
+// ------------------------------------------------------------
+// FB_FIFO10
+// - FIFO 10 phần tử dùng để ghi nhớ kết quả AI theo thứ tự sản phẩm.
+// - Push: thêm 1 kết quả mới (khi sản phẩm qua SS0 và PC trả kết quả).
+// - Peek: xem phần tử đầu (để quyết định xử lý tại SS1/SS2).
+// - Pop: bỏ phần tử đầu khi sản phẩm đã xử lý xong vòng đời.
+//
+// Nếu FIFO đầy -> Overflow. Nếu Pop khi rỗng -> Underflow.
+// ------------------------------------------------------------
 
 VAR_INPUT
     Push      : BOOL;
@@ -64,4 +73,3 @@ BEGIN
 
     Count := cnt;
 END_FUNCTION_BLOCK
-

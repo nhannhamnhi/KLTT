@@ -1,5 +1,14 @@
 FUNCTION FC_EdgesAndMode : Void
 VERSION : 0.1
+// ------------------------------------------------------------
+// FC_EdgesAndMode
+// - Bắt cạnh lên/xuống của StartStop và các cảm biến SS0/SS1/SS2.
+// - Chốt RUN theo StartStop (kiểu toggle): nhấn 1 lần RUN, nhấn lần nữa STOP.
+// - Xuất ra localAuto/localManual để FB chính quyết định chạy Auto hay Manual.
+//
+// Lưu ý:
+// - PLC scan theo chu kỳ, nên bắt cạnh phải dựa trên "giá trị scan trước" (prev*).
+// ------------------------------------------------------------
 
 VAR_INPUT
     btAuto      : BOOL;
@@ -49,4 +58,3 @@ BEGIN
     prevSS1 := SS1;
     prevSS2 := SS2;
 END_FUNCTION
-

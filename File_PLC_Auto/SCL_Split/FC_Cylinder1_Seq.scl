@@ -1,5 +1,13 @@
 FUNCTION FC_Cylinder1_Seq : Void
 VERSION : 0.1
+// ------------------------------------------------------------
+// FC_Cylinder1_Seq
+// - Trình tự điều khiển xilanh 1 theo limit switch LS1.
+// - Không dùng timer để "reset", chỉ dựa vào phản hồi LS1:
+//   1) Ra: Cylinder1 = 1 cho tới khi LS1 = 1
+//   2) Về: Cylinder1 = 0 cho tới khi LS1 = 0
+// - Nếu quá thời gian cho phép -> báo lỗi timeout.
+// ------------------------------------------------------------
 
 VAR_INPUT
     StartAction : BOOL;
@@ -47,4 +55,3 @@ BEGIN
             Busy := FALSE;
     END_CASE;
 END_FUNCTION
-

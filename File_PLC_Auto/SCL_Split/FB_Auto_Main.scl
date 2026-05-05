@@ -1,6 +1,16 @@
 FUNCTION_BLOCK FB_Auto_Main
 { S7_Optimized_Access := 'TRUE' }
 VERSION : 0.1
+// ------------------------------------------------------------
+// FB_Auto_Main
+// - Khối chính của chế độ Auto.
+// - Tích hợp: bắt cạnh + handshake AI + FIFO + trình tự xilanh + quản lý lỗi.
+// - Nguyên tắc: có thể có nhiều sản phẩm trên băng tải cùng lúc.
+//   Mỗi sản phẩm được "ghi nhớ" bằng 1 phần tử FIFO (kết quả AI theo SS0).
+// - Khi đang phân loại (xilanh ra/về), băng tải tạm dừng; PLC scan vẫn chạy.
+//
+// Luồng chi tiết xem: 00_LuuDo_Auto.md
+// ------------------------------------------------------------
 
 VAR_INPUT
     btAuto       : BOOL;
@@ -252,4 +262,3 @@ BEGIN
 
     DebugState := state;
 END_FUNCTION_BLOCK
-

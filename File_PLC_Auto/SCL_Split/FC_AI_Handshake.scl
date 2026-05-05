@@ -1,5 +1,15 @@
 FUNCTION FC_AI_Handshake : Void
 VERSION : 0.1
+// ------------------------------------------------------------
+// FC_AI_Handshake
+// - Handshake PLC <-> PC (Python) tại cảm biến SS0 (vị trí camera).
+// - Khi có cạnh lên SS0: set TriggerReq để yêu cầu PC xử lý AI.
+// - Khi PC_DataReady = 1: chỉ "consume" đúng 1 lần cho mỗi chu kỳ SS0.
+// - Khi SS0 xuống: clear TriggerReq để khớp cơ chế PC giữ DataReady theo SS0.
+//
+// Kết quả hợp lệ: 0..4
+// - 0=WAIT, 1=OK, 2=NG_L, 3=NG_H, 4=MISSING
+// ------------------------------------------------------------
 
 VAR_INPUT
     ss0Rise          : BOOL;
@@ -53,4 +63,3 @@ BEGIN
         aiConsumedThisCycle := FALSE;
     END_IF;
 END_FUNCTION
-

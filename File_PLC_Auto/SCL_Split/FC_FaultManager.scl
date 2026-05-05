@@ -1,5 +1,12 @@
 FUNCTION FC_FaultManager : Void
 VERSION : 0.1
+// ------------------------------------------------------------
+// FC_FaultManager
+// - Gom các lỗi con và xuất ra 2 tín hiệu tổng:
+//   - ErrorActive: có lỗi nghiêm trọng cần dừng an toàn
+//   - ErrorCode: mã lỗi để debug nhanh trên HMI/Watch table
+// - ResetFault: reset lỗi thủ công.
+// ------------------------------------------------------------
 
 VAR_INPUT
     errOverflow      : BOOL;
@@ -39,4 +46,3 @@ BEGIN
         ErrorCode := 101;
     END_IF;
 END_FUNCTION
-
