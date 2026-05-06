@@ -290,7 +290,7 @@ Hệ thống sử dụng **python-snap7** để giao tiếp với PLC Siemens qu
 
 | Offset | Tên biến | Kiểu | Giá trị | Mô tả |
 | :--- | :--- | :--- | :--- | :--- |
-| 0 - 1 | `PC_KetQua` | INT | 0=WAIT, 1=OK, 2=NG_L, 3=NG_H | Kết quả phân loại AI |
+| 0 - 1 | `PC_KetQua` | INT | 0=WAIT, 1=OK, 2=NG_L, 3=NG_H, 4=MISSING | Kết quả phân loại AI |
 | 2.0 | `PC_DataReady` | BOOL | TRUE/FALSE | Cờ báo PLC có kết quả mới cần đọc |
 | 2.1 | `PC_Conveyor` | BOOL | TRUE/FALSE | Lệnh chạy/dừng băng tải (Manual) |
 | 2.2 | `PC_Cylinder1` | BOOL | TRUE/FALSE | Kích/thu xy-lanh 1 — đẩy vỉ NG_L |

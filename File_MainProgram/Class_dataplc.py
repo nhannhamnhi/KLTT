@@ -20,15 +20,16 @@ DB_PUT_SIZE = 1  # bytes (offset 0 → 0)
 # --- Mã kết quả AI (ghi vào PC_KetQua — INT 2 bytes) ---
 RESULT_WAIT = 0   # Chưa có vỉ → PLC không hành động
 RESULT_OK   = 1   # Tất cả viên đạt → PLC cho vỉ đi thẳng
-RESULT_NG_L = 2   # Lỗi nhẹ / MISSING → PLC kích XL1
+RESULT_NG_L = 2   # Lỗi nhẹ → PLC kích XL1
 RESULT_NG_H = 3   # Lỗi nặng → PLC kích XL2
+RESULT_MISSING = 4  # Thiếu detect theo mẫu → xử lý nhánh riêng
 
 # --- Mapping tên kết quả → mã số (tiện cho finish.py gọi) ---
 RESULT_MAP = {
     "WAIT": RESULT_WAIT,
     "OK":   RESULT_OK,
     "NG_L": RESULT_NG_L,
-    "MISSING": RESULT_NG_L,  # MISSING xử lý giống NG_L
+    "MISSING": RESULT_MISSING,
     "NG_H": RESULT_NG_H,
 }
 
@@ -154,7 +155,7 @@ class PLCConnector:
         Ghi kết quả phân loại AI xuống PLC.
 
         Tham số:
-            result_code (int hoặc str): Mã kết quả (0-3) hoặc tên ("OK", "NG_L",...)
+            result_code (int hoặc str): Mã kết quả (0-4) hoặc tên ("OK", "NG_L",...)
             data_ready (bool): Cờ báo PLC có kết quả mới cần đọc
 
         Ví dụ:

@@ -1,0 +1,48 @@
+FUNCTION FC_FaultManager : Void
+VERSION : 0.1
+// ------------------------------------------------------------
+// FC_FaultManager
+// - Gom các lỗi con và xuất ra 2 tín hiệu tổng:
+//   - ErrorActive: có lỗi nghiêm trọng cần dừng an toàn
+//   - ErrorCode: mã lỗi để debug nhanh trên HMI/Watch table
+// - ResetFault: reset lỗi thủ công.
+// ------------------------------------------------------------
+
+VAR_INPUT
+    errOverflow      : BOOL;
+    errUnderflow     : BOOL;
+    errInvalidResult : BOOL;
+    errLS1Timeout    : BOOL;
+    errLS2Timeout    : BOOL;
+    errAITimeout     : BOOL;
+END_VAR
+
+VAR_OUTPUT
+    ErrorActive : BOOL;
+    ErrorCode   : INT;
+END_VAR
+
+BEGIN
+    ErrorActive := FALSE;
+    ErrorCode := 0;
+
+    IF errOverflow THEN
+        ErrorActive := TRUE;
+        ErrorCode := 301;
+    ELSIF errUnderflow THEN
+        ErrorActive := TRUE;
+        ErrorCode := 302;
+    ELSIF errInvalidResult THEN
+        ErrorActive := TRUE;
+        ErrorCode := 401;
+    ELSIF errLS1Timeout THEN
+        ErrorActive := TRUE;
+        ErrorCode := 201;
+    ELSIF errLS2Timeout THEN
+        ErrorActive := TRUE;
+        ErrorCode := 202;
+    ELSIF errAITimeout THEN
+        ErrorActive := TRUE;
+        ErrorCode := 101;
+    END_IF;
+END_FUNCTION
