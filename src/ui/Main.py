@@ -16,6 +16,7 @@ class Ui_Main(object):
         Main.setObjectName("Main")
         Main.setWindowModality(QtCore.Qt.ApplicationModal)
         Main.resize(1918, 1029)
+        Main.setWindowState(QtCore.Qt.WindowMaximized)
         Main.setStyleSheet("/* Thiết lập cho các GroupBox */\n"
 "QGroupBox {\n"
 "    border: 2px solid #CEC2B1;\n"
@@ -787,7 +788,7 @@ class Ui_Main(object):
         self.label_20.setText(_translate("Main", "CPU_PLC"))
         self.groupBox_hienthidl.setTitle(_translate("Main", "HIỂN THỊ DL"))
         self.btControlManual.setText(_translate("Main", "🔓 ControlManual"))
-        self.btXuat.setText(_translate("Main", "Xuất Excel"))
+        self.btXuat.setText(_translate("Main", "📊 Quản lý dữ liệu"))
         self.btConveyor.setText(_translate("Main", "▶ Conveyor"))
         self.btCylinder1.setText(_translate("Main", "Cylinder 1"))
         self.btCylinder2.setText(_translate("Main", "Cylinder 2"))

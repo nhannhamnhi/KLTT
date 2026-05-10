@@ -10,6 +10,32 @@ import json
 from datetime import datetime, timedelta
 from threading import Thread, Lock
 
+# --- Bổ sung: Import thư viện Google Sheets (tùy chọn) ---
+try:
+    import gspread
+    from google.oauth2.service_account import Credentials
+    GOOGLE_SHEETS_AVAILABLE = True
+except ImportError:
+    GOOGLE_SHEETS_AVAILABLE = False
+    print("[CẢNH BÁO] Thư viện gspread hoặc google-auth chưa được cài. Chạy: pip install gspread google-auth")
+
+# --- Bổ sung: Import cấu hình từ config.py ---
+try:
+    from . import config
+    SPREADSHEET_ID = config.SPREADSHEET_ID
+    SERVICE_ACCOUNT_FILE = config.SERVICE_ACCOUNT_FILE
+    SHEET_NAME = config.SHEET_NAME
+    DATA_RETENTION_DAYS = config.DATA_RETENTION_DAYS
+    SHEETS_CONFIGURED = True # Đánh dấu đã có file config và đã load thành công
+except ImportError:
+    # Nếu không tìm thấy config.py hoặc lỗi, dùng giá trị mặc định và vô hiệu hóa Sheets
+    SPREADSHEET_ID = ""
+    SERVICE_ACCOUNT_FILE = "src/data/service_account.json"
+    SHEET_NAME = "KLTT_Data"
+    DATA_RETENTION_DAYS = 90 # Mặc định 90 ngày
+    SHEETS_CONFIGURED = False
+    print("[CẢNH BÁO] Không tìm thấy src/data/config.py hoặc lỗi khi import. Tính năng Google Sheets bị vô hiệu hóa.")
+
 # Thư viện để xuất Excel với merge cell
 try:
     from openpyxl import Workbook
@@ -42,6 +68,7 @@ class DataManager:
 
         self.data_dir = data_dir
         self.json_file = os.path.join(data_dir, 'data_history.json')
+        self.pending_queue_file = os.path.join(data_dir, 'pending_queue.json')
 
         # Lock để đảm bảo thread-safe khi ghi file
         self._lock = Lock()
@@ -53,6 +80,13 @@ class DataManager:
         # Load dữ liệu và dọn dẹp dữ liệu cũ
         self.data = self.load_data()
         self.cleanup_old_data()
+
+        # --- Bổ sung Google Sheets và hàng chờ ---
+        self._gs_sheet = None
+        self._pending_queue = self._load_pending_queue()
+
+        if GOOGLE_SHEETS_AVAILABLE and SHEETS_CONFIGURED:
+            self._init_gspread()
 
     def load_data(self):
         """
@@ -82,7 +116,7 @@ class DataManager:
             except IOError as e:
                 print(f"[LỖI] Không thể ghi file JSON: {e}")
 
-    def save_record(self, total, passed, failed, result):
+    def save_record(self, total, passed, failed, result, model_name=""):
         """
         Lưu một bản ghi mới (bất đồng bộ)
 
@@ -91,6 +125,7 @@ class DataManager:
             passed: Số viên đạt (Full)
             failed: Số viên lỗi (Partial, Empty)
             result: Kết quả tổng hợp (OK/NG)
+            model_name: Tên model AI đang sử dụng
 
         Returns:
             str: Chuỗi hiển thị cho danh sách UI
@@ -102,6 +137,7 @@ class DataManager:
         # Tạo bản ghi mới
         record = {
             'time': time_str,
+            'model_name': model_name,
             'total': total,
             'passed': passed,
             'failed': failed,
@@ -116,8 +152,11 @@ class DataManager:
         # Ghi file trong thread riêng (async) để không block UI
         Thread(target=self._write_json, daemon=True).start()
 
+        # Ghi lên Google Sheets (nếu có cấu hình)
+        Thread(target=self._write_sheets, args=(record, date_str), daemon=True).start()
+
         # Trả về chuỗi hiển thị cho UI
-        display_str = f"[{time_str}] | Tổng: {total} | Đạt: {passed} | Lỗi: {failed} | Kết quả: {result}"
+        display_str = f"[{time_str}] | Model: {model_name} | Tổng: {total} | Đạt: {passed} | Lỗi: {failed} | Kết quả: {result}"
         return display_str
 
     def get_today_records(self):
@@ -132,30 +171,200 @@ class DataManager:
 
         display_list = []
         for rec in records:
-            display_str = f"[{rec['time']}] | Tổng: {rec['total']} | Đạt: {rec['passed']} | Lỗi: {rec['failed']} | Kết quả: {rec['result']}"
+            model_name = rec.get('model_name', 'N/A')
+            display_str = f"[{rec['time']}] | Model: {model_name} | Tổng: {rec['total']} | Đạt: {rec['passed']} | Lỗi: {rec['failed']} | Kết quả: {rec['result']}"
             display_list.append(display_str)
 
         return display_list
 
-    def cleanup_old_data(self, days=15):
+    def cleanup_old_data(self, days=DATA_RETENTION_DAYS):
         """
         Xóa dữ liệu cũ hơn số ngày chỉ định
-
-        Args:
-            days: Số ngày giữ lại (mặc định 15)
         """
         cutoff_date = datetime.now() - timedelta(days=days)
         cutoff_str = cutoff_date.strftime('%Y-%m-%d')
 
-        # Lọc ra các ngày cần giữ lại
         keys_to_remove = [date for date in self.data.keys() if date < cutoff_str]
 
         if keys_to_remove:
             for key in keys_to_remove:
                 del self.data[key]
             print(f"[THÔNG BÁO] Đã xóa dữ liệu của {len(keys_to_remove)} ngày cũ")
-            # Ghi lại file sau khi dọn dẹp
             Thread(target=self._write_json, daemon=True).start()
+
+    def _init_gspread(self):
+        """Kết nối Google Sheets bằng Service Account, mở sheet và tạo header nếu cần"""
+        if not GOOGLE_SHEETS_AVAILABLE or not SPREADSHEET_ID:
+            return
+
+        try:
+            scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+            creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=scopes)
+            client = gspread.authorize(creds)
+            spreadsheet = client.open_by_key(SPREADSHEET_ID)
+            self._gs_sheet = spreadsheet.worksheet(SHEET_NAME)
+            
+            # Kiểm tra và tạo header nếu sheet trống
+            try:
+                first_cell = self._gs_sheet.cell(1, 1).value
+                if not first_cell:
+                    headers = ["Timestamp", "Ngày", "Thời gian", "Tổng", "Đạt", "Lỗi", "Kết quả", "Model AI"]
+                    self._gs_sheet.append_row(headers)
+            except:
+                # Nếu không đọc được cell (sheet hoàn toàn mới), thử append header
+                headers = ["Timestamp", "Ngày", "Thời gian", "Tổng", "Đạt", "Lỗi", "Kết quả", "Model AI"]
+                self._gs_sheet.append_row(headers)
+            
+            print("[THÔNG BÁO] Đã kết nối Google Sheets thành công.")
+        except Exception as e:
+            print(f"[LỖI] Không thể khởi tạo Google Sheets: {e}")
+            self._gs_sheet = None
+
+    def _flush_pending_queue(self):
+        """Đẩy toàn bộ hàng chờ lên Sheets, dừng nếu gặp lỗi"""
+        if not self._gs_sheet or not self._pending_queue:
+            return
+
+        success_count = 0
+        try:
+            # Lặp qua bản sao để có thể modify gốc
+            while self._pending_queue:
+                row = self._pending_queue[0]
+                self._gs_sheet.append_row(row)
+                self._pending_queue.pop(0) # Xóa khi thành công
+                success_count += 1
+            
+            if success_count > 0:
+                self._save_pending_queue()
+                print(f"[THÔNG BÁO] Đã đẩy {success_count} bản ghi từ hàng chờ.")
+        except Exception as e:
+            print(f"[LỖI SHEETS] Tạm dừng đẩy hàng chờ: {e}")
+            self._save_pending_queue()
+
+    def _write_sheets(self, record, date_str):
+        """Ghi dữ liệu lên Sheet, lưu vào hàng chờ nếu thất bại"""
+        if not GOOGLE_SHEETS_AVAILABLE or not SHEETS_CONFIGURED:
+            return
+
+        # Khởi tạo nếu chưa có
+        if self._gs_sheet is None:
+            self._init_gspread()
+        
+        # Thử đẩy hàng chờ cũ trước
+        self._flush_pending_queue()
+
+        # Chuẩn bị dòng dữ liệu
+        try:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+            display_date = date_obj.strftime('%d/%m/%Y')
+            
+            row = [
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                display_date,
+                record['time'],
+                record['total'],
+                record['passed'],
+                record['failed'],
+                record['result'],
+                record.get('model_name', 'N/A')
+            ]
+
+            if self._gs_sheet:
+                self._gs_sheet.append_row(row)
+            else:
+                raise Exception("Chưa có kết nối Sheet")
+                
+        except Exception as e:
+            # Lưu vào hàng chờ khi thất bại
+            print(f"[LỖI SHEETS] Lưu vào hàng chờ: {e}")
+            if 'row' in locals():
+                self._pending_queue.append(row)
+                self._save_pending_queue()
+
+    def get_all_records_as_list(self, days_back=90):
+        """Trả về list các bản ghi từ JSON local, lọc theo số ngày"""
+        cutoff_date = datetime.now() - timedelta(days=days_back)
+        cutoff_str = cutoff_date.strftime('%Y-%m-%d')
+        
+        all_records = []
+        # Sắp xếp ngày mới nhất trước
+        sorted_dates = sorted(self.data.keys(), reverse=True)
+        
+        for d_str in sorted_dates:
+            if d_str < cutoff_str:
+                continue
+                
+            date_obj = datetime.strptime(d_str, '%Y-%m-%d')
+            display_date = date_obj.strftime('%d/%m/%Y')
+            
+            # Sắp xếp giờ mới nhất trước trong cùng một ngày
+            day_records = sorted(self.data[d_str], key=lambda x: x['time'], reverse=True)
+            
+            for rec in day_records:
+                item = rec.copy()
+                item['date'] = display_date
+                all_records.append(item)
+                
+        return all_records
+
+    def get_available_dates(self):
+        """Trả về list ngày có dữ liệu (YYYY-MM-DD), mới nhất trước"""
+        return sorted(self.data.keys(), reverse=True)
+
+    def get_summary_stats(self, date_filter=None):
+        """Thống kê từ dữ liệu local"""
+        total = 0
+        ok = 0
+        ng_l = 0
+        ng_h = 0
+        missing = 0
+        
+        # Xác định tập ngày cần quét
+        target_dates = [date_filter] if date_filter and date_filter in self.data else self.data.keys()
+        
+        for d_str in target_dates:
+            for rec in self.data.get(d_str, []):
+                total += 1
+                res = rec.get('result', '')
+                if res == 'OK':
+                    ok += 1
+                elif res == 'NG_L':
+                    ng_l += 1
+                elif res == 'NG_H':
+                    ng_h += 1
+                elif res == 'MISSING':
+                    missing += 1
+        
+        ng = ng_l + ng_h + missing
+        rate = (ok / total * 100) if total > 0 else 0
+        
+        return {
+            'total': total,
+            'ok': ok,
+            'ng_l': ng_l,
+            'ng_h': ng_h,
+            'missing': missing,
+            'ng': ng,
+            'rate': round(rate, 1)
+        }
+
+    def _load_pending_queue(self):
+        """Load hàng chờ dữ liệu chưa gửi được (nếu có)"""
+        if os.path.exists(self.pending_queue_file):
+            try:
+                with open(self.pending_queue_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                return []
+        return []
+
+    def _save_pending_queue(self):
+        """Lưu hàng chờ ra file để tránh mất dữ liệu"""
+        try:
+            with open(self.pending_queue_file, 'w', encoding='utf-8') as f:
+                json.dump(self._pending_queue, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"[LỖI] Không thể lưu hàng chờ: {e}")
 
     def export_to_excel(self, filepath, date_filter=None):
         """

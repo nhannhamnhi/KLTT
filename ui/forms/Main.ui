@@ -16,6 +16,9 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="windowState">
+   <enum>Qt::WindowMaximized</enum>
+  </property>
   <property name="styleSheet">
    <string notr="true">/* Thiết lập cho các GroupBox */
 QGroupBox {
@@ -906,7 +909,7 @@ QPushButton:pressed {
 }</string>
      </property>
      <property name="text">
-      <string>Xuất Excel</string>
+      <string>📊 Quản lý dữ liệu</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btConveyor">
