@@ -23,5 +23,8 @@ yolov8_openvino_model/
 kernel.errors.txt
 
 # Runtime data (do not track changing production records)
-File_MainProgram/data/data_history.json
-File_MainProgram/data/*.json
+data/data_history.json
+data/*.json
+
+# Temporary/Scratch files
+scratch/
