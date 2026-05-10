@@ -204,9 +204,12 @@ class DataManager:
             row_num = 2
             stt = 1
 
-            # Biến để đếm số lần kết quả OK/NG
+            # Biến đếm số lần từng trạng thái kết quả (5 trạng thái)
             count_ok = 0
-            count_ng = 0
+            count_ng_l = 0
+            count_ng_h = 0
+            count_missing = 0
+            count_wait = 0
 
             # Lọc các ngày cần xuất
             if date_filter:
@@ -255,11 +258,18 @@ class DataManager:
                     ws.cell(row=current_row, column=7, value=rec['result']).alignment = header_alignment
                     ws.cell(row=current_row, column=7).border = thin_border
 
-                    # Đếm số lần kết quả OK/NG
-                    if rec['result'] == 'OK':
+                    # Đếm số lần từng trạng thái kết quả
+                    result_val = rec.get('result', '')
+                    if result_val == 'OK':
                         count_ok += 1
-                    elif rec['result'] == 'NG':
-                        count_ng += 1
+                    elif result_val == 'NG_L':
+                        count_ng_l += 1
+                    elif result_val == 'NG_H':
+                        count_ng_h += 1
+                    elif result_val == 'MISSING':
+                        count_missing += 1
+                    elif result_val == 'WAIT':
+                        count_wait += 1
 
                     stt += 1
                     row_num += 1
@@ -272,46 +282,91 @@ class DataManager:
                     # Căn trung tâm cho ô đã gộp
                     ws.cell(row=start_row, column=2).alignment = Alignment(horizontal='center', vertical='center')
 
-            # Thêm hàng tổng hợp ở cuối
+            # === PHẦN TỔNG HỢP KẾT QUẢ Ở CUỐI ===
             if row_num > 2:  # Chỉ thêm nếu có dữ liệu
                 from openpyxl.styles import PatternFill
                 
-                summary_row = row_num
-                summary_font = Font(bold=True, size=12)
-                summary_fill = PatternFill(start_color='FFEB9C', end_color='FFEB9C', fill_type='solid')  # Màu vàng nhạt
+                summary_font = Font(bold=True, size=11)
+                summary_fill = PatternFill(start_color='FFEB9C', end_color='FFEB9C', fill_type='solid')  # Vàng nhạt
                 
-                # Merge cột 1-4 để viết "TỔNG HỢP KẾT QUẢ"
-                ws.merge_cells(start_row=summary_row, start_column=1, end_row=summary_row, end_column=4)
-                cell_summary = ws.cell(row=summary_row, column=1, value="TỔNG HỢP KẾT QUẢ")
-                cell_summary.font = summary_font
-                cell_summary.alignment = Alignment(horizontal='center', vertical='center')
-                cell_summary.border = thin_border
-                cell_summary.fill = summary_fill
-                
-                # Cột 5: Nhãn "OK:"
-                cell_ok_label = ws.cell(row=summary_row, column=5, value=f"OK: {count_ok}")
-                cell_ok_label.font = summary_font
-                cell_ok_label.alignment = Alignment(horizontal='center', vertical='center')
-                cell_ok_label.border = thin_border
-                cell_ok_label.fill = PatternFill(start_color='C6EFCE', end_color='C6EFCE', fill_type='solid')  # Màu xanh nhạt
-                
-                # Cột 6: Nhãn "NG:"
-                cell_ng_label = ws.cell(row=summary_row, column=6, value=f"NG: {count_ng}")
-                cell_ng_label.font = summary_font
-                cell_ng_label.alignment = Alignment(horizontal='center', vertical='center')
-                cell_ng_label.border = thin_border
-                cell_ng_label.fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')  # Màu đỏ nhạt
-                
-                # Cột 7: Tổng số lần
-                total_count = count_ok + count_ng
-                cell_total = ws.cell(row=summary_row, column=7, value=f"Tổng: {total_count}")
-                cell_total.font = summary_font
-                cell_total.alignment = Alignment(horizontal='center', vertical='center')
-                cell_total.border = thin_border
-                cell_total.fill = summary_fill
+                # --- HÀNG 1: Tiêu đề "TỔNG HỢP KẾT QUẢ" + OK + NG_L ---
+                row1 = row_num
+                ws.merge_cells(start_row=row1, start_column=1, end_row=row1, end_column=3)
+                cell_title = ws.cell(row=row1, column=1, value="TỔNG HỢP KẾT QUẢ")
+                cell_title.font = Font(bold=True, size=12)
+                cell_title.alignment = Alignment(horizontal='center', vertical='center')
+                cell_title.border = thin_border
+                cell_title.fill = summary_fill
+
+                # OK
+                cell_ok = ws.cell(row=row1, column=4, value=f"OK: {count_ok}")
+                cell_ok.font = summary_font
+                cell_ok.alignment = Alignment(horizontal='center', vertical='center')
+                cell_ok.border = thin_border
+                cell_ok.fill = PatternFill(start_color='C6EFCE', end_color='C6EFCE', fill_type='solid')  # Xanh nhạt
+
+                # NG_L (lỗi nhẹ)
+                cell_ng_l = ws.cell(row=row1, column=5, value=f"NG_L: {count_ng_l}")
+                cell_ng_l.font = summary_font
+                cell_ng_l.alignment = Alignment(horizontal='center', vertical='center')
+                cell_ng_l.border = thin_border
+                cell_ng_l.fill = PatternFill(start_color='FFF2CC', end_color='FFF2CC', fill_type='solid')  # Vàng nhạt
+
+                # NG_H (lỗi nặng)
+                cell_ng_h = ws.cell(row=row1, column=6, value=f"NG_H: {count_ng_h}")
+                cell_ng_h.font = summary_font
+                cell_ng_h.alignment = Alignment(horizontal='center', vertical='center')
+                cell_ng_h.border = thin_border
+                cell_ng_h.fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')  # Đỏ nhạt
+
+                # MISSING
+                cell_miss = ws.cell(row=row1, column=7, value=f"MISSING: {count_missing}")
+                cell_miss.font = summary_font
+                cell_miss.alignment = Alignment(horizontal='center', vertical='center')
+                cell_miss.border = thin_border
+                cell_miss.fill = PatternFill(start_color='FFD699', end_color='FFD699', fill_type='solid')  # Cam nhạt
+
+                # --- HÀNG 2: Tổng số lượt kiểm tra ---
+                row2 = row_num + 1
+                total_count = count_ok + count_ng_l + count_ng_h + count_missing + count_wait
+                total_ng = count_ng_l + count_ng_h
+
+                ws.merge_cells(start_row=row2, start_column=1, end_row=row2, end_column=3)
+                cell_total_label = ws.cell(row=row2, column=1, value=f"TỔNG LƯỢT: {total_count}")
+                cell_total_label.font = Font(bold=True, size=12)
+                cell_total_label.alignment = Alignment(horizontal='center', vertical='center')
+                cell_total_label.border = thin_border
+                cell_total_label.fill = summary_fill
+
+                # Tổng đạt
+                cell_dat = ws.cell(row=row2, column=4, value=f"Đạt: {count_ok}")
+                cell_dat.font = summary_font
+                cell_dat.alignment = Alignment(horizontal='center', vertical='center')
+                cell_dat.border = thin_border
+                cell_dat.fill = PatternFill(start_color='C6EFCE', end_color='C6EFCE', fill_type='solid')
+
+                # Tổng lỗi (NG_L + NG_H)
+                cell_loi = ws.cell(row=row2, column=5, value=f"Lỗi: {total_ng}")
+                cell_loi.font = summary_font
+                cell_loi.alignment = Alignment(horizontal='center', vertical='center')
+                cell_loi.border = thin_border
+                cell_loi.fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')
+
+                # Tỷ lệ đạt
+                if total_count > 0:
+                    ty_le = (count_ok / total_count) * 100
+                    ty_le_str = f"Tỷ lệ đạt: {ty_le:.1f}%"
+                else:
+                    ty_le_str = "Tỷ lệ đạt: --"
+                ws.merge_cells(start_row=row2, start_column=6, end_row=row2, end_column=7)
+                cell_tyle = ws.cell(row=row2, column=6, value=ty_le_str)
+                cell_tyle.font = Font(bold=True, size=11, color='006666')
+                cell_tyle.alignment = Alignment(horizontal='center', vertical='center')
+                cell_tyle.border = thin_border
+                cell_tyle.fill = summary_fill
 
             # Điều chỉnh độ rộng cột
-            column_widths = [6, 15, 12, 15, 12, 12, 12]
+            column_widths = [6, 15, 12, 15, 12, 12, 15]
             for i, width in enumerate(column_widths, 1):
                 ws.column_dimensions[chr(64 + i)].width = width
 

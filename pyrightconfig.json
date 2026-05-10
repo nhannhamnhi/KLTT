@@ -1,6 +1,22 @@
 {
+    "pythonVersion": "3.13",
+    "venvPath": ".",
+    "venv": "venv",
     "extraPaths": [
-        "File_QTtoPY",
-        "File_MainProgram"
+        "src/ui",
+        "src/ai",
+        "src/plc",
+        "src/data"
+    ],
+    "executionEnvironments": [
+        {
+            "root": "src",
+            "extraPaths": [
+                "src/ui",
+                "src/ai",
+                "src/plc",
+                "src/data"
+            ]
+        }
     ]
 }

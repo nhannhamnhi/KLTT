@@ -49,25 +49,21 @@ KLTT/
 │   └── data/
 │       └── data_history.json  # File lưu lịch sử kết quả phát hiện
 │
-├── File_QT/                   # 🎨 File giao diện Qt Designer (.ui)
-│   ├── Background.ui          # Màn hình khởi động
-│   ├── Login.ui               # Màn hình đăng nhập
-│   ├── Main.ui                # Màn hình giao diện chính
-│   ├── hinhanh/               # Hình ảnh tài nguyên cho giao diện
-│   └── hinhanh.qrc            # File tài nguyên Qt
+│── File_Markdown/             # 📝 Tài liệu hướng dẫn & Spec
+│   ├── Snap7_DataMap.md       # 📋 Tài liệu chi tiết bản đồ dữ liệu PLC
+│   ├── QuyTrinhVanHanh.md     # Hướng dẫn vận hành chi tiết
+│   ├── ModeAuto-Man.md        # Giải thích logic Auto/Manual
+│   └── tonghoploi.md          # Tổng hợp lỗi và cách khắc phục
 │
-├── File_QTtoPY/               # 🔄 File Python sinh từ Qt Designer
-│   ├── Background.py          # Code Python cho màn hình khởi động
-│   ├── Login.py               # Code Python cho màn hình đăng nhập
-│   ├── Main.py                # Code Python cho giao diện chính
-│   └── hinhanh_rc.py          # Resource hình ảnh đã biên dịch
+├── ui/                        # 🎨 Tài nguyên giao diện
+│   └── forms/                 # File thiết kế Qt Designer (.ui)
 │
-├── File_modelYOLO/            # 🤖 Thư mục chứa model AI
-│   └── model/yolov8-obb/      # Model YOLOv8-OBB định dạng OpenVINO
-│
-├── Snap7_DataMap.md           # 📋 Tài liệu chi tiết bản đồ dữ liệu PLC
-├── images/                    # Hình ảnh minh họa cho README
-├── venv/                      # Môi trường ảo Python
+├── assets/                    # 🖼️ Hình ảnh, icon, tài nguyên tĩnh
+├── models/                    # 🤖 Thư mục chứa model AI (YOLOv8, OpenVINO)
+├── plc/                       # ⚙️ Code PLC (SCL, Tag list)
+├── scripts/                   # 🛠️ Script tiện ích
+├── scratch/                   # 📝 File nháp, plan (không commit)
+├── venv/                      # 🐍 Môi trường ảo Python
 └── README.md                  # File hướng dẫn này
 ```
 
@@ -114,7 +110,8 @@ Khởi động → Đăng nhập → Kết nối Camera → AI nhận diện →
 **⑤ Truyền thông PLC**
 - Kết quả AI được gửi xuống PLC qua **Snap7** (S7 Protocol)
 - PLC điều khiển cơ cấu: băng tải, xy-lanh phân loại
-- Hỗ trợ 2 chế độ: **Auto** (PLC tự động) và **Manual** (điều khiển từ PC)
+- **Auto** (PLC tự động): Sensor S0 phát hiện sản phẩm → AI tự động ghi kết quả & DataReady xuống PLC.
+- **Manual** (Điều khiển từ PC): Yêu cầu **bảo mật 2 lớp** (Đăng nhập tài khoản điều khiển + Gạt công tắc vật lý PLC sang Manual). Các nút điều khiển chỉ xuất hiện khi đủ cả 2 điều kiện.
 
 **⑥ Lưu trữ & Xuất dữ liệu**
 - Nhấn **Trigger** để đóng băng hình ảnh và lưu kết quả kiểm tra vào file JSON
@@ -156,12 +153,12 @@ Do file model khá lớn, cần tải riêng từ Google Drive:
 
 📥 **[Google Drive - Download Model OpenVINO](https://drive.google.com/drive/folders/1GZrhgVkqMVZgJNROqwBPujrJ1-hqv6_k?usp=sharing)**
 
-Sau khi tải, đặt thư mục model vào bất kỳ vị trí nào trên máy (ví dụ: `File_modelYOLO/model/`).
+Sau khi tải, đặt thư mục model vào thư mục `models/` (ví dụ: `models/yolov8-obb/`).
 
 ### Bước 5: Chạy chương trình và nạp Model
 
 ```bash
-python File_MainProgram/finish.py
+python src/ui/finish.py
 ```
 
 Sau khi vào giao diện chính, nạp model AI theo các bước:
@@ -203,10 +200,13 @@ Sau khi vào giao diện chính, nạp model AI theo các bước:
 | | Ảnh đã xử lý | Hình ảnh có vẽ khung nhận diện AI |
 | | Ô kết quả (OK/NG/WAIT) | Kết quả tổng hợp với màu trực quan |
 | | Bộ đếm | Tổng số viên / Viên đạt / Viên lỗi |
-| **PLC** | Kết nối PLC | Nhập IP, Rack, Slot → Kết nối PLC Siemens |
-| | Chế độ Auto/Manual | Hiển thị trên Status Bar |
-| **Cảm biến** | Nút **Trigger** | Đóng băng camera + Lưu dữ liệu |
-| | Nút **Continue** | Tiếp tục quét sau khi Trigger |
+| **PLC** | Kết nối PLC | Nhập IP, Rack, Slot → Kết nối PLC Siemens (Có xác minh dòng CPU) |
+| | Nút **Control Manual** | Đăng nhập quyền điều khiển thủ công (Mặc định: `admin`/`123`) |
+| | Chế độ Auto/Manual | Hiển thị trạng thái đồng bộ từ công tắc vật lý của PLC |
+| **Điều khiển** | Nút **Trigger** | (Manual) Đóng băng camera + Ghi kết quả xuống PLC |
+| | Nút **Continue** | (Manual) Tiếp tục quét sau khi Trigger |
+| | Nút **Conveyor** | (Manual - Momentary) Nhấn giữ để chạy băng tải, nhả để dừng |
+| | Các nút **Cylinder** | (Manual - Momentary) Nhấn giữ để kích xy-lanh, nhả để thu |
 | **Dữ liệu** | Danh sách kết quả | Hiển thị lịch sử kiểm tra hôm nay |
 | | Nút **Xuất Excel** | Chọn ngày → Xuất file `.xlsx` |
 | **Status Bar** | Thanh trạng thái | Hệ thống / Model / Camera / FPS / PLC / Mode / Sensor |
@@ -248,7 +248,7 @@ Nếu huấn luyện model trên **Google Colab** rồi mang về sử dụng:
 
 ### Lưu trữ
 
-- Dữ liệu được lưu vào `File_MainProgram/data/data_history.json`
+- Dữ liệu được lưu vào `data/data_history.json`
 - Mỗi bản ghi gồm: Thời gian, Tổng số viên, Viên đạt, Viên lỗi, Kết quả (OK/NG)
 - Dữ liệu được phân nhóm theo **ngày** (key: `YYYY-MM-DD`)
 - Tự động xóa dữ liệu cũ hơn **15 ngày**
@@ -264,9 +264,9 @@ Nếu huấn luyện model trên **Google Colab** rồi mang về sử dụng:
 
 ## 🔌 Cấu Hình Truyền Thông PLC
 
-Hệ thống sử dụng **python-snap7** để giao tiếp với PLC Siemens qua giao thức S7 (TCP/IP cổng 102). Cấu hình biến PLC được khai báo trực tiếp trong mã nguồn file `Class_dataplc.py`.
+Hệ thống sử dụng **python-snap7** để giao tiếp với PLC Siemens qua giao thức S7 (TCP/IP cổng 102). Cấu hình biến PLC được khai báo trực tiếp trong mã nguồn file `src/plc/Class_dataplc.py`.
 
-> 📋 Tài liệu chi tiết về bản đồ dữ liệu: xem file `Snap7_DataMap.md`
+> 📋 Tài liệu chi tiết về bản đồ dữ liệu: xem file [Snap7_DataMap.md](file:///d:/KL_2025/KLTT/docs/Snap7_DataMap.md)
 
 ### Kiến trúc 2 DB tách biệt
 
@@ -282,7 +282,7 @@ Hệ thống sử dụng **python-snap7** để giao tiếp với PLC Siemens qu
 
 | Offset | Tên biến | Kiểu | Giá trị | Mô tả |
 | :--- | :--- | :--- | :--- | :--- |
-| 0 - 1 | `PC_KetQua` | INT | 0=WAIT, 1=OK, 2=NG_L, 3=NG_H | Kết quả phân loại AI |
+| 0 - 1 | `PC_KetQua` | INT | 0=WAIT, 1=OK, 2=NG_L, 3=NG_H, 4=MISSING | Kết quả phân loại AI |
 | 2.0 | `PC_DataReady` | BOOL | TRUE/FALSE | Cờ báo PLC có kết quả mới cần đọc |
 | 2.1 | `PC_Conveyor` | BOOL | TRUE/FALSE | Lệnh chạy/dừng băng tải (Manual) |
 | 2.2 | `PC_Cylinder1` | BOOL | TRUE/FALSE | Kích/thu xy-lanh 1 — đẩy vỉ NG_L |
@@ -303,10 +303,10 @@ Hệ thống sử dụng **python-snap7** để giao tiếp với PLC Siemens qu
 
 Khi cần **thêm biến mới** hoặc **thay đổi offset**, chỉnh sửa theo các bước sau:
 
-**Bước 1:** Cập nhật hằng số trong `Class_dataplc.py` (dòng 11-18)
+**Bước 1:** Cập nhật hằng số trong `src/plc/Class_dataplc.py`
 
 ```python
-# File: File_MainProgram/Class_dataplc.py
+# File: src/plc/Class_dataplc.py
 
 DB_GET = 1            # Số hiệu DB (đổi nếu dùng DB khác trong TIA Portal)
 DB_GET_SIZE = 3       # Tổng kích thước DB_GET (bytes) — tăng nếu thêm biến
@@ -336,14 +336,21 @@ DB_PUT_SIZE = 1       # Tổng kích thước DB_PUT (bytes) — tăng nếu th�
 Sử dụng script chẩn đoán để xác minh cấu hình DB trong PLC khớp với Python:
 
 ```bash
-python File_MainProgram/plc_diagnostics.py
+python scripts/plc_diagnostics.py
 ```
 
 Script sẽ tự động kiểm tra:
 1. ✅ DB có tồn tại và đúng kích thước
 2. ✅ Đọc thử tất cả biến → offset nào lỗi sẽ báo ngay
 3. ✅ Ghi pattern test (VD: `PC_KetQua = 42`) → đối chiếu trong Watch Table
+<<<<<<< HEAD
 4. ✅ Ghi/Đọc ngược → xác minh tính toàn vẹn dữ liệu
+=======
+4. ✅ Xác minh dòng CPU (S7-1200/1500) qua Order Code
+
+### Cơ chế ổn định (Debounce)
+Vòng lặp đọc PLC (`PLCPollingThread`) được thiết lập cơ chế **Debounce** (xác minh lỗi liên tiếp ~3 giây) giúp giao diện không bị báo mất kết nối ảo khi mạng chập chờn hoặc PLC đang bận xử lý (Job pending).
+>>>>>>> test
 
 ---
 

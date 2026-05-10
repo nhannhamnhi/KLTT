@@ -20,15 +20,16 @@ DB_PUT_SIZE = 1  # bytes (offset 0 → 0)
 # --- Mã kết quả AI (ghi vào PC_KetQua — INT 2 bytes) ---
 RESULT_WAIT = 0   # Chưa có vỉ → PLC không hành động
 RESULT_OK   = 1   # Tất cả viên đạt → PLC cho vỉ đi thẳng
-RESULT_NG_L = 2   # Lỗi nhẹ / MISSING → PLC kích XL1
+RESULT_NG_L = 2   # Lỗi nhẹ → PLC kích XL1
 RESULT_NG_H = 3   # Lỗi nặng → PLC kích XL2
+RESULT_MISSING = 4  # Thiếu detect theo mẫu → xử lý nhánh riêng
 
 # --- Mapping tên kết quả → mã số (tiện cho finish.py gọi) ---
 RESULT_MAP = {
     "WAIT": RESULT_WAIT,
     "OK":   RESULT_OK,
     "NG_L": RESULT_NG_L,
-    "MISSING": RESULT_NG_L,  # MISSING xử lý giống NG_L
+    "MISSING": RESULT_MISSING,
     "NG_H": RESULT_NG_H,
 }
 
@@ -154,7 +155,7 @@ class PLCConnector:
         Ghi kết quả phân loại AI xuống PLC.
 
         Tham số:
-            result_code (int hoặc str): Mã kết quả (0-3) hoặc tên ("OK", "NG_L",...)
+            result_code (int hoặc str): Mã kết quả (0-4) hoặc tên ("OK", "NG_L",...)
             data_ready (bool): Cờ báo PLC có kết quả mới cần đọc
 
         Ví dụ:
@@ -304,6 +305,12 @@ class PLCPollingThread(QtCore.QThread):
         self._run_flag = True
 
         # ================================================================
+        # CẤU HÌNH DEBOUNCE: Số lần lỗi liên tiếp mới báo mất kết nối (~3s)
+        # ================================================================
+        self.error_count = 0
+        self.max_errors = 15
+
+        # ================================================================
         # THAY ĐỔI: Mặc định ban đầu là AUTO (True)
         # ================================================================
         self._prev_status = {
@@ -321,18 +328,29 @@ class PLCPollingThread(QtCore.QThread):
 
         while self._run_flag:
             if not self.plc.is_connected:
-                # Mất kết nối → phát signal và chờ thử lại
-                self.plc_connection_lost.emit()
-                self.msleep(1000)  # Chờ 1 giây trước khi thử lại
+                # Mất kết nối → chờ và thử lại, nếu quá số lần mới báo đứt thật
+                self.error_count += 1
+                if self.error_count >= self.max_errors:
+                    self.plc_connection_lost.emit()
+                    self.msleep(1000)  # Đã báo đứt hẳn -> chờ thử lại lâu hơn
+                else:
+                    self.msleep(self.poll_interval_ms) # Có thể mạng giật -> chờ thời gian ngắn
                 continue
 
             status = self.plc.read_plc_status()
 
             if status is None:
-                # Đọc thất bại → có thể mất kết nối
-                self.plc_connection_lost.emit()
-                self.msleep(1000)
+                # Đọc thất bại → có thể lỗi Job pending tức thời
+                self.error_count += 1
+                if self.error_count >= self.max_errors:
+                    self.plc_connection_lost.emit()
+                    self.msleep(1000)
+                else:
+                    self.msleep(self.poll_interval_ms)
                 continue
+
+            # Đọc thành công -> đặt lại counter
+            self.error_count = 0
 
             # Chỉ phát signal khi trạng thái có sự khác biệt so với lần quét trước
             if status != self._prev_status:

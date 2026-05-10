@@ -21,3 +21,15 @@ yolov8_openvino_model/
 # Logs
 *.log
 kernel.errors.txt
+
+# Runtime data (do not track changing production records)
+data/data_history.json
+data/*.json
+
+# Temporary/Scratch files
+scratch/
+
+# AI Rules
+.clinerules/
+.agents/
+AGENTS.md
