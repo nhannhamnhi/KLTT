@@ -16,9 +16,6 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <property name="windowState">
-   <enum>Qt::WindowMaximized</enum>
-  </property>
   <property name="styleSheet">
    <string notr="true">/* Thiết lập cho các GroupBox */
 QGroupBox {
@@ -1530,8 +1527,6 @@ QPushButton:pressed {
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources>
-  <include location="hinhanh.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
