@@ -324,8 +324,7 @@ class Controller:
         self.ui_main.btControlManual.clicked.connect(self.handle_control_manual_click)
 
         # --- PHẦN MỚI: Kết nối các nút điều khiển Manual ---
-        self.ui_main.btConveyor.pressed.connect(lambda: self.set_conveyor(True))
-        self.ui_main.btConveyor.released.connect(lambda: self.set_conveyor(False))
+        self.ui_main.btConveyor.clicked.connect(self.toggle_conveyor)
         self.ui_main.btCylinder1.pressed.connect(lambda: self.set_cylinder1(True))
         self.ui_main.btCylinder1.released.connect(lambda: self.set_cylinder1(False))
         self.ui_main.btCylinder2.pressed.connect(lambda: self.set_cylinder2(True))
@@ -527,6 +526,10 @@ class Controller:
             self.ui_main.btConveyor.setText("▶ Conveyor")
             print("[MANUAL] ■ Băng tải TẮT (Nhả)")
 
+    def toggle_conveyor(self):
+        """NÃºt cÃ´ng táº¯c ON/OFF cho bÄƒng táº£i."""
+        self.set_conveyor(not self.conveyor_state)
+
     def set_cylinder1(self, state):
         """Bật/tắt xy-lanh 1 kiểu nhấn nhả."""
         self.cylinder1_state = state
@@ -644,6 +647,7 @@ class Controller:
             self.plc_polling_thread = PLCPollingThread(self.plc, poll_interval_ms=200)
             self.plc_polling_thread.plc_status_changed.connect(self.on_plc_status_changed)
             self.plc_polling_thread.plc_connection_lost.connect(self.on_plc_connection_lost)
+            self.plc_polling_thread.plc_connection_restored.connect(self.on_plc_connection_restored)
             self.plc_polling_thread.start()
         else:
                 QMessageBox.critical(
@@ -690,6 +694,10 @@ class Controller:
 
     def on_plc_status_changed(self, status):
         """Slot nhận signal từ PLCPollingThread khi trạng thái PLC thay đổi."""
+        # Có status hợp lệ từ polling => kết nối đang tốt, đảm bảo về lại màu xanh.
+        if hasattr(self, 'lb_stt_plc'):
+            self.lb_stt_plc.setText("PLC: ✅ Đã kết nối")
+            self.lb_stt_plc.setStyleSheet("color: green; font-weight: bold; padding-right: 15px")
         # Đồng bộ giao diện ẩn/hiện nút nhấn dựa vào chế độ vật lý của PLC
         self.update_manual_ui()
 
@@ -757,6 +765,7 @@ class Controller:
         if hasattr(self, 'lb_stt_plc'):
             self.lb_stt_plc.setText("PLC: ⚠️ Mất kết nối")
             self.lb_stt_plc.setStyleSheet("color: red; font-weight: bold; padding-right: 15px")
+            return
         if hasattr(self, 'lb_stt_mode'):
             self.lb_stt_mode.setText("--")
         if hasattr(self, 'lb_stt_sensors'):
@@ -764,6 +773,12 @@ class Controller:
         if hasattr(self, 'lb_stt_running'):
             self.lb_stt_running.setText("Hệ thống: ⚪")
             self.lb_stt_running.setStyleSheet("color: gray; padding-right: 15px")
+
+    def on_plc_connection_restored(self):
+        """Slot nhận signal khi PLC khôi phục kết nối sau khi từng mất."""
+        if hasattr(self, 'lb_stt_plc'):
+            self.lb_stt_plc.setText("PLC: ✅ Đã kết nối")
+            self.lb_stt_plc.setStyleSheet("color: green; font-weight: bold; padding-right: 15px")
 
     def init_statusbar(self):
         """Khởi tạo các widget trên thanh trạng thái (Status Bar)"""

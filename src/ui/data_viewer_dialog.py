@@ -1,5 +1,6 @@
 import os
 import webbrowser
+from threading import Thread
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
@@ -70,6 +71,28 @@ class DataViewerDialog(QDialog):
         
         main_layout.addLayout(toolbar)
 
+        # --- Google Sheets Status ---
+        sheets_status_group = QGroupBox("🔗 Google Sheets")
+        sheets_status_layout = QHBoxLayout(sheets_status_group)
+        sheets_status_layout.setContentsMargins(10, 8, 10, 8)
+        sheets_status_layout.setSpacing(12)
+
+        self.lbl_sheets_badge = QLabel("Sheets: Chưa kiểm tra")
+        self.lbl_sheets_badge.setStyleSheet("padding: 4px 10px; border-radius: 12px; background-color: #9e9e9e; color: white;")
+        self.lbl_sheets_queue = QLabel("Hàng chờ: 0")
+        self.lbl_sheets_error = QLabel("Lỗi: Không có")
+        self.btn_sync_sheets = QPushButton("🔁 Sync Google Sheets")
+        self.btn_sync_sheets.setStyleSheet(blue_style)
+        self.btn_sync_sheets.setMinimumWidth(160)
+
+        sheets_status_layout.addWidget(self.lbl_sheets_badge)
+        sheets_status_layout.addWidget(self.lbl_sheets_queue)
+        sheets_status_layout.addWidget(self.lbl_sheets_error)
+        sheets_status_layout.addStretch()
+        sheets_status_layout.addWidget(self.btn_sync_sheets)
+
+        main_layout.addWidget(sheets_status_group)
+
         # --- 2. Stats Bar ---
         stats_group = QGroupBox("📊 Thống kê nhanh (dựa trên dữ liệu đang hiển thị)")
         stats_layout = QHBoxLayout(stats_group)
@@ -137,7 +160,10 @@ class DataViewerDialog(QDialog):
         self.btn_refresh.clicked.connect(self.handle_reload)
         self.btn_export.clicked.connect(self.handle_export)
         self.btn_sheets.clicked.connect(self.handle_open_sheets)
+        self.btn_sync_sheets.clicked.connect(self.handle_sync_sheets)
         self.btn_close.clicked.connect(self.accept)
+
+        self.refresh_sheet_status()
 
     # --- LOGIC ---
     def refresh_filters(self):
@@ -175,6 +201,7 @@ class DataViewerDialog(QDialog):
         self.data_manager.data = self.data_manager.load_data()
         self.refresh_filters()
         self.do_refresh()
+        self.refresh_sheet_status()
 
     def do_refresh(self):
         """Lọc và hiển thị dữ liệu lên bảng + stats"""
@@ -254,9 +281,59 @@ class DataViewerDialog(QDialog):
             else:
                 QMessageBox.critical(self, "Lỗi", "Không thể xuất file Excel. Vui lòng kiểm tra lại.")
 
+    def refresh_sheet_status(self):
+        """Cập nhật trạng thái Google Sheets trên UI."""
+        status = self.data_manager.get_sheets_status()
+        badge_text = "Unknown"
+        badge_color = "#9e9e9e"
+
+        if not status.get('enabled', False):
+            badge_text = "Disabled"
+            badge_color = "#9e9e9e"
+        elif status.get('connected', False):
+            badge_text = "Connected"
+            badge_color = "#2e7d32"
+        else:
+            badge_text = "Error"
+            badge_color = "#d84315"
+
+        self.lbl_sheets_badge.setText(f"Google Sheets: {badge_text}")
+        self.lbl_sheets_badge.setStyleSheet(
+            f"padding: 4px 10px; border-radius: 12px; background-color: {badge_color}; color: white;"
+        )
+        self.lbl_sheets_queue.setText(f"Hàng chờ: {status.get('queue_size', 0)}")
+        error_text = status.get('last_error', '') or 'Không có'
+        self.lbl_sheets_error.setText(f"Lỗi: {error_text}")
+        self.btn_sync_sheets.setEnabled(status.get('enabled', False))
+
+    def handle_sync_sheets(self):
+        """Thực hiện retry đồng bộ Google Sheets trong thread nền."""
+        self.lbl_status.setText("Đang đồng bộ lại Google Sheets...")
+        self.btn_sync_sheets.setEnabled(False)
+
+        def worker():
+            success_count, error_message = self.data_manager.retry_sheets_sync()
+            QtCore.QTimer.singleShot(0, lambda: self._finish_retry_sheets(success_count, error_message))
+
+        Thread(target=worker, daemon=True).start()
+
+    def _finish_retry_sheets(self, success_count, error_message):
+        self.refresh_sheet_status()
+        if success_count > 0:
+            self.lbl_status.setText(f"Đã đồng bộ {success_count} bản ghi từ hàng chờ.")
+            QMessageBox.information(self, "Sync thành công", f"Đã đẩy {success_count} bản ghi lên Google Sheets.")
+        else:
+            self.lbl_status.setText("Không có bản ghi nào được đồng bộ.")
+            if error_message:
+                QMessageBox.warning(self, "Sync Google Sheets", f"Không thể đồng bộ: {error_message}")
+        self.btn_sync_sheets.setEnabled(self.data_manager.get_sheets_status().get('enabled', False))
+
     def handle_open_sheets(self):
         """Mở liên kết Google Sheets"""
         if self.sheets_url and self.sheets_url.startswith("http"):
+            status = self.data_manager.get_sheets_status()
+            if not status.get('connected', False) and status.get('last_error'):
+                QMessageBox.warning(self, "Cảnh báo Google Sheets", f"Google Sheets chưa kết nối: {status.get('last_error')}\nBạn vẫn có thể mở link để kiểm tra cấu hình.")
             webbrowser.open(self.sheets_url)
         else:
             QMessageBox.warning(self, "Thông báo", "Đường dẫn Google Sheets chưa được cấu hình trong config.py")

@@ -17,7 +17,7 @@ try:
     GOOGLE_SHEETS_AVAILABLE = True
 except ImportError:
     GOOGLE_SHEETS_AVAILABLE = False
-    print("[CẢNH BÁO] Thư viện gspread hoặc google-auth chưa được cài. Chạy: pip install gspread google-auth")
+    print("[WARNING] Missing gspread/google-auth. Install with: pip install gspread google-auth")
 
 # --- Bổ sung: Import cấu hình từ config.py ---
 try:
@@ -34,7 +34,31 @@ except ImportError:
     SHEET_NAME = "KLTT_Data"
     DATA_RETENTION_DAYS = 90 # Mặc định 90 ngày
     SHEETS_CONFIGURED = False
-    print("[CẢNH BÁO] Không tìm thấy src/data/config.py hoặc lỗi khi import. Tính năng Google Sheets bị vô hiệu hóa.")
+    print("[WARNING] Could not import src/data/config.py. Google Sheets feature disabled.")
+
+# Resolve SERVICE_ACCOUNT_FILE to an absolute path relative to this module when possible.
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def _resolve_service_account_path(service_account_file):
+    if not service_account_file:
+        return service_account_file
+
+    if os.path.isabs(service_account_file):
+        return service_account_file
+
+    candidate = os.path.abspath(os.path.join(MODULE_DIR, service_account_file))
+    if os.path.exists(candidate):
+        return candidate
+
+    alternate = os.path.abspath(service_account_file)
+    if os.path.exists(alternate):
+        return alternate
+
+    return candidate
+
+
+SERVICE_ACCOUNT_FILE = _resolve_service_account_path(SERVICE_ACCOUNT_FILE)
 
 # Thư viện để xuất Excel với merge cell
 try:
@@ -43,7 +67,7 @@ try:
     OPENPYXL_AVAILABLE = True
 except ImportError:
     OPENPYXL_AVAILABLE = False
-    print("[CẢNH BÁO] Thư viện openpyxl chưa được cài. Chạy: pip install openpyxl")
+    print("[WARNING] Missing openpyxl. Install with: pip install openpyxl")
 
 
 class DataManager:
@@ -84,9 +108,105 @@ class DataManager:
         # --- Bổ sung Google Sheets và hàng chờ ---
         self._gs_sheet = None
         self._pending_queue = self._load_pending_queue()
+        self.sheets_status = {
+            'enabled': False,
+            'connected': False,
+            'queue_size': len(self._pending_queue),
+            'last_error': '',
+            'error_code': 'UNINITIALIZED',
+            'spreadsheet_id': SPREADSHEET_ID,
+            'sheet_name': SHEET_NAME,
+            'credential_file': SERVICE_ACCOUNT_FILE,
+        }
 
-        if GOOGLE_SHEETS_AVAILABLE and SHEETS_CONFIGURED:
+        self._evaluate_sheets_feature()
+
+    def _set_sheet_status(self, enabled=False, connected=False, error_code='UNINITIALIZED', last_error=''):
+        self.sheets_status['enabled'] = enabled
+        self.sheets_status['connected'] = connected
+        self.sheets_status['error_code'] = error_code
+        self.sheets_status['last_error'] = last_error
+        self.sheets_status['queue_size'] = len(self._pending_queue)
+
+    def _evaluate_sheets_feature(self):
+        if not GOOGLE_SHEETS_AVAILABLE:
+            self._set_sheet_status(
+                enabled=False,
+                connected=False,
+                error_code='MISSING_DEPENDENCY',
+                last_error='Missing gspread/google-auth dependency.'
+            )
+            print("[CHECK] Google Sheets disabled: missing gspread/google-auth.")
+            return
+
+        if not SHEETS_CONFIGURED:
+            self._set_sheet_status(
+                enabled=False,
+                connected=False,
+                error_code='CONFIG_MISSING',
+                last_error='Không thể load config.py cho Google Sheets.'
+            )
+            print("[CHECK] Google Sheets disabled: config.py load failed.")
+            return
+
+        if not SPREADSHEET_ID:
+            self._set_sheet_status(
+                enabled=False,
+                connected=False,
+                error_code='SPREADSHEET_ID_MISSING',
+                last_error='SPREADSHEET_ID chưa được cấu hình trong config.py.'
+            )
+            print("[CHECK] Google Sheets disabled: missing SPREADSHEET_ID.")
+            return
+
+        if not SERVICE_ACCOUNT_FILE:
+            self._set_sheet_status(
+                enabled=False,
+                connected=False,
+                error_code='SERVICE_ACCOUNT_FILE_MISSING',
+                last_error='SERVICE_ACCOUNT_FILE chưa được cấu hình trong config.py.'
+            )
+            print("[CHECK] Google Sheets disabled: missing SERVICE_ACCOUNT_FILE.")
+            return
+
+        if not os.path.exists(SERVICE_ACCOUNT_FILE):
+            self._set_sheet_status(
+                enabled=False,
+                connected=False,
+                error_code='SERVICE_ACCOUNT_FILE_NOT_FOUND',
+                last_error=f'Không tìm thấy file credential: {SERVICE_ACCOUNT_FILE}'
+            )
+            print(f"[CHECK] Google Sheets disabled: credential file not found at {SERVICE_ACCOUNT_FILE}.")
+            return
+
+        self._set_sheet_status(enabled=True, connected=False, error_code='INITIALIZED', last_error='')
+        self._init_gspread()
+
+    def get_sheets_status(self):
+        """Trả về trạng thái kết nối Google Sheets hiện tại."""
+        status = self.sheets_status.copy()
+        status['queue_size'] = len(self._pending_queue)
+        return status
+
+    def _update_pending_queue_size(self):
+        self.sheets_status['queue_size'] = len(self._pending_queue)
+
+    def retry_sheets_sync(self):
+        """Thử kết nối lại Google Sheets và đẩy lại hàng chờ."""
+        if not self.sheets_status['enabled']:
+            return 0, self.sheets_status['last_error']
+
+        if self._gs_sheet is None:
             self._init_gspread()
+
+        if self._gs_sheet is None:
+            return 0, self.sheets_status['last_error'] or 'Không thể kết nối Google Sheets.'
+
+        success_count = self._flush_pending_queue()
+        if success_count > 0:
+            return success_count, ''
+
+        return 0, self.sheets_status['last_error'] or 'Không có bản ghi nào cần đồng bộ.'
 
     def load_data(self):
         """
@@ -194,7 +314,7 @@ class DataManager:
 
     def _init_gspread(self):
         """Kết nối Google Sheets bằng Service Account, mở sheet và tạo header nếu cần"""
-        if not GOOGLE_SHEETS_AVAILABLE or not SPREADSHEET_ID:
+        if not self.sheets_status['enabled']:
             return
 
         try:
@@ -203,61 +323,70 @@ class DataManager:
             client = gspread.authorize(creds)
             spreadsheet = client.open_by_key(SPREADSHEET_ID)
             self._gs_sheet = spreadsheet.worksheet(SHEET_NAME)
-            
+
+            self._set_sheet_status(enabled=True, connected=True, error_code='CONNECTED', last_error='')
+
             # Kiểm tra và tạo header nếu sheet trống
             try:
                 first_cell = self._gs_sheet.cell(1, 1).value
                 if not first_cell:
                     headers = ["Timestamp", "Ngày", "Thời gian", "Tổng", "Đạt", "Lỗi", "Kết quả", "Model AI"]
                     self._gs_sheet.append_row(headers)
-            except:
-                # Nếu không đọc được cell (sheet hoàn toàn mới), thử append header
+            except Exception:
                 headers = ["Timestamp", "Ngày", "Thời gian", "Tổng", "Đạt", "Lỗi", "Kết quả", "Model AI"]
                 self._gs_sheet.append_row(headers)
-            
+
             print("[THÔNG BÁO] Đã kết nối Google Sheets thành công.")
         except Exception as e:
-            print(f"[LỖI] Không thể khởi tạo Google Sheets: {e}")
+            message = str(e)
+            error_code = 'AUTH_ERROR'
+            if 'WorksheetNotFound' in message or 'Unable to parse range' in message or 'Cannot find worksheet' in message:
+                error_code = 'WORKSHEET_NOT_FOUND'
+                message = f"Không tìm thấy worksheet '{SHEET_NAME}'."
+            elif 'Spreadsheet not found' in message or 'Unable to parse range' in message:
+                error_code = 'SPREADSHEET_NOT_FOUND'
+                message = 'Không tìm thấy Spreadsheet với SPREADSHEET_ID hiện tại.'
+            elif '403' in message or 'permission' in message.lower():
+                error_code = 'PERMISSION_DENIED'
+                message = f'Quyền truy cập bị từ chối: {message}'
+            elif 'invalid' in message.lower() or 'service account' in message.lower():
+                error_code = 'AUTH_ERROR'
+                message = f'Xác thực Service Account thất bại: {message}'
+
+            self._set_sheet_status(enabled=True, connected=False, error_code=error_code, last_error=message)
             self._gs_sheet = None
+            print(f"[LỖI] Không thể khởi tạo Google Sheets: {message}")
 
     def _flush_pending_queue(self):
         """Đẩy toàn bộ hàng chờ lên Sheets, dừng nếu gặp lỗi"""
         if not self._gs_sheet or not self._pending_queue:
-            return
+            return 0
 
         success_count = 0
         try:
-            # Lặp qua bản sao để có thể modify gốc
             while self._pending_queue:
                 row = self._pending_queue[0]
                 self._gs_sheet.append_row(row)
-                self._pending_queue.pop(0) # Xóa khi thành công
+                self._pending_queue.pop(0)
                 success_count += 1
-            
+
             if success_count > 0:
                 self._save_pending_queue()
+                self._update_pending_queue_size()
                 print(f"[THÔNG BÁO] Đã đẩy {success_count} bản ghi từ hàng chờ.")
         except Exception as e:
-            print(f"[LỖI SHEETS] Tạm dừng đẩy hàng chờ: {e}")
+            msg = str(e)
+            self._set_sheet_status(enabled=True, connected=False, error_code='FLUSH_ERROR', last_error=msg)
             self._save_pending_queue()
+            print(f"[LỖI SHEETS] Tạm dừng đẩy hàng chờ: {msg}")
+        return success_count
 
     def _write_sheets(self, record, date_str):
         """Ghi dữ liệu lên Sheet, lưu vào hàng chờ nếu thất bại"""
-        if not GOOGLE_SHEETS_AVAILABLE or not SHEETS_CONFIGURED:
-            return
-
-        # Khởi tạo nếu chưa có
-        if self._gs_sheet is None:
-            self._init_gspread()
-        
-        # Thử đẩy hàng chờ cũ trước
-        self._flush_pending_queue()
-
-        # Chuẩn bị dòng dữ liệu
         try:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d')
             display_date = date_obj.strftime('%d/%m/%Y')
-            
+
             row = [
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 display_date,
@@ -269,17 +398,30 @@ class DataManager:
                 record.get('model_name', 'N/A')
             ]
 
+            if not self.sheets_status['enabled']:
+                raise Exception('Google Sheets feature disabled')
+
+            if self._gs_sheet is None:
+                self._init_gspread()
+
+            self._flush_pending_queue()
+
             if self._gs_sheet:
                 self._gs_sheet.append_row(row)
             else:
                 raise Exception("Chưa có kết nối Sheet")
-                
+
         except Exception as e:
-            # Lưu vào hàng chờ khi thất bại
-            print(f"[LỖI SHEETS] Lưu vào hàng chờ: {e}")
+            message = str(e)
+            print(f"[LỖI SHEETS] Lưu vào hàng chờ: {message}")
             if 'row' in locals():
                 self._pending_queue.append(row)
                 self._save_pending_queue()
+                self._update_pending_queue_size()
+            if self.sheets_status['enabled']:
+                self._set_sheet_status(enabled=True, connected=False, error_code='WRITE_ERROR', last_error=message)
+            else:
+                self._set_sheet_status(enabled=False, connected=False, error_code=self.sheets_status.get('error_code', 'DISABLED'), last_error=self.sheets_status.get('last_error', message))
 
     def get_all_records_as_list(self, days_back=90):
         """Trả về list các bản ghi từ JSON local, lọc theo số ngày"""

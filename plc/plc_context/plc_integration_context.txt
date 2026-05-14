@@ -1,0 +1,94 @@
+PLC integration context
+=======================
+
+Current active PLC logic:
+- OB1 in project uses `OB1_Call_Split_Example.scl` as main cycle.
+- OB1 calls `DB_AutoMain(...)` with the following mappings:
+  - `btAuto := "btAuto"`
+  - `btManual := "btManual"`
+  - `StartStop := "Start-Stop"`
+  - `SS0 := "SS0"`
+  - `SS1 := "SS1"`
+  - `SS2 := "SS2"`
+  - `PC_DataReady := "DB_GET".PC_DataReady`
+  - `PC_KetQua := "DB_GET".PC_KetQua`
+  - `ResetFault := "M1.7_ResetFault"
+  - `PLC_Auto => "DB_PUT".PLC_Auto`
+  - `PLC_Manual => "DB_PUT".PLC_Manual`
+  - `PLC_Running => "DB_PUT".PLC_Running`
+  - `PLC_TriggerReq => "DB_PUT".PLC_TriggerReq`
+
+DB mapping confirmed by Python `Class_dataplc.py` and TIA Portal screenshots:
+- `DB_GET = 1` (DB1), size = 3 bytes (offset 0.0 → 2.3)
+  - offset 0.0: `PC_KetQua` INT (0=WAIT, 1=OK, 2=NG_L, 3=NG_H, 4=MISSING)
+  - offset 2.0: `PC_DataReady` BOOL (handshake flag)
+  - offset 2.1: `PC_Conveyor` BOOL (manual control)
+  - offset 2.2: `PC_Cylinder1` BOOL (manual control)
+  - offset 2.3: `PC_Cylinder2` BOOL (manual control)
+- `DB_PUT = 2` (DB2), size = 1 byte (offset 0.0 → 0.5)
+  - offset 0.0: `PLC_Auto` BOOL (mode indicator)
+  - offset 0.1: `PLC_Manual` BOOL (mode indicator)
+  - offset 0.2: `PLC_Running` BOOL (system ready status)
+  - offset 0.3: `PLC_TriggerReq` BOOL (sensor S0 request for AI capture)
+  - offset 0.4: `PLC_Sensor1` BOOL (cylinder 1 position)
+  - offset 0.5: `PLC_Sensor2` BOOL (cylinder 2 position)
+- `DB_Global = 4` (Flags), contains global state
+  - offset 0.0: `Start` BOOL (button start)
+  - offset 0.1: `Stop` BOOL (button stop)
+  - offset 0.2: `flag_3` BOOL
+  - offset 0.3: `flag_4` BOOL
+  - offset 0.4: `flag_5` BOOL
+  - offset 0.5: `ResetFault` BOOL (error recovery)
+  - offset 0.6: `ErrorActive` BOOL (fault state)
+  - offset 2.0: `ErrorCode` INT (fault code)
+  - offset 4.0: `QueueCount` INT (FIFO depth)
+  - offset 6.0: `DebugState` INT (current state machine value)
+
+Handshake logic in `FC_AI_Handshake`:
+- `ss0Rise` sets `triggerReq = TRUE`
+- when `PC_DataReady = TRUE` and not yet consumed, `pushReq = TRUE` and result is pushed
+- `ss0Fall` clears `triggerReq` and resets handshake state
+
+Current issue hypothesis:
+- not a file/name issue; likely tag/DB offset mismatch or wrong project download
+- need verify actual DB numbers and IO tag assignment in TIA
+
+Files of interest:
+- `plc\files_fix_notlimitsensor\OB1_Call_Split_Example.scl`
+- `plc\files_fix_notlimitsensor\FB_Auto_Main.scl`
+- `plc\files_fix_notlimitsensor\FC_AI_Handshake.scl`
+- `src\plc\Class_dataplc.py`
+- `src\ui\finish.py`
+
+TIA Portal OB1 ladder logic screenshots (active project):
+===================================================
+
+Network 1: Start button
+- Comment: "nút khởi động start-stop và truyền tin hiệu trạng thái lên python"
+- Block: FB1 (Button_Start_Stop) mapped to "Start-Stop" input
+- Output: %DB4.0.0 (Start flag in Flags DB)
+
+Network 2-3: Mode Auto/Man selector  
+- Detects %I10.1 ("Auto") and %I10.2 ("Manual") inputs
+- Routes to %DB2.DBX0.0 (PLC_Auto) and %DB2.DBX0.1 (PLC_Manual) in DB_PUT
+
+Network 3: Sensor inputs (S0, S1, S2)
+- %I10.3 ("SS0") → %DB2.DBX0.3 (PLC_TriggerReq)
+- %I10.4 ("SS1") → unused in screenshots
+- %I10.5 ("SS2") → unused in screenshots
+- Writes sensor states to DB_PUT for Python monitoring
+
+Manual mode block (FB2 - Mode_Manual):
+- Reads %DB2 outputs (conveyor/cylinder control from auto)
+- Provides manual override controls
+- 10 timer/state flags for manual sequencing
+
+Button_Start_Stop block (FB1):
+- IEC_Timer_0_Instance (TON timer)
+- SR latch for Start/Stop toggle logic
+- Outputs Start/Stop to DB or memory
+
+Key insight:
+- OB1 integrates both auto (FB_Auto_Main) and manual (Mode_Manual) logic
+- Python has full read access to all DB_PUT bits and write access to DB_GET
+- ERROR can trigger safe stop to state 90 (ST_SAFE_STOP)

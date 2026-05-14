@@ -32,7 +32,8 @@
 | **Tăng tốc AI** | **Intel OpenVINO™** | Tối ưu inference trên CPU Intel |
 | **Xử lý ảnh** | **OpenCV** | Đọc camera, điều chỉnh ảnh |
 | **Truyền thông PLC** | **python-snap7** | Giao tiếp với PLC Siemens qua S7 Protocol |
-| **Dữ liệu** | **JSON** + **openpyxl** | Lưu trữ kết quả và xuất Excel |
+| **Dữ liệu (Local)** | **JSON** + **openpyxl** | Lưu trữ kết quả và xuất Excel |
+| **Dữ liệu (Cloud)** | **gspread** + **google-auth** | Đồng bộ kết quả lên Google Sheets tự động |
 
 ---
 
@@ -150,7 +151,7 @@ venv\Scripts\activate
 ### Bước 3: Cài đặt thư viện
 
 ```bash
-pip install PyQt5 opencv-python ultralytics openvino openpyxl python-snap7
+pip install PyQt5 opencv-python ultralytics openvino openpyxl python-snap7 gspread google-auth
 ```
 
 > **Lưu ý:** Nên cài đặt `ultralytics` và `openvino` cùng phiên bản đã dùng để huấn luyện model.
@@ -166,7 +167,7 @@ Sau khi tải, đặt thư mục model vào bất kỳ vị trí nào trên máy
 ### Bước 5: Chạy chương trình và nạp Model
 
 ```bash
-python File_MainProgram/finish.py
+python src/ui/finish.py
 ```
 
 Sau khi vào giao diện chính, nạp model AI theo các bước:
@@ -176,6 +177,20 @@ Sau khi vào giao diện chính, nạp model AI theo các bước:
 3. Kiểm tra **Status Bar** phía dưới để xác nhận model đã được nạp thành công
 
 > 💡 **Không cần sửa code** — Mọi thao tác nạp/thay đổi model đều thực hiện trực tiếp trên giao diện.
+
+### Bước 6: (Tuỳ chọn) Cấu Hình Google Sheets
+
+Nếu muốn dữ liệu tự động đồng bộ lên Google Sheets:
+
+1. Trong [Google Cloud Console](https://console.cloud.google.com/), tạo Service Account
+2. Tải file JSON và lưu vào `src/data/service_account.json`
+3. Chỉnh sửa `src/data/config.py` với `SPREADSHEET_ID` của bạn:
+   ```python
+   SPREADSHEET_ID = "1mIImIZENqtZNivzA-nWIb858NFIiaTGskFEP1aag2QQ"  # Thay bằng ID của bạn
+   ```
+4. Nhấn nút **Sync Google Sheets** trong cửa sổ **📜 Xem Nhật Ký** để đồng bộ
+
+> ⚠️ Nếu không cấu hình Google Sheets, hệ thống vẫn hoạt động bình thường chỉ với lưu trữ local
 
 ---
 
@@ -216,6 +231,7 @@ Sau khi vào giao diện chính, nạp model AI theo các bước:
 | | Nút **Conveyor** | (Manual - Momentary) Nhấn giữ để chạy băng tải, nhả để dừng |
 | | Các nút **Cylinder** | (Manual - Momentary) Nhấn giữ để kích xy-lanh, nhả để thu |
 | **Dữ liệu** | Danh sách kết quả | Hiển thị lịch sử kiểm tra hôm nay |
+| | Nút **📜 Xem Nhật Ký** | Mở cửa sổ xem/lọc/xuất dữ liệu chi tiết + Sync Google Sheets |
 | | Nút **Xuất Excel** | Chọn ngày → Xuất file `.xlsx` |
 | **Status Bar** | Thanh trạng thái | Hệ thống / Model / Camera / FPS / PLC / Mode / Sensor |
 
@@ -256,17 +272,35 @@ Nếu huấn luyện model trên **Google Colab** rồi mang về sử dụng:
 
 ### Lưu trữ
 
-- Dữ liệu được lưu vào `File_MainProgram/data/data_history.json`
-- Mỗi bản ghi gồm: Thời gian, Tổng số viên, Viên đạt, Viên lỗi, Kết quả (OK/NG)
+- **Local Storage:** Dữ liệu được lưu vào `src/data/data_history.json`
+- Mỗi bản ghi gồm: Thời gian, Tổng số viên, Viên đạt, Viên lỗi, Kết quả (OK/NG), Model sử dụng
 - Dữ liệu được phân nhóm theo **ngày** (key: `YYYY-MM-DD`)
-- Tự động xóa dữ liệu cũ hơn **15 ngày**
+- Tự động xóa dữ liệu cũ hơn **90 ngày**
+- **Cloud Sync:** Tự động đồng bộ dữ liệu lên Google Sheets (nếu cấu hình service account)
 
-### Xuất Excel
+### Xem & Quản Lý Dữ Liệu
 
-1. Nhấn nút **Xuất** trên giao diện
-2. Chọn **ngày** cần xuất từ lịch (Calendar)
-3. Chọn **vị trí lưu** file `.xlsx`
-4. File Excel được format chuyên nghiệp với merge cell và tiêu đề
+1. Nhấn nút **📜 Xem Nhật Ký** trên giao diện chính → Mở cửa sổ **DataViewerDialog**
+2. **Lọc dữ liệu:** Chọn ngày hoặc model từ dropdown
+3. **Xem thống kê nhanh:** Hiển thị tổng OK/NG/NG_L/NG_H dựa trên dữ liệu lọc
+4. **Đồng bộ Google Sheets:** Nhấn 🔁 **Sync Google Sheets** → Hệ thống gửi các bản ghi chưa sync lên cloud
+5. **Xuất Excel:** Nhấn 📥 **Xuất Excel** → Chọn ngày → File `.xlsx` được download
+6. **Mở Sheets:** Nhấn 🔗 **Mở Google Sheets** → Trình duyệt mở bảng tính cloud (nếu có quyền truy cập)
+
+### Cấu Hình Google Sheets (Tuỳ chọn)
+
+Nếu muốn đồng bộ dữ liệu lên Google Sheets tự động:
+
+1. Tạo Google Cloud Project và tải file `service_account.json`
+2. Đặt file vào `src/data/service_account.json`
+3. Cập nhật `src/data/config.py`:
+   ```python
+   SPREADSHEET_ID = "<ID của Google Sheet của bạn>"
+   SERVICE_ACCOUNT_FILE = "src/data/service_account.json"
+   SHEET_NAME = "KLTT_Data"
+   DATA_RETENTION_DAYS = 90  # Tùy chỉnh số ngày giữ lại
+   ```
+4. Nếu chưa cấu hình, tính năng Sheets sẽ bị vô hiệu hóa (chỉ lưu local)
 
 ---
 
@@ -369,18 +403,34 @@ Vòng lặp đọc PLC (`PLCPollingThread`) được thiết lập cơ chế **D
 
 ---
 
-## 📝 Thông Tin Bổ Sung
+---
+
+## 🔄 Các Cập Nhật Gần Đây
+
+### Phiên bản hiện tại (v2.0+)
+
+- ✅ **Google Sheets Integration:** Đồng bộ dữ liệu tự động lên Google Sheets qua service account
+- ✅ **DataViewerDialog:** Cửa sổ xem nhật ký chi tiết với lọc theo ngày/model và thống kê nhanh
+- ✅ **Sheets Sync Queue:** Hàng chờ tự động với retry logic để đảm bảo dữ liệu được upload
+- ✅ **Configurable Data Retention:** Thay đổi số ngày giữ lại dữ liệu qua `config.py` (mặc định 90 ngày)
+- ✅ **Model Tracking:** Ghi lại model nào được sử dụng cho mỗi bản ghi kết quả
+- ✅ **Enhanced Image Processing:** Tối ưu hóa xử lý ảnh (brightness/saturation) trên OpenVINO
+
+---
 
 ### Các thư viện Python chính
 
 ```
-PyQt5          - Giao diện Desktop
-opencv-python  - Xử lý hình ảnh và camera
-ultralytics    - Framework YOLO cho nhận diện vật thể
-openvino       - Tăng tốc inference trên CPU Intel
-python-snap7   - Giao tiếp PLC Siemens qua S7 Protocol
-openpyxl       - Đọc/ghi file Excel
-numpy          - Xử lý mảng và tính toán số học
+PyQt5           - Giao diện Desktop
+opencv-python   - Xử lý hình ảnh và camera
+ultralytics     - Framework YOLO cho nhận diện vật thể
+openvino        - Tăng tốc inference trên CPU Intel
+python-snap7    - Giao tiếp PLC Siemens qua S7 Protocol
+openpyxl        - Đọc/ghi file Excel
+numpy           - Xử lý mảng và tính toán số học
+gspread         - Giao tiếp API Google Sheets
+google-auth     - Xác thực Google Cloud (service account)
+requests        - HTTP client cho các yêu cầu mạng
 ```
 
 ### Chạy lệnh sinh code Python từ file UI (nếu cần)

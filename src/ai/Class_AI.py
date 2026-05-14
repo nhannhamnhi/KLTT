@@ -48,7 +48,7 @@ class YOLO_Detector:
         try:
             # Chạy dự đoán trên frame với ngưỡng tin cậy thấp hơn (conf=0.25)
             # để dễ dàng phát hiện vật thể hơn.
-            results = self.model(frame, verbose=False, conf=0.7)
+            results = self.model(frame, verbose=False, conf=0.6)
             
             # Lấy danh sách tên các class đã dectect được
             detected_classes = []

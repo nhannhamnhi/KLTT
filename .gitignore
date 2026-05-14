@@ -30,12 +30,13 @@ data/*.json
 scratch/
 
 # AI Rules
-.clinerules/
-.agents/
-AGENTS.md
-
+skills/
 # Config & Sensitive Info
 src/data/config.py
 src/data/service_account.json
 src/data/data/data_history.json
 src/data/service_account.json
+# PLC
+
+
+

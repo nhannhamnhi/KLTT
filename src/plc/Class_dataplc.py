@@ -2,6 +2,7 @@ import snap7
 from snap7.util import get_bool, set_bool, get_int, set_int
 from PyQt5 import QtCore
 import time
+import threading
 
 
 # ================================================================
@@ -56,6 +57,7 @@ class PLCConnector:
     def __init__(self):
         self.client = snap7.client.Client()
         self._connected = False
+        self._lock = threading.RLock()
 
     # ────────────────────────────────────────────
     # KẾT NỐI
@@ -66,8 +68,9 @@ class PLCConnector:
         Trả về True nếu thành công, False nếu thất bại.
         """
         try:
-            self.client.connect(ip, rack, slot)
-            self._connected = self.client.get_connected()
+            with self._lock:
+                self.client.connect(ip, rack, slot)
+                self._connected = self.client.get_connected()
             if self._connected:
                 print(f"[PLC] ✅ Kết nối thành công tới {ip} (rack={rack}, slot={slot})")
             return self._connected
@@ -79,9 +82,10 @@ class PLCConnector:
     def disconnect(self):
         """Ngắt kết nối PLC an toàn."""
         try:
-            if self._connected:
-                self.client.disconnect()
-                print("[PLC] 🔌 Đã ngắt kết nối PLC.")
+            with self._lock:
+                if self._connected:
+                    self.client.disconnect()
+                    print("[PLC] 🔌 Đã ngắt kết nối PLC.")
         except Exception as e:
             print(f"[PLC] ⚠️ Lỗi khi ngắt kết nối: {e}")
         finally:
@@ -90,12 +94,13 @@ class PLCConnector:
     @property
     def is_connected(self):
         """Kiểm tra trạng thái kết nối hiện tại (có verify lại với PLC)."""
-        if self._connected:
-            try:
-                self._connected = self.client.get_connected()
-            except Exception:
-                self._connected = False
-        return self._connected
+        with self._lock:
+            if self._connected:
+                try:
+                    self._connected = self.client.get_connected()
+                except Exception:
+                    self._connected = False
+            return self._connected
 
     def get_cpu_family(self):
         """
@@ -121,7 +126,8 @@ class PLCConnector:
         }
 
         try:
-            order_code_obj = self.client.get_order_code()
+            with self._lock:
+                order_code_obj = self.client.get_order_code()
             # Order code trả về dạng bytes, VD: b'6ES7 214-1AG40-0XB0'
             code_str = order_code_obj.OrderCode.decode('utf-8').strip().rstrip('\x00')
             print(f"[PLC] 📋 Order Code đọc được: {code_str}")
@@ -172,10 +178,11 @@ class PLCConnector:
 
         try:
             # Đọc toàn bộ DB_GET (3 bytes) → sửa → ghi lại
-            data = self.client.db_read(DB_GET, 0, DB_GET_SIZE)
-            set_int(data, 0, result_code)       # Offset 0-1: PC_KetQua
-            set_bool(data, 2, 0, data_ready)    # Offset 2.0: PC_DataReady
-            self.client.db_write(DB_GET, 0, data)
+            with self._lock:
+                data = self.client.db_read(DB_GET, 0, DB_GET_SIZE)
+                set_int(data, 0, result_code)       # Offset 0-1: PC_KetQua
+                set_bool(data, 2, 0, data_ready)    # Offset 2.0: PC_DataReady
+                self.client.db_write(DB_GET, 0, data)
             print(f"[PLC] 📤 Ghi kết quả: KetQua={result_code}, DataReady={data_ready}")
             return True
         except Exception as e:
@@ -188,9 +195,10 @@ class PLCConnector:
         if not self.is_connected:
             return False
         try:
-            data = self.client.db_read(DB_GET, 2, 1)
-            set_bool(data, 0, 0, False)  # Offset 2.0: PC_DataReady = FALSE
-            self.client.db_write(DB_GET, 2, data)
+            with self._lock:
+                data = self.client.db_read(DB_GET, 2, 1)
+                set_bool(data, 0, 0, False)  # Offset 2.0: PC_DataReady = FALSE
+                self.client.db_write(DB_GET, 2, data)
             return True
         except Exception as e:
             print(f"[PLC] ❌ Lỗi reset DataReady: {e}")
@@ -229,9 +237,10 @@ class PLCConnector:
             print(f"[PLC] ⚠️ Chưa kết nối PLC, không thể ghi {name}.")
             return False
         try:
-            data = self.client.db_read(DB_GET, byte_offset, 1)
-            set_bool(data, 0, bit_offset, value)
-            self.client.db_write(DB_GET, byte_offset, data)
+            with self._lock:
+                data = self.client.db_read(DB_GET, byte_offset, 1)
+                set_bool(data, 0, bit_offset, value)
+                self.client.db_write(DB_GET, byte_offset, data)
             print(f"[PLC] 📤 Ghi {name} = {value}")
             return True
         except Exception as e:
@@ -261,7 +270,8 @@ class PLCConnector:
         if not self.is_connected:
             return None
         try:
-            data = self.client.db_read(DB_PUT, 0, DB_PUT_SIZE)
+            with self._lock:
+                data = self.client.db_read(DB_PUT, 0, DB_PUT_SIZE)
             status = {
                 "auto":        get_bool(data, 0, 0),  # Offset 0.0: PLC_Auto
                 "manual":      get_bool(data, 0, 1),  # Offset 0.1: PLC_Manual
@@ -292,6 +302,7 @@ class PLCPollingThread(QtCore.QThread):
 
     # Signal phát khi mất kết nối PLC
     plc_connection_lost = QtCore.pyqtSignal()
+    plc_connection_restored = QtCore.pyqtSignal()
 
     def __init__(self, plc_connector, poll_interval_ms=200):
         """
@@ -309,6 +320,7 @@ class PLCPollingThread(QtCore.QThread):
         # ================================================================
         self.error_count = 0
         self.max_errors = 15
+        self._connection_state = "healthy"
 
         # ================================================================
         # THAY ĐỔI: Mặc định ban đầu là AUTO (True)
@@ -322,6 +334,18 @@ class PLCPollingThread(QtCore.QThread):
             "sensor2":     False,
         }
 
+    def _mark_connection_lost(self):
+        if self._connection_state != "lost":
+            self._connection_state = "lost"
+            print(f"[PLC Polling] Transition: healthy -> lost (errors={self.error_count})")
+            self.plc_connection_lost.emit()
+
+    def _mark_connection_restored(self):
+        if self._connection_state != "healthy":
+            self._connection_state = "healthy"
+            print("[PLC Polling] Transition: lost -> healthy")
+            self.plc_connection_restored.emit()
+
     def run(self):
         """Vòng lặp chính: đọc DB_PUT liên tục."""
         print(f"[PLC Polling] 🚀 Bắt đầu quét PLC mỗi {self.poll_interval_ms}ms")
@@ -331,7 +355,7 @@ class PLCPollingThread(QtCore.QThread):
                 # Mất kết nối → chờ và thử lại, nếu quá số lần mới báo đứt thật
                 self.error_count += 1
                 if self.error_count >= self.max_errors:
-                    self.plc_connection_lost.emit()
+                    self._mark_connection_lost()
                     self.msleep(1000)  # Đã báo đứt hẳn -> chờ thử lại lâu hơn
                 else:
                     self.msleep(self.poll_interval_ms) # Có thể mạng giật -> chờ thời gian ngắn
@@ -343,7 +367,7 @@ class PLCPollingThread(QtCore.QThread):
                 # Đọc thất bại → có thể lỗi Job pending tức thời
                 self.error_count += 1
                 if self.error_count >= self.max_errors:
-                    self.plc_connection_lost.emit()
+                    self._mark_connection_lost()
                     self.msleep(1000)
                 else:
                     self.msleep(self.poll_interval_ms)
@@ -353,6 +377,8 @@ class PLCPollingThread(QtCore.QThread):
             self.error_count = 0
 
             # Chỉ phát signal khi trạng thái có sự khác biệt so với lần quét trước
+            self._mark_connection_restored()
+
             if status != self._prev_status:
                 self._prev_status = status.copy()
                 self.plc_status_changed.emit(status)

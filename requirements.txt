@@ -4,3 +4,5 @@ PyQt5
 opencv-python
 openpyxl
 requests
+ultralytics
+python-snap7
