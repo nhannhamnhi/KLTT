@@ -205,12 +205,19 @@ class PLCConnector:
             # self._connected = False
             return False
 
-    def write_conveyor(self, state):
+    def write_conveyor_on(self, state):
         """
-        Bật/tắt băng tải (chỉ dùng ở chế độ Manual).
-        state (bool): True = chạy, False = dừng
+        Ghi bit ON Conveyor xuống PLC (Manual momentary).
+        state (bool): True = nhấn ON, False = nhả ON
         """
-        return self._write_bool_db_get(2, 1, state, "Conveyor")
+        return self._write_bool_db_get(2, 1, state, "Conveyor_ON")
+
+    def write_conveyor_off(self, state):
+        """
+        Ghi bit OFF Conveyor xuống PLC (Manual momentary).
+        state (bool): True = nhấn OFF, False = nhả OFF
+        """
+        return self._write_bool_db_get(2, 4, state, "Conveyor_OFF")
 
     def write_cylinder1(self, state):
         """

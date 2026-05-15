@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DataViewerDialog</class>
+ <widget class="QDialog" name="DataViewerDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1100</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>📜 Nhật ký kết quả kiểm tra</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>10</number>
+   </property>
+   <item>
+    <layout class="QHBoxLayout" name="toolbarLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>📅 Lọc ngày:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDateEdit" name="cb_date">
+       <property name="minimumSize">
+        <size>
+         <width>120</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="calendarPopup">
+        <bool>true</bool>
+       </property>
+       <property name="displayFormat">
+        <string>dd/MM/yyyy</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>15</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>🤖 Model:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cb_model">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_refresh">
+       <property name="styleSheet">
+        <string notr="true">QPushButton { background-color: #006666; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold; border: none; } QPushButton:hover { background-color: #008080; } QPushButton:pressed { background-color: #004d4d; }</string>
+       </property>
+       <property name="text">
+        <string>🔄 Làm mới</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_export">
+       <property name="styleSheet">
+        <string notr="true">QPushButton { background-color: #006666; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold; border: none; } QPushButton:hover { background-color: #008080; } QPushButton:pressed { background-color: #004d4d; }</string>
+       </property>
+       <property name="text">
+        <string>📥 Xuất Excel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_sheets">
+       <property name="styleSheet">
+        <string notr="true">QPushButton { background-color: #1a73e8; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold; border: none; } QPushButton:hover { background-color: #1e88e5; } QPushButton:pressed { background-color: #1557b0; }</string>
+       </property>
+       <property name="text">
+        <string>🔗 Mở Google Sheets</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_close">
+       <property name="styleSheet">
+        <string notr="true">QPushButton { background-color: #006666; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold; border: none; } QPushButton:hover { background-color: #008080; } QPushButton:pressed { background-color: #004d4d; }</string>
+       </property>
+       <property name="text">
+        <string>✕ Đóng</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="sheets_status_group">
+     <property name="title">
+      <string>🔗 Google Sheets</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+      <property name="leftMargin">
+       <number>10</number>
+      </property>
+      <property name="topMargin">
+       <number>8</number>
+      </property>
+      <property name="rightMargin">
+       <number>10</number>
+      </property>
+      <property name="bottomMargin">
+       <number>8</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lbl_sheets_badge">
+        <property name="styleSheet">
+         <string notr="true">padding: 4px 10px; border-radius: 12px; background-color: #9e9e9e; color: white;</string>
+        </property>
+        <property name="text">
+         <string>Sheets: Chưa kiểm tra</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lbl_sheets_queue">
+        <property name="text">
+         <string>Hàng chờ: 0</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lbl_sheets_error">
+        <property name="text">
+         <string>Lỗi: Không có</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_sync_sheets">
+        <property name="minimumSize">
+         <size>
+          <width>160</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton { background-color: #1a73e8; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold; border: none; } QPushButton:hover { background-color: #1e88e5; } QPushButton:pressed { background-color: #1557b0; }</string>
+        </property>
+        <property name="text">
+         <string>🔁 Sync Google Sheets</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="stats_group">
+     <property name="title">
+      <string>📊 Thống kê nhanh (dựa trên dữ liệu đang hiển thị)</string>
+     </property>
+     <layout class="QHBoxLayout" name="statsLayout">
+      <item>
+       <widget class="QGroupBox" name="box_total">
+        <property name="styleSheet">
+         <string notr="true">QGroupBox { background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 5px; }</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>5</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="styleSheet">
+            <string notr="true">color: black; font-size: 10px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>TỔNG LƯỢT</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_val_total">
+           <property name="styleSheet">
+            <string notr="true">color: black; font-size: 18px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="box_ok">
+        <property name="styleSheet">
+         <string notr="true">QGroupBox { background-color: #c6efce; border: 1px solid #ccc; border-radius: 5px; }</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>5</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="styleSheet">
+            <string notr="true">color: #006100; font-size: 10px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>OK</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_val_ok">
+           <property name="styleSheet">
+            <string notr="true">color: #006100; font-size: 18px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="box_ng">
+        <property name="styleSheet">
+         <string notr="true">QGroupBox { background-color: #ffc7ce; border: 1px solid #ccc; border-radius: 5px; }</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>5</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_5">
+           <property name="styleSheet">
+            <string notr="true">color: #9c0006; font-size: 10px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>NG (TỔNG)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_val_ng">
+           <property name="styleSheet">
+            <string notr="true">color: #9c0006; font-size: 18px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="box_ngl">
+        <property name="styleSheet">
+         <string notr="true">QGroupBox { background-color: #fff2cc; border: 1px solid #ccc; border-radius: 5px; }</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>5</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_6">
+           <property name="styleSheet">
+            <string notr="true">color: #9c6500; font-size: 10px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>NG_L</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_val_ngl">
+           <property name="styleSheet">
+            <string notr="true">color: #9c6500; font-size: 18px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="box_ngh">
+        <property name="styleSheet">
+         <string notr="true">QGroupBox { background-color: #ffc7ce; border: 1px solid #ccc; border-radius: 5px; }</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>5</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_7">
+           <property name="styleSheet">
+            <string notr="true">color: #9c0006; font-size: 10px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>NG_H</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_val_ngh">
+           <property name="styleSheet">
+            <string notr="true">color: #9c0006; font-size: 18px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="box_missing">
+        <property name="styleSheet">
+         <string notr="true">QGroupBox { background-color: #ffd699; border: 1px solid #ccc; border-radius: 5px; }</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>5</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_8">
+           <property name="styleSheet">
+            <string notr="true">color: #853d00; font-size: 10px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>MISSING</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_val_missing">
+           <property name="styleSheet">
+            <string notr="true">color: #853d00; font-size: 18px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="box_rate">
+        <property name="styleSheet">
+         <string notr="true">QGroupBox { background-color: #c6efce; border: 1px solid #ccc; border-radius: 5px; }</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_7">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>5</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_9">
+           <property name="styleSheet">
+            <string notr="true">color: #006100; font-size: 10px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>TỶ LỆ ĐẠT</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_val_rate">
+           <property name="styleSheet">
+            <string notr="true">color: #006100; font-size: 18px; font-weight: bold; background: transparent; border: none;</string>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTableWidget" name="table">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <attribute name="horizontalHeaderVisible">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="horizontalHeaderCascadingSectionResizes">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>100</number>
+     </attribute>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <column>
+      <property name="text">
+       <string>STT</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Ngày</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Thời gian</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Tổng</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Đạt</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Lỗi</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Kết quả</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Model AI</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="lbl_status">
+     <property name="text">
+      <string>Sẵn sàng</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

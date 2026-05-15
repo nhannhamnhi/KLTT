@@ -208,6 +208,59 @@ class DataManager:
 
         return 0, self.sheets_status['last_error'] or 'Không có bản ghi nào cần đồng bộ.'
 
+    def force_sync_sheets(self):
+        """Ép buộc đồng bộ hàng chờ ngay lập tức."""
+        count, error = self.retry_sheets_sync()
+        return count
+
+    def sync_history_to_sheets(self, date_str):
+        """
+        Quét toàn bộ dữ liệu local của một ngày và đẩy lên Google Sheets (Batch).
+        Dùng khi dữ liệu đã lưu local nhưng chưa có trên Sheets.
+        """
+        if not self.sheets_status['enabled'] or date_str not in self.data:
+            return 0
+            
+        records = self.data[date_str]
+        if not records:
+            return 0
+            
+        # Chuẩn bị dữ liệu để đẩy hàng loạt
+        rows_to_push = []
+        try:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+            display_date = date_obj.strftime('%d/%m/%Y')
+            sheet_name = date_obj.strftime('%d-%m-%Y')
+            
+            for rec in records:
+                row = [
+                    display_date,
+                    rec['time'],
+                    rec['total'],
+                    rec['passed'],
+                    rec['failed'],
+                    rec['result'],
+                    rec.get('model_name', 'N/A')
+                ]
+                rows_to_push.append(row)
+                
+            if not rows_to_push:
+                return 0
+
+            # Khởi tạo sheets nếu chưa có
+            if self._gs_spreadsheet is None:
+                self._init_gspread()
+            
+            if self._gs_spreadsheet:
+                sheet = self._get_or_create_worksheet(self._gs_spreadsheet, sheet_name)
+                sheet.append_rows(rows_to_push)
+                return len(rows_to_push)
+        except Exception as e:
+            print(f"[LỖI SYNC LỊCH SỬ] {e}")
+            self._set_sheet_status(enabled=True, connected=False, error_code='SYNC_ERROR', last_error=str(e))
+            
+        return 0
+
     def load_data(self):
         """
         Load dữ liệu từ file JSON
@@ -312,8 +365,23 @@ class DataManager:
             print(f"[THÔNG BÁO] Đã xóa dữ liệu của {len(keys_to_remove)} ngày cũ")
             Thread(target=self._write_json, daemon=True).start()
 
+    def _get_or_create_worksheet(self, spreadsheet, sheet_name):
+        """Lấy worksheet theo tên, nếu chưa có thì tạo mới với header."""
+        try:
+            return spreadsheet.worksheet(sheet_name)
+        except Exception:
+            # Tạo mới nếu không tồn tại
+            new_sheet = spreadsheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
+            headers = ["Timestamp", "Ngày", "Thời gian", "Tổng", "Đạt", "Lỗi", "Kết quả", "Model AI"]
+            new_sheet.append_row(headers)
+            # Định dạng header (bold)
+            try:
+                new_sheet.format("A1:H1", {"textFormat": {"bold": True}})
+            except: pass
+            return new_sheet
+
     def _init_gspread(self):
-        """Kết nối Google Sheets bằng Service Account, mở sheet và tạo header nếu cần"""
+        """Kết nối Google Sheets bằng Service Account."""
         if not self.sheets_status['enabled']:
             return
 
@@ -321,71 +389,64 @@ class DataManager:
             scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
             creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=scopes)
             client = gspread.authorize(creds)
-            spreadsheet = client.open_by_key(SPREADSHEET_ID)
-            self._gs_sheet = spreadsheet.worksheet(SHEET_NAME)
-
+            self._gs_spreadsheet = client.open_by_key(SPREADSHEET_ID)
+            
+            # Thay vì mở 1 sheet cố định, chúng ta sẽ mở theo ngày khi cần ghi
             self._set_sheet_status(enabled=True, connected=True, error_code='CONNECTED', last_error='')
-
-            # Kiểm tra và tạo header nếu sheet trống
-            try:
-                first_cell = self._gs_sheet.cell(1, 1).value
-                if not first_cell:
-                    headers = ["Timestamp", "Ngày", "Thời gian", "Tổng", "Đạt", "Lỗi", "Kết quả", "Model AI"]
-                    self._gs_sheet.append_row(headers)
-            except Exception:
-                headers = ["Timestamp", "Ngày", "Thời gian", "Tổng", "Đạt", "Lỗi", "Kết quả", "Model AI"]
-                self._gs_sheet.append_row(headers)
-
             print("[THÔNG BÁO] Đã kết nối Google Sheets thành công.")
+            
+            # Thử đẩy hàng chờ ngay khi kết nối
+            Thread(target=self._flush_pending_queue, daemon=True).start()
+            
         except Exception as e:
             message = str(e)
             error_code = 'AUTH_ERROR'
-            if 'WorksheetNotFound' in message or 'Unable to parse range' in message or 'Cannot find worksheet' in message:
-                error_code = 'WORKSHEET_NOT_FOUND'
-                message = f"Không tìm thấy worksheet '{SHEET_NAME}'."
-            elif 'Spreadsheet not found' in message or 'Unable to parse range' in message:
-                error_code = 'SPREADSHEET_NOT_FOUND'
-                message = 'Không tìm thấy Spreadsheet với SPREADSHEET_ID hiện tại.'
-            elif '403' in message or 'permission' in message.lower():
+            if '403' in message or 'permission' in message.lower():
                 error_code = 'PERMISSION_DENIED'
-                message = f'Quyền truy cập bị từ chối: {message}'
-            elif 'invalid' in message.lower() or 'service account' in message.lower():
-                error_code = 'AUTH_ERROR'
-                message = f'Xác thực Service Account thất bại: {message}'
-
+                message = f'Quyền truy cập bị từ chối. Hãy chia sẻ Sheet cho email Service Account.'
             self._set_sheet_status(enabled=True, connected=False, error_code=error_code, last_error=message)
-            self._gs_sheet = None
-            print(f"[LỖI] Không thể khởi tạo Google Sheets: {message}")
+            self._gs_spreadsheet = None
+            print(f"[LỖI SHEETS] Kết nối thất bại: {message}")
 
     def _flush_pending_queue(self):
-        """Đẩy toàn bộ hàng chờ lên Sheets, dừng nếu gặp lỗi"""
-        if not self._gs_sheet or not self._pending_queue:
+        """Đẩy toàn bộ hàng chờ lên Sheets theo nhóm ngày, tránh lỗi Quota"""
+        if not hasattr(self, '_gs_spreadsheet') or not self._gs_spreadsheet or not self._pending_queue:
             return 0
 
         success_count = 0
         try:
-            while self._pending_queue:
-                row = self._pending_queue[0]
-                self._gs_sheet.append_row(row)
-                self._pending_queue.pop(0)
-                success_count += 1
+            # Phân nhóm hàng chờ theo ngày (giả định cột thứ 2 là ngày dạng DD/MM/YYYY)
+            data_by_date = {}
+            for row in self._pending_queue:
+                date_key = row[1].replace("/", "-") # Chuyển thành tên Tab 15-05-2026
+                if date_key not in data_by_date:
+                    data_by_date[date_key] = []
+                data_by_date[date_key].append(row)
 
-            if success_count > 0:
-                self._save_pending_queue()
-                self._update_pending_queue_size()
-                print(f"[THÔNG BÁO] Đã đẩy {success_count} bản ghi từ hàng chờ.")
+            # Gửi từng nhóm lên các Tab tương ứng
+            for date_key, rows in data_by_date.items():
+                sheet = self._get_or_create_worksheet(self._gs_spreadsheet, date_key)
+                sheet.append_rows(rows) # Gửi hàng loạt (Batch update)
+                success_count += len(rows)
+            
+            # Xóa hàng chờ sau khi thành công
+            self._pending_queue.clear()
+            self._save_pending_queue()
+            self._update_pending_queue_size()
+            print(f"[THÔNG BÁO] Đã đồng bộ hàng loạt {success_count} bản ghi lên các Tab ngày.")
+            
         except Exception as e:
             msg = str(e)
             self._set_sheet_status(enabled=True, connected=False, error_code='FLUSH_ERROR', last_error=msg)
-            self._save_pending_queue()
-            print(f"[LỖI SHEETS] Tạm dừng đẩy hàng chờ: {msg}")
+            print(f"[LỖI SHEETS] Lỗi đồng bộ hàng loạt: {msg}")
         return success_count
 
     def _write_sheets(self, record, date_str):
-        """Ghi dữ liệu lên Sheet, lưu vào hàng chờ nếu thất bại"""
+        """Ghi dữ liệu lên Tab theo ngày tương ứng"""
         try:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d')
             display_date = date_obj.strftime('%d/%m/%Y')
+            sheet_name = date_obj.strftime('%d-%m-%Y')
 
             row = [
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -399,21 +460,26 @@ class DataManager:
             ]
 
             if not self.sheets_status['enabled']:
-                raise Exception('Google Sheets feature disabled')
+                return
 
-            if self._gs_sheet is None:
+            if not hasattr(self, '_gs_spreadsheet') or self._gs_spreadsheet is None:
                 self._init_gspread()
 
-            self._flush_pending_queue()
-
-            if self._gs_sheet:
-                self._gs_sheet.append_row(row)
+            if hasattr(self, '_gs_spreadsheet') and self._gs_spreadsheet:
+                # Nếu có hàng chờ cũ, ưu tiên đẩy hết trước (Batch)
+                if self._pending_queue:
+                    self._pending_queue.append(row)
+                    self._flush_pending_queue()
+                else:
+                    # Ghi trực tiếp vào Tab ngày
+                    sheet = self._get_or_create_worksheet(self._gs_spreadsheet, sheet_name)
+                    sheet.append_row(row)
             else:
-                raise Exception("Chưa có kết nối Sheet")
+                raise Exception("Chưa có kết nối Spreadsheet")
 
         except Exception as e:
             message = str(e)
-            print(f"[LỖI SHEETS] Lưu vào hàng chờ: {message}")
+            print(f"[LỖI SHEETS] Tạm lưu vào hàng chờ: {message}")
             if 'row' in locals():
                 self._pending_queue.append(row)
                 self._save_pending_queue()
@@ -452,6 +518,47 @@ class DataManager:
     def get_available_dates(self):
         """Trả về list ngày có dữ liệu (YYYY-MM-DD), mới nhất trước"""
         return sorted(self.data.keys(), reverse=True)
+
+    def get_available_models(self):
+        """Trả về danh sách các Model AI duy nhất đã từng xuất hiện trong dữ liệu."""
+        models = set()
+        for date_records in self.data.values():
+            for record in date_records:
+                model_name = record.get('model_name')
+                if model_name:
+                    models.add(model_name)
+        return sorted(list(models))
+
+    def get_filtered_data(self, date_filter=None, model_filter=None):
+        """Lấy dữ liệu từ local JSON và lọc theo ngày/model."""
+        all_records = []
+        
+        # 1. Xác định tập ngày cần quét
+        if date_filter:
+            target_dates = [date_filter] if date_filter in self.data else []
+        else:
+            # Nếu không lọc ngày, mặc định lấy 90 ngày gần nhất
+            cutoff_date = datetime.now() - timedelta(days=90)
+            cutoff_str = cutoff_date.strftime('%Y-%m-%d')
+            target_dates = [d for d in self.data.keys() if d >= cutoff_str]
+            
+        # Sắp xếp ngày mới nhất trước
+        target_dates = sorted(target_dates, reverse=True)
+        
+        for d_str in target_dates:
+            # Sắp xếp giờ mới nhất trước trong cùng một ngày
+            day_records = sorted(self.data[d_str], key=lambda x: x['time'], reverse=True)
+            
+            for rec in day_records:
+                # Lọc theo model (nếu có yêu cầu)
+                if model_filter and rec.get('model_name') != model_filter:
+                    continue
+                    
+                item = rec.copy()
+                item['date'] = d_str
+                all_records.append(item)
+                
+        return all_records
 
     def get_summary_stats(self, date_filter=None):
         """Thống kê từ dữ liệu local"""
@@ -508,7 +615,7 @@ class DataManager:
         except Exception as e:
             print(f"[LỖI] Không thể lưu hàng chờ: {e}")
 
-    def export_to_excel(self, filepath, date_filter=None):
+    def export_to_excel(self, filepath, date_filter=None, model_filter=None):
         """
         Xuất dữ liệu ra file Excel với merge cell cho cột Ngày
 
@@ -516,6 +623,7 @@ class DataManager:
             filepath: Đường dẫn file Excel để lưu
             date_filter: Nếu là chuỗi 'YYYY-MM-DD', chỉ xuất ngày đó. 
                         Nếu là None, xuất toàn bộ dữ liệu.
+            model_filter: Nếu có, chỉ xuất các bản ghi của model này.
 
         Returns:
             bool: True nếu thành công, False nếu thất bại
@@ -530,7 +638,7 @@ class DataManager:
             ws.title = "Kết quả phát hiện"
 
             # Định dạng header
-            headers = ['STT', 'Ngày', 'Thời gian', 'Tổng số viên', 'Viên đạt', 'Viên lỗi', 'Kết quả']
+            headers = ['STT', 'Ngày', 'Thời gian', 'Tổng số viên', 'Viên đạt', 'Viên lỗi', 'Kết quả', 'Model AI']
             header_font = Font(bold=True, color='FFFFFF')
             header_fill_color = '006666'  # Màu teal
             header_alignment = Alignment(horizontal='center', vertical='center')
@@ -581,13 +689,23 @@ class DataManager:
                 date_obj = datetime.strptime(date_str, '%Y-%m-%d')
                 display_date = date_obj.strftime('%d/%m/%Y')
 
+                # Lọc records theo model_filter
+                filtered_records = []
+                for r in records:
+                    if model_filter and r.get('model_name') != model_filter:
+                        continue
+                    filtered_records.append(r)
+                
+                if not filtered_records:
+                    continue
+
                 start_row = row_num
-                for i, rec in enumerate(records):
+                for i, rec in enumerate(filtered_records):
                     current_row = row_num
                     ws.cell(row=current_row, column=1, value=stt).alignment = header_alignment
                     ws.cell(row=current_row, column=1).border = thin_border
 
-                    # Chỉ ghi ngày vào hàng đầu tiên của ngày đó
+                    # Chỉ ghi ngày vào hàng đầu tiên của ngày đó (trong tập đã lọc)
                     if i == 0:
                         ws.cell(row=current_row, column=2, value=display_date).alignment = header_alignment
                         ws.cell(row=current_row, column=2).border = thin_border
@@ -608,6 +726,9 @@ class DataManager:
 
                     ws.cell(row=current_row, column=7, value=rec['result']).alignment = header_alignment
                     ws.cell(row=current_row, column=7).border = thin_border
+
+                    ws.cell(row=current_row, column=8, value=rec.get('model_name', 'N/A')).alignment = header_alignment
+                    ws.cell(row=current_row, column=8).border = thin_border
 
                     # Đếm số lần từng trạng thái kết quả
                     result_val = rec.get('result', '')
@@ -717,7 +838,7 @@ class DataManager:
                 cell_tyle.fill = summary_fill
 
             # Điều chỉnh độ rộng cột
-            column_widths = [6, 15, 12, 15, 12, 12, 15]
+            column_widths = [6, 15, 12, 15, 12, 12, 15, 25]
             for i, width in enumerate(column_widths, 1):
                 ws.column_dimensions[chr(64 + i)].width = width
 

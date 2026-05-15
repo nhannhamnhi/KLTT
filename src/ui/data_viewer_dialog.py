@@ -1,339 +1,250 @@
+import sys
 import os
 import webbrowser
-from threading import Thread
-from datetime import datetime
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QComboBox, QPushButton, QTableWidget, QTableWidgetItem, 
-                             QHeaderView, QGroupBox, QVBoxLayout, QMessageBox)
+from datetime import datetime, date
+from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtWidgets import QMessageBox, QFileDialog, QTableWidgetItem
 
-class DataViewerDialog(QDialog):
-    def __init__(self, data_manager, sheets_url="", parent=None):
+# Import UI generated from .ui file
+from .data_viewer_dialog_ui import Ui_DataViewerDialog
+
+class DataViewerDialog(QtWidgets.QDialog, Ui_DataViewerDialog):
+    """
+    Dialog hiển thị danh sách kết quả kiểm tra, thống kê và quản lý Google Sheets.
+    Giao diện được tải từ file data_viewer_dialog.ui
+    """
+    def __init__(self, data_manager, sheets_url=None, parent=None):
         super().__init__(parent)
         self.data_manager = data_manager
         self.sheets_url = sheets_url
-        self.all_data = [] # Cache dữ liệu từ local
+        self.main_win = parent
         
-        self.init_ui()
-        self.refresh_filters() # Load danh sách ngày/model vào combobox
-        self.do_refresh() # Refresh bảng lần đầu
-
-    def init_ui(self):
-        self.setWindowTitle("📜 Nhật ký kết quả kiểm tra")
-        self.setMinimumSize(1050, 650)
-        self.resize(1100, 700)
+        # Khởi tạo giao diện từ file UI đã convert
+        self.setupUi(self)
         
-        main_layout = QVBoxLayout(self)
-        main_layout.setSpacing(10)
-
-        # --- 1. Toolbar ---
-        toolbar = QHBoxLayout()
+        # Mặc định chọn ngày hiện tại cho QDateEdit
+        self.cb_date.setDate(QtCore.QDate.currentDate())
         
-        # Lọc ngày
-        toolbar.addWidget(QLabel("📅 Lọc ngày:"))
-        self.cb_date = QComboBox()
-        self.cb_date.setMinimumWidth(180)
-        toolbar.addWidget(self.cb_date)
+        # Cấu hình bảng
+        self.setup_table_config()
         
-        toolbar.addSpacing(15)
-        
-        # Lọc model
-        toolbar.addWidget(QLabel("🤖 Model:"))
-        self.cb_model = QComboBox()
-        self.cb_model.setMinimumWidth(150)
-        toolbar.addWidget(self.cb_model)
-        
-        toolbar.addStretch()
-        
-        # Các nút chức năng
-        self.btn_refresh = QPushButton("🔄 Làm mới")
-        self.btn_export = QPushButton("📥 Xuất Excel")
-        self.btn_sheets = QPushButton("🔗 Mở Google Sheets")
-        self.btn_close = QPushButton("✕ Đóng")
-        
-        # Styling buttons
-        teal_style = """
-            QPushButton { 
-                background-color: #006666; color: white; border-radius: 4px; 
-                padding: 6px 12px; font-weight: bold; border: none;
-            }
-            QPushButton:hover { background-color: #008080; }
-            QPushButton:pressed { background-color: #004d4d; }
-        """
-        blue_style = teal_style.replace("#006666", "#1a73e8").replace("#008080", "#1e88e5")
-        
-        for btn in [self.btn_refresh, self.btn_export, self.btn_close]:
-            btn.setStyleSheet(teal_style)
-            toolbar.addWidget(btn)
-            
-        self.btn_sheets.setStyleSheet(blue_style)
-        toolbar.insertWidget(toolbar.count()-1, self.btn_sheets)
-        
-        main_layout.addLayout(toolbar)
-
-        # --- Google Sheets Status ---
-        sheets_status_group = QGroupBox("🔗 Google Sheets")
-        sheets_status_layout = QHBoxLayout(sheets_status_group)
-        sheets_status_layout.setContentsMargins(10, 8, 10, 8)
-        sheets_status_layout.setSpacing(12)
-
-        self.lbl_sheets_badge = QLabel("Sheets: Chưa kiểm tra")
-        self.lbl_sheets_badge.setStyleSheet("padding: 4px 10px; border-radius: 12px; background-color: #9e9e9e; color: white;")
-        self.lbl_sheets_queue = QLabel("Hàng chờ: 0")
-        self.lbl_sheets_error = QLabel("Lỗi: Không có")
-        self.btn_sync_sheets = QPushButton("🔁 Sync Google Sheets")
-        self.btn_sync_sheets.setStyleSheet(blue_style)
-        self.btn_sync_sheets.setMinimumWidth(160)
-
-        sheets_status_layout.addWidget(self.lbl_sheets_badge)
-        sheets_status_layout.addWidget(self.lbl_sheets_queue)
-        sheets_status_layout.addWidget(self.lbl_sheets_error)
-        sheets_status_layout.addStretch()
-        sheets_status_layout.addWidget(self.btn_sync_sheets)
-
-        main_layout.addWidget(sheets_status_group)
-
-        # --- 2. Stats Bar ---
-        stats_group = QGroupBox("📊 Thống kê nhanh (dựa trên dữ liệu đang hiển thị)")
-        stats_layout = QHBoxLayout(stats_group)
-        
-        self.stats_labels = {}
-        stats_config = [
-            ("TỔNG LƯỢT", "total", "#f0f0f0", "black"),
-            ("OK", "ok", "#c6efce", "#006100"),
-            ("NG (TỔNG)", "ng", "#ffc7ce", "#9c0006"),
-            ("NG_L", "ng_l", "#fff2cc", "#9c6500"),
-            ("NG_H", "ng_h", "#ffc7ce", "#9c0006"),
-            ("MISSING", "missing", "#ffd699", "#853d00"),
-            ("TỶ LỆ ĐẠT", "rate", "#c6efce", "#006100")
-        ]
-        
-        for title, key, bg, fg in stats_config:
-            box = QGroupBox()
-            box.setStyleSheet(f"QGroupBox {{ background-color: {bg}; border: 1px solid #ccc; border-radius: 5px; }}")
-            box_layout = QVBoxLayout(box)
-            box_layout.setContentsMargins(5, 5, 5, 5)
-            
-            lbl_title = QLabel(title)
-            lbl_title.setAlignment(QtCore.Qt.AlignCenter)
-            lbl_title.setStyleSheet(f"color: {fg}; font-size: 10px; font-weight: bold; background: transparent; border: none;")
-            
-            lbl_val = QLabel("0")
-            lbl_val.setAlignment(QtCore.Qt.AlignCenter)
-            lbl_val.setStyleSheet(f"color: {fg}; font-size: 18px; font-weight: bold; background: transparent; border: none;")
-            
-            box_layout.addWidget(lbl_title)
-            box_layout.addWidget(lbl_val)
-            stats_layout.addWidget(box)
-            self.stats_labels[key] = lbl_val
-            
-        main_layout.addWidget(stats_group)
-
-        # --- 3. Table ---
-        self.table = QTableWidget()
-        self.table.setColumnCount(8)
-        self.table.setHorizontalHeaderLabels(["STT", "Ngày", "Thời gian", "Tổng", "Đạt", "Lỗi", "Kết quả", "Model AI"])
-        
-        # Header style
-        self.table.horizontalHeader().setStyleSheet("""
-            QHeaderView::section {
-                background-color: #006666; color: white;
-                font-weight: bold; border: 1px solid #004d4d;
-                height: 35px;
-            }
-        """)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.table.setAlternatingRowColors(True)
-        self.table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.table.verticalHeader().setVisible(False)
-        
-        main_layout.addWidget(self.table)
-
-        # --- 4. Status Bar ---
-        self.lbl_status = QLabel("Sẵn sàng")
-        main_layout.addWidget(self.lbl_status)
-
-        # Connect events
-        self.cb_date.currentIndexChanged.connect(self.do_refresh)
-        self.cb_model.currentIndexChanged.connect(self.do_refresh)
-        self.btn_refresh.clicked.connect(self.handle_reload)
-        self.btn_export.clicked.connect(self.handle_export)
-        self.btn_sheets.clicked.connect(self.handle_open_sheets)
-        self.btn_sync_sheets.clicked.connect(self.handle_sync_sheets)
-        self.btn_close.clicked.connect(self.accept)
-
-        self.refresh_sheet_status()
-
-    # --- LOGIC ---
-    def refresh_filters(self):
-        """Cập nhật danh sách ngày và model vào ComboBox"""
-        # 1. Date filter
-        self.cb_date.blockSignals(True)
-        self.cb_date.clear()
-        self.cb_date.addItem("📅 Tất cả — 90 ngày gần nhất", None)
-        
-        available_dates = self.data_manager.get_available_dates()
-        for d_str in available_dates:
-            try:
-                d_obj = datetime.strptime(d_str, '%Y-%m-%d')
-                display_date = d_obj.strftime('%d/%m/%Y')
-                self.cb_date.addItem(display_date, d_str)
-            except:
-                continue
-        self.cb_date.blockSignals(False)
-
-        # 2. Model filter
-        self.cb_model.blockSignals(True)
-        self.cb_model.clear()
-        self.cb_model.addItem("🤖 Tất cả model")
-        
-        # Lấy unique models từ data thực tế
-        all_data = self.data_manager.get_all_records_as_list()
-        models = sorted(list(set(r.get('model_name', 'N/A') for r in all_data)))
-        self.cb_model.addItems(models)
-        self.cb_model.blockSignals(False)
-        
-        self.all_data = all_data
-
-    def handle_reload(self):
-        """Tải lại dữ liệu từ file và refresh UI"""
-        self.data_manager.data = self.data_manager.load_data()
+        # Load dữ liệu ban đầu
         self.refresh_filters()
         self.do_refresh()
+        
+        # Kết nối signals
+        self.btn_refresh.clicked.connect(self.do_refresh)
+        self.btn_export.clicked.connect(self.handle_export)
+        self.btn_sheets.clicked.connect(self.handle_open_sheets)
+        self.btn_close.clicked.connect(self.close)
+        self.btn_sync_sheets.clicked.connect(self.handle_sync_sheets)
+        
+        # Kết nối bộ lọc
+        # cb_date bây giờ là QDateEdit
+        self.cb_date.dateChanged.connect(self.do_refresh)
+        self.cb_model.currentIndexChanged.connect(self.do_refresh)
+        
+        # Cập nhật trạng thái Sheets định kỳ
+        self.status_timer = QtCore.QTimer(self)
+        self.status_timer.timeout.connect(self.refresh_sheet_status)
+        self.status_timer.start(2000) # Cập nhật mỗi 2 giây
         self.refresh_sheet_status()
+
+    def setup_table_config(self):
+        """Cấu hình chi tiết cho QTableWidget."""
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Fixed) # STT
+        self.table.setColumnWidth(0, 50)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.Fixed) # Ngày
+        self.table.setColumnWidth(1, 100)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.Fixed) # Thời gian
+        self.table.setColumnWidth(2, 100)
+        
+        # Các cột số lượng
+        for i in range(3, 6):
+            header.setSectionResizeMode(i, QtWidgets.QHeaderView.Fixed)
+            self.table.setColumnWidth(i, 60)
+            
+        header.setSectionResizeMode(6, QtWidgets.QHeaderView.Stretch) # Kết quả
+        header.setSectionResizeMode(7, QtWidgets.QHeaderView.Stretch) # Model AI
+
+    def refresh_filters(self):
+        """Cập nhật danh sách model vào combobox."""
+        # 1. Model filter
+        self.cb_model.blockSignals(True)
+        self.cb_model.clear()
+        self.cb_model.addItem("🤖 Tất cả model", None)
+        models = self.data_manager.get_available_models()
+        for m in models:
+            self.cb_model.addItem(m, m)
+        self.cb_model.blockSignals(False)
 
     def do_refresh(self):
-        """Lọc và hiển thị dữ liệu lên bảng + stats"""
-        target_date = self.cb_date.currentData()
-        target_model = self.cb_model.currentText()
+        """Lấy dữ liệu từ DataManager theo bộ lọc và hiển thị lên bảng."""
+        # Lấy ngày từ QDateEdit
+        q_date = self.cb_date.date()
+        date_filter = q_date.toString("yyyy-MM-dd")
         
-        # 1. Lọc dữ liệu
-        filtered = []
-        for r in self.all_data:
-            # Chuyển dd/mm/yyyy thành YYYY-MM-DD để so sánh
-            d_parts = r['date'].split('/')
-            if len(d_parts) == 3:
-                r_iso_date = f"{d_parts[2]}-{d_parts[1]}-{d_parts[0]}"
-            else:
-                r_iso_date = ""
-            
-            if target_date and r_iso_date != target_date: continue
-            if target_model != "🤖 Tất cả model" and r.get('model_name', 'N/A') != target_model: continue
-            filtered.append(r)
-
-        # 2. Cập nhật Stats
-        stats = { 'total': 0, 'ok': 0, 'ng_l': 0, 'ng_h': 0, 'missing': 0 }
-        for r in filtered:
-            stats['total'] += 1
-            res = r.get('result', '')
-            if res == 'OK': stats['ok'] += 1
-            elif res == 'NG_L': stats['ng_l'] += 1
-            elif res == 'NG_H': stats['ng_h'] += 1
-            elif res == 'MISSING': stats['missing'] += 1
-            
-        ng_total = stats['ng_l'] + stats['ng_h'] + stats['missing']
-        rate = (stats['ok'] / stats['total'] * 100) if stats['total'] > 0 else 0
+        model_filter = self.cb_model.currentData()
         
-        self.stats_labels['total'].setText(str(stats['total']))
-        self.stats_labels['ok'].setText(str(stats['ok']))
-        self.stats_labels['ng'].setText(str(ng_total))
-        self.stats_labels['ng_l'].setText(str(stats['ng_l']))
-        self.stats_labels['ng_h'].setText(str(stats['ng_h']))
-        self.stats_labels['missing'].setText(str(stats['missing']))
-        self.stats_labels['rate'].setText(f"{rate:.1f}%")
-
-        # 3. Hiển thị bảng
+        # Lấy dữ liệu
+        data = self.data_manager.get_filtered_data(date_filter, model_filter)
+        
+        # Hiển thị
         self.table.setRowCount(0)
-        for i, r in enumerate(filtered):
-            self.table.insertRow(i)
-            
-            self.table.setItem(i, 0, QTableWidgetItem(str(i + 1)))
-            self.table.setItem(i, 1, QTableWidgetItem(r['date']))
-            self.table.setItem(i, 2, QTableWidgetItem(r['time']))
-            self.table.setItem(i, 3, QTableWidgetItem(str(r['total'])))
-            self.table.setItem(i, 4, QTableWidgetItem(str(r['passed'])))
-            self.table.setItem(i, 5, QTableWidgetItem(str(r['failed'])))
-            
-            res_item = QTableWidgetItem(r['result'])
-            if r['result'] == 'OK': res_item.setBackground(QtGui.QColor("#c6efce"))
-            elif 'NG' in r['result'] or r['result'] == 'MISSING': res_item.setBackground(QtGui.QColor("#ffc7ce"))
-            
-            self.table.setItem(i, 6, res_item)
-            self.table.setItem(i, 7, QTableWidgetItem(r.get('model_name', 'N/A')))
-            
-            for col in range(8):
-                item = self.table.item(i, col)
-                if item: item.setTextAlignment(QtCore.Qt.AlignCenter)
-
-        self.lbl_status.setText(f"Hiển thị {len(filtered)} bản ghi.")
-
-    def handle_export(self):
-        """Xuất Excel theo ngày đang chọn"""
-        date_filter = self.cb_date.currentData()
-        default_name = f"Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-        path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Lưu báo cáo Excel", default_name, "Excel Files (*.xlsx)")
+        stats = {
+            'total': 0, 'ok': 0, 'ng': 0,
+            'ng_l': 0, 'ng_h': 0, 'missing': 0
+        }
         
-        if path:
-            success = self.data_manager.export_to_excel(path, date_filter=date_filter)
-            if success:
-                QMessageBox.information(self, "Thành công", f"Đã xuất báo cáo tại:\n{path}")
-            else:
-                QMessageBox.critical(self, "Lỗi", "Không thể xuất file Excel. Vui lòng kiểm tra lại.")
+        for i, item in enumerate(data):
+            row_pos = self.table.rowCount()
+            self.table.insertRow(row_pos)
+            
+            # 1. STT
+            self.table.setItem(row_pos, 0, QTableWidgetItem(str(i + 1)))
+            
+            # 2. Ngày
+            d_obj = datetime.strptime(item['date'], '%Y-%m-%d')
+            self.table.setItem(row_pos, 1, QTableWidgetItem(d_obj.strftime('%d/%m/%Y')))
+            
+            # 3. Thời gian
+            self.table.setItem(row_pos, 2, QTableWidgetItem(item['time']))
+            
+            # 4. Tổng
+            self.table.setItem(row_pos, 3, QTableWidgetItem(str(item['total'])))
+            
+            # 5. Đạt
+            self.table.setItem(row_pos, 4, QTableWidgetItem(str(item['passed'])))
+            
+            # 6. Lỗi
+            self.table.setItem(row_pos, 5, QTableWidgetItem(str(item['failed'])))
+            
+            # 7. Kết quả (Màu sắc)
+            res_item = QTableWidgetItem(item['result'])
+            res_item.setTextAlignment(QtCore.Qt.AlignCenter)
+            if item['result'] == "OK":
+                res_item.setForeground(QtGui.QColor("#006100"))
+                res_item.setBackground(QtGui.QColor("#c6efce"))
+                stats['ok'] += 1
+            elif item['result'] == "NG_L":
+                res_item.setForeground(QtGui.QColor("#9c6500"))
+                res_item.setBackground(QtGui.QColor("#fff2cc"))
+                stats['ng_l'] += 1
+                stats['ng'] += 1
+            elif item['result'] == "NG_H":
+                res_item.setForeground(QtGui.QColor("#9c0006"))
+                res_item.setBackground(QtGui.QColor("#ffc7ce"))
+                stats['ng_h'] += 1
+                stats['ng'] += 1
+            elif item['result'] == "MISSING":
+                res_item.setForeground(QtGui.QColor("#853d00"))
+                res_item.setBackground(QtGui.QColor("#ffd699"))
+                stats['missing'] += 1
+                stats['ng'] += 1
+                
+            self.table.setItem(row_pos, 6, res_item)
+            
+            # 8. Model
+            self.table.setItem(row_pos, 7, QTableWidgetItem(item.get('model_name', 'N/A')))
+            
+            stats['total'] += 1
+
+        # Cập nhật thống kê
+        self.lbl_val_total.setText(str(stats['total']))
+        self.lbl_val_ok.setText(str(stats['ok']))
+        self.lbl_val_ng.setText(str(stats['ng']))
+        self.lbl_val_ngl.setText(str(stats['ng_l']))
+        self.lbl_val_ngh.setText(str(stats['ng_h']))
+        self.lbl_val_missing.setText(str(stats['missing']))
+        
+        rate = (stats['ok'] / stats['total'] * 100) if stats['total'] > 0 else 0
+        self.lbl_val_rate.setText(f"{rate:.1f}%")
+        
+        self.lbl_status.setText(f"Hiển thị {len(data)} bản ghi.")
 
     def refresh_sheet_status(self):
-        """Cập nhật trạng thái Google Sheets trên UI."""
+        """Cập nhật trạng thái kết nối Google Sheets lên UI."""
         status = self.data_manager.get_sheets_status()
-        badge_text = "Unknown"
-        badge_color = "#9e9e9e"
-
+        
+        # Badge color
         if not status.get('enabled', False):
-            badge_text = "Disabled"
-            badge_color = "#9e9e9e"
+            self.lbl_sheets_badge.setText("Google Sheets: Tắt")
+            self.lbl_sheets_badge.setStyleSheet("padding: 4px 10px; border-radius: 12px; background-color: #9e9e9e; color: white;")
         elif status.get('connected', False):
-            badge_text = "Connected"
-            badge_color = "#2e7d32"
+            self.lbl_sheets_badge.setText("Google Sheets: Đã kết nối")
+            self.lbl_sheets_badge.setStyleSheet("padding: 4px 10px; border-radius: 12px; background-color: #4caf50; color: white;")
         else:
-            badge_text = "Error"
-            badge_color = "#d84315"
-
-        self.lbl_sheets_badge.setText(f"Google Sheets: {badge_text}")
-        self.lbl_sheets_badge.setStyleSheet(
-            f"padding: 4px 10px; border-radius: 12px; background-color: {badge_color}; color: white;"
-        )
+            self.lbl_sheets_badge.setText("Google Sheets: Error")
+            self.lbl_sheets_badge.setStyleSheet("padding: 4px 10px; border-radius: 12px; background-color: #f44336; color: white;")
+            
         self.lbl_sheets_queue.setText(f"Hàng chờ: {status.get('queue_size', 0)}")
+        
         error_text = status.get('last_error', '') or 'Không có'
         self.lbl_sheets_error.setText(f"Lỗi: {error_text}")
-        self.btn_sync_sheets.setEnabled(status.get('enabled', False))
 
     def handle_sync_sheets(self):
-        """Thực hiện retry đồng bộ Google Sheets trong thread nền."""
-        self.lbl_status.setText("Đang đồng bộ lại Google Sheets...")
-        self.btn_sync_sheets.setEnabled(False)
-
-        def worker():
-            success_count, error_message = self.data_manager.retry_sheets_sync()
-            QtCore.QTimer.singleShot(0, lambda: self._finish_retry_sheets(success_count, error_message))
-
-        Thread(target=worker, daemon=True).start()
-
-    def _finish_retry_sheets(self, success_count, error_message):
-        self.refresh_sheet_status()
-        if success_count > 0:
-            self.lbl_status.setText(f"Đã đồng bộ {success_count} bản ghi từ hàng chờ.")
-            QMessageBox.information(self, "Sync thành công", f"Đã đẩy {success_count} bản ghi lên Google Sheets.")
+        """Kích hoạt đồng bộ thủ công ngay lập tức."""
+        status = self.data_manager.get_sheets_status()
+        
+        # 1. Nếu có hàng chờ, ưu tiên đẩy hàng chờ
+        if status.get('queue_size', 0) > 0:
+            count = self.data_manager.force_sync_sheets()
+            if count > 0:
+                QMessageBox.information(self, "Đồng bộ", f"Đã gửi thành công {count} bản ghi từ hàng chờ lên Google Sheets.")
+            else:
+                QMessageBox.warning(self, "Đồng bộ", f"Không thể đồng bộ. Lỗi: {status.get('last_error')}")
+        
+        # 2. Nếu hàng chờ trống, hỏi xem có muốn đẩy lại ngày hiện tại không
         else:
-            self.lbl_status.setText("Không có bản ghi nào được đồng bộ.")
-            if error_message:
-                QMessageBox.warning(self, "Sync Google Sheets", f"Không thể đồng bộ: {error_message}")
-        self.btn_sync_sheets.setEnabled(self.data_manager.get_sheets_status().get('enabled', False))
+            q_date = self.cb_date.date()
+            date_str = q_date.toString("yyyy-MM-dd")
+            display_date = q_date.toString("dd/MM/yyyy")
+            
+            reply = QMessageBox.question(
+                self, "Đồng bộ lịch sử",
+                f"Hàng chờ đang trống.\nBạn có muốn đẩy lại toàn bộ dữ liệu của ngày {display_date} lên Google Sheets không?",
+                QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            )
+            
+            if reply == QMessageBox.Yes:
+                self.lbl_status.setText(f"Đang đẩy dữ liệu ngày {display_date}...")
+                QtWidgets.QApplication.processEvents() # Cập nhật UI ngay
+                
+                count = self.data_manager.sync_history_to_sheets(date_str)
+                if count > 0:
+                    QMessageBox.information(self, "Thành công", f"Đã đẩy thành công {count} bản ghi ngày {display_date} lên Google Sheets.")
+                else:
+                    QMessageBox.warning(self, "Thất bại", "Không có dữ liệu hoặc lỗi kết nối. Kiểm tra tab 'Lỗi' phía trên.")
+        
+        self.refresh_sheet_status()
+
+    def handle_export(self):
+        """Xuất dữ liệu đang hiển thị ra file Excel."""
+        # Lấy ngày từ QDateEdit
+        date_filter = self.cb_date.date().toString("yyyy-MM-dd")
+        model_filter = self.cb_model.currentData()
+        
+        # Gợi ý tên file
+        default_name = f"KetQua_KiemTra_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        
+        path, _ = QFileDialog.getSaveFileName(
+            self.main_win, "Lưu file Excel", default_name, "Excel Files (*.xlsx)"
+        )
+        
+        if path:
+            success, msg = self.data_manager.export_to_excel(path, date_filter, model_filter)
+            if success:
+                QMessageBox.information(self.main_win, "Thành công", f"Đã xuất dữ liệu ra:\n{path}")
+            else:
+                QMessageBox.critical(self.main_win, "Lỗi", f"Không thể xuất file:\n{msg}")
 
     def handle_open_sheets(self):
         """Mở liên kết Google Sheets"""
         if self.sheets_url and self.sheets_url.startswith("http"):
             status = self.data_manager.get_sheets_status()
             if not status.get('connected', False) and status.get('last_error'):
-                QMessageBox.warning(self, "Cảnh báo Google Sheets", f"Google Sheets chưa kết nối: {status.get('last_error')}\nBạn vẫn có thể mở link để kiểm tra cấu hình.")
+                QMessageBox.warning(self.main_win, "Cảnh báo Google Sheets", f"Google Sheets chưa kết nối: {status.get('last_error')}\nBạn vẫn có thể mở link để kiểm tra cấu hình.")
             webbrowser.open(self.sheets_url)
         else:
-            QMessageBox.warning(self, "Thông báo", "Đường dẫn Google Sheets chưa được cấu hình trong config.py")
+            QMessageBox.warning(self.main_win, "Thông báo", "Đường dẫn Google Sheets chưa được cấu hình trong config.py")

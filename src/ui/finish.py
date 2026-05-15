@@ -18,6 +18,9 @@ except Exception:
 
 # 2. Cấu hình môi trường
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Buộc sử dụng CPU cho Torch
+os.environ["YOLO_OFFLINE"] = "True"       # Chế độ offline cho Ultralytics
+os.environ["OPENVINO_DEVICE"] = "CPU"     # Buộc OpenVINO dùng CPU
 
 # 3. Thiết lập sys.path để nạp module từ src/
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -271,7 +274,8 @@ class Controller:
         # Khởi động: Ẩn tất cả các nút điều khiển thủ công
         self.ui_main.btTrigger.hide()
         self.ui_main.btContinue.hide()
-        self.ui_main.btConveyor.hide()
+        self.ui_main.btConveyorOn.hide()
+        self.ui_main.btConveyorOff.hide()
         self.ui_main.btCylinder1.hide()
         self.ui_main.btCylinder2.hide()
 
@@ -324,7 +328,10 @@ class Controller:
         self.ui_main.btControlManual.clicked.connect(self.handle_control_manual_click)
 
         # --- PHẦN MỚI: Kết nối các nút điều khiển Manual ---
-        self.ui_main.btConveyor.clicked.connect(self.toggle_conveyor)
+        self.ui_main.btConveyorOn.pressed.connect(lambda: self.set_conveyor_on(True))
+        self.ui_main.btConveyorOn.released.connect(lambda: self.set_conveyor_on(False))
+        self.ui_main.btConveyorOff.pressed.connect(lambda: self.set_conveyor_off(True))
+        self.ui_main.btConveyorOff.released.connect(lambda: self.set_conveyor_off(False))
         self.ui_main.btCylinder1.pressed.connect(lambda: self.set_cylinder1(True))
         self.ui_main.btCylinder1.released.connect(lambda: self.set_cylinder1(False))
         self.ui_main.btCylinder2.pressed.connect(lambda: self.set_cylinder2(True))
@@ -487,16 +494,16 @@ class Controller:
             # Cho phép điều khiển (Vì đã vặn Manual cứng + Đã Login phần mềm)
             self.ui_main.btTrigger.show()
             self.ui_main.btContinue.show()
-            self.ui_main.btConveyor.show()
+            self.ui_main.btConveyorOn.show()
+            self.ui_main.btConveyorOff.show()
             self.ui_main.btCylinder1.show()
             self.ui_main.btCylinder2.show()
             
             # Khởi tạo lại giao diện nút nhấn để tránh dính màu cũ
-            self.conveyor_state = False
-            self.cylinder1_state = False
-            self.cylinder2_state = False
-            self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_OFF)
-            self.ui_main.btConveyor.setText("▶ Conveyor")
+            self.ui_main.btConveyorOn.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btConveyorOn.setText("ON Conveyor")
+            self.ui_main.btConveyorOff.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btConveyorOff.setText("OFF Conveyor")
             self.ui_main.btCylinder1.setStyleSheet(self._STYLE_TOGGLE_OFF)
             self.ui_main.btCylinder1.setText("Cylinder 1")
             self.ui_main.btCylinder2.setStyleSheet(self._STYLE_TOGGLE_OFF)
@@ -505,30 +512,40 @@ class Controller:
             # Ẩn nút (Nếu ai gạt lại tũ vật lý qua Auto, HOẶC lỡ tay log out màn hình)
             self.ui_main.btTrigger.hide()
             self.ui_main.btContinue.hide()
-            self.ui_main.btConveyor.hide()
+            self.ui_main.btConveyorOn.hide()
+            self.ui_main.btConveyorOff.hide()
             self.ui_main.btCylinder1.hide()
             self.ui_main.btCylinder2.hide()
 
 
 
-    def set_conveyor(self, state):
-        """Bật/tắt băng tải kiểu nhấn nhả (momentary)."""
-        self.conveyor_state = state
+    def set_conveyor_on(self, state):
+        """Ghi bit ON Conveyor xuống PLC khi nhấn giữ."""
         if self.plc.is_connected:
-            self.plc.write_conveyor(self.conveyor_state)
+            self.plc.write_conveyor_on(state)
 
-        if self.conveyor_state:
-            self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_ON)
-            self.ui_main.btConveyor.setText("■ Conveyor")
-            print("[MANUAL] ▶ Băng tải BẬT (Nhấn)")
+        if state:
+            self.ui_main.btConveyorOn.setStyleSheet(self._STYLE_TOGGLE_ON)
+            self.ui_main.btConveyorOn.setText("■ ON Conveyor")
+            print("[MANUAL] ▶ Conveyor ON (Nhấn)")
         else:
-            self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_OFF)
-            self.ui_main.btConveyor.setText("▶ Conveyor")
-            print("[MANUAL] ■ Băng tải TẮT (Nhả)")
+            self.ui_main.btConveyorOn.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btConveyorOn.setText("ON Conveyor")
+            print("[MANUAL] ■ Conveyor ON (Nhả)")
 
-    def toggle_conveyor(self):
-        """NÃºt cÃ´ng táº¯c ON/OFF cho bÄƒng táº£i."""
-        self.set_conveyor(not self.conveyor_state)
+    def set_conveyor_off(self, state):
+        """Ghi bit OFF Conveyor xuống PLC khi nhấn giữ."""
+        if self.plc.is_connected:
+            self.plc.write_conveyor_off(state)
+
+        if state:
+            self.ui_main.btConveyorOff.setStyleSheet(self._STYLE_TOGGLE_ON)
+            self.ui_main.btConveyorOff.setText("■ OFF Conveyor")
+            print("[MANUAL] ▶ Conveyor OFF (Nhấn)")
+        else:
+            self.ui_main.btConveyorOff.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btConveyorOff.setText("OFF Conveyor")
+            print("[MANUAL] ■ Conveyor OFF (Nhả)")
 
     def set_cylinder1(self, state):
         """Bật/tắt xy-lanh 1 kiểu nhấn nhả."""

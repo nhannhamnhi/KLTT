@@ -909,12 +909,12 @@ QPushButton:pressed {
       <string>📊 Quản lý dữ liệu</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btConveyor">
+    <widget class="QPushButton" name="btConveyorOn">
      <property name="geometry">
       <rect>
        <x>509</x>
        <y>90</y>
-       <width>251</width>
+       <width>120</width>
        <height>50</height>
       </rect>
      </property>
@@ -940,7 +940,41 @@ QPushButton:pressed {
 }</string>
      </property>
      <property name="text">
-      <string>▶ Conveyor</string>
+      <string>ON Conveyor</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btConveyorOff">
+     <property name="geometry">
+      <rect>
+       <x>640</x>
+       <y>90</y>
+       <width>120</width>
+       <height>50</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+	color: #169393;
+	background-color: #FFFFFF;
+	border: 2px solid #CEC2B1;
+	border-radius: 5px;
+}
+QPushButton:hover {
+	background-color: #E2C0B2;
+	color: #FFFFFF;
+}
+QPushButton:pressed {
+	background-color: #B5A08C;
+}</string>
+     </property>
+     <property name="text">
+      <string>OFF Conveyor</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btCylinder1">
@@ -1527,6 +1561,8 @@ QPushButton:pressed {
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../assets/hinhanh.qrc"/>
+ </resources>
  <connections/>
 </ui>
