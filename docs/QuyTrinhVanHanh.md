@@ -24,13 +24,12 @@ Trước khi chạy máy, người vận hành thực hiện các bước trên 
 
 ## 2. CHẾ ĐỘ HOẠT ĐỘNG (ROUTING)
 
-### 🔒 2.0 Kích hoạt Master (Khóa Phần Cứng)
-Trước khi chọn chế độ Auto hay Manual, người vận hành **bắt buộc** nhấn nút **"🔓 Master"** trên giao diện:
-- Khi nhấn Master → PC gửi tín hiệu `PC_Master = TRUE` xuống PLC → PLC vô hiệu hóa các nút vật lý trên tủ điện.
-- Giao diện hiển thị thêm 2 nút **Auto** và **Manual** để chọn chế độ.
-- Khi tắt Master → Tất cả nút chế độ ẩn đi, PLC mở khóa cho nút vật lý hoạt động trở lại.
-
-Người vận hành chọn 1 trong 2 chế độ bằng cách nhấn nút tương ứng (Auto hoặc Manual).
+### 🔒 2.0 Kích hoạt Điều khiển Thủ công (Control Manual)
+Để thực hiện vận hành bằng tay, người trực máy phải kích hoạt quyền điều khiển thủ công theo quy trình bảo mật 2 lớp:
+1. **Xác thực phần mềm:** Nhấn nút **"⚙️ Control Manual"** trên giao diện chính, nhập tài khoản admin (mặc định: `admin` / `123`). Khi đăng nhập thành công, nút chuyển trạng thái sang **"🔒 Đăng xuất"**.
+2. **Xác thực phần cứng:** Xoay khóa vật lý trên tủ điện PLC sang chế độ Manual. PLC sẽ gửi cờ hiệu `PLC_Manual = TRUE` lên máy tính.
+- Chỉ khi **đủ cả 2 điều kiện** trên, giao diện phần mềm mới kích hoạt và hiển thị các nút điều khiển thủ công (`Trigger`, `Continue`, `ON Conveyor`, `OFF Conveyor`, `Cylinder 1`, `Cylinder 2`).
+- Nếu thiếu bất kỳ điều kiện nào (gạt tủ điện về Auto hoặc nhấn đăng xuất trên phần mềm), các nút này sẽ tự động ẩn đi để tránh các thao tác sai sót ngoài ý muốn.
 
 ### 🟢 2A. Chế độ Tự Động (AUTO MODE)
 **Đặc điểm:** Phần mềm tự động giám sát cảm biến quang, chạy vòng lặp suy luận và gửi lệnh cho PLC loại bỏ tự động mà không cần can thiệp tay. Sự tương tác diễn ra 100% qua Snap7 ở Back-ground.
@@ -49,8 +48,8 @@ Người vận hành chọn 1 trong 2 chế độ bằng cách nhấn nút tươ
 ### 🔵 2B. Chế độ Thủ Công (MANUAL MODE)
 **Đặc điểm:** Vô hiệu hóa tính năng ra quyết định vòng kín của PLC, giao toàn quyền điều khiển từng bộ phận cơ khí riêng lẻ cho người trực máy thông qua các nút trên màn hình máy tính.
 
-- **Điều khiển Băng tải (`btConveyor`):** Nhấn để băng tải chạy cưỡng bức, nhấn lần nữa để dừng. Truyền tín hiệu On/Off vào `PC_Conveyor`.
-- **Điều khiển Xy-lanh (`btCylinder1`, `btCylinder2`):** Nhấn để ép ty xy lanh đi ra, nhấn tắt để thu ty xy lanh lại. Dùng bảo trì/kẹt phôi.
+- **Điều khiển Băng tải (`btConveyorOn`/`btConveyorOff`):** Nhấn giữ nút để chạy băng tải cưỡng bức và nhả nút để dừng băng tải (Tín hiệu gửi xuống `Conveyor_ON`/`Conveyor_OFF` trong `Class_dataplc.py`).
+- **Điều khiển Xy-lanh (`btCylinder1`, `btCylinder2`):** Nhấn giữ nút để kích hoạt đẩy xi lanh ra ngoài và nhả nút để tự động thu xi lanh về.
 - **Mô phỏng Chụp (Nút `Trigger`):** Ép Camera đóng băng hình ảnh hiện tại và xử lý AI tức thì để ghi dữ liệu/biên bản kết quả (Không đợi mạch PLC).
 - **Tiếp tục (Nút `Continue`):** Thả frame bị đóng băng, đưa hình ảnh Camera về dạng video Live Stream.
 

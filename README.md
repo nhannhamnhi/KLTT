@@ -1,6 +1,6 @@
-# 🎓 KHÓA LUẬN TỐT NGHIỆP
+## 🎓 KHÓA LUẬN TỐT NGHIỆP
 
-## Xây dựng hệ thống giám sát và phát hiện lỗi sản phẩm dựa trên thị giác máy tính
+### Xây dựng hệ thống giám sát và phát hiện lỗi sản phẩm dựa trên thị giác máy tính
 
 > **Đề tài:** Phát hiện lỗi sản phẩm (vỉ thuốc) sử dụng mô hình Deep Learning **YOLOv8-OBB** kết hợp tối ưu hóa tốc độ xử lý thời gian thực với **Intel OpenVINO™**.
 
@@ -8,385 +8,345 @@
 
 ---
 
-## 📋 Mục Lục
+### 📋 Mục Lục
 
 - [Công Nghệ Sử Dụng](#-công-nghệ-sử-dụng)
 - [Cấu Trúc Thư Mục](#-cấu-trúc-thư-mục)
 - [Nguyên Lý Hoạt Động](#-nguyên-lý-hoạt-động)
-- [Hướng Dẫn Cài Đặt](#%EF%B8%8F-hướng-dẫn-cài-đặt)
+- [Hướng Dẫn Cài Đặt](#-hướng-dẫn-cài-đặt)
 - [Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng)
 - [Quản Lý Model AI](#-quản-lý-model-ai)
 - [Quản Lý Dữ Liệu](#-quản-lý-dữ-liệu)
 - [Cấu Hình Truyền Thông PLC](#-cấu-hình-truyền-thông-plc)
-- [Lưu Ý Quan Trọng](#-lưu-ý-quan-trọng)
+- [Lưu Ý Quan Trọng](#-lưu-y-quan-trọng)
 
 ---
 
-## 🛠 Công Nghệ Sử Dụng
+### 🛠 Công Nghệ Sử Dụng
 
 | Thành phần | Công nghệ | Vai trò |
 | :--- | :--- | :--- |
-| **Ngôn ngữ** | ![Python](https://img.shields.io/badge/Python-3.8%2B-blue?style=flat&logo=python) | Ngôn ngữ chính |
+| **Ngôn ngữ** | ![Python](https://img.shields.io/badge/Python-3.13-blue?style=flat&logo=python) | Ngôn ngữ chính |
 | **Giao diện** | **PyQt5** | Thiết kế UI Desktop đa cửa sổ |
-| **Mô hình AI** | **YOLOv8** (OBB - Oriented Bounding Box) | Nhận diện và phân loại viên thuốc |
-| **Tăng tốc AI** | **Intel OpenVINO™** | Tối ưu inference trên CPU Intel |
-| **Xử lý ảnh** | **OpenCV** | Đọc camera, điều chỉnh ảnh |
+| **Mô hình AI** | **YOLOv8** (OBB - Oriented Bounding Box) | Nhận diện và phân loại viên thuốc dạng xoay |
+| **Tăng tốc AI** | **Intel OpenVINO™** | Tối ưu hóa inference trên CPU Intel |
+| **Xử lý ảnh** | **OpenCV** | Đọc camera, điều chỉnh độ sáng, độ bão hòa màu |
 | **Truyền thông PLC** | **python-snap7** | Giao tiếp với PLC Siemens qua S7 Protocol |
-| **Dữ liệu** | **JSON** + **openpyxl** | Lưu trữ kết quả và xuất Excel |
+| **Dữ liệu (Local)** | **JSON** + **openpyxl** | Lưu trữ kết quả cục bộ và xuất báo cáo Excel chuyên nghiệp |
+| **Dữ liệu (Cloud)** | **gspread** + **google-auth** | Hàng chờ và đồng bộ kết quả lên Google Sheets tự động |
 
 ---
 
-## 📁 Cấu Trúc Thư Mục
+### 📁 Cấu Trúc Thư Mục
+
+Dưới đây là sơ đồ tổ chức thư mục thực tế của dự án:
 
 ```
 KLTT/
-├── File_MainProgram/          # 🧠 Code xử lý chính
-│   ├── finish.py              # File khởi chạy - Điều phối toàn bộ hệ thống
-│   ├── Class_AI.py            # Lớp YOLO_Detector - Xử lý nhận diện AI
-│   ├── Class_dataplc.py       # Lớp PLCConnector - Truyền thông PLC Siemens
-│   ├── plc_diagnostics.py     # Script chẩn đoán kiểm tra cấu hình DB PLC
-│   ├── data_manager.py        # Lớp DataManager - Quản lý lưu/xuất dữ liệu
-│   └── data/
-│       └── data_history.json  # File lưu lịch sử kết quả phát hiện
+├── .venv/                       # Môi trường ảo Python chính (được dùng trong run_app.bat)
+├── assets/                      # 🎨 Tài nguyên hình ảnh gốc và file định nghĩa Qt Resource
+│   ├── hinhanh.qrc              # File cấu hình tài nguyên Qt Designer
+│   └── hinhqrc/                 # Thư mục chứa các file ảnh gốc (.png, .jpeg, .jpg)
 │
-│── File_Markdown/             # 📝 Tài liệu hướng dẫn & Spec
-│   ├── Snap7_DataMap.md       # 📋 Tài liệu chi tiết bản đồ dữ liệu PLC
-│   ├── QuyTrinhVanHanh.md     # Hướng dẫn vận hành chi tiết
-│   ├── ModeAuto-Man.md        # Giải thích logic Auto/Manual
-│   └── tonghoploi.md          # Tổng hợp lỗi và cách khắc phục
+├── data/                        # Thư mục chứa dữ liệu lịch sử đo đạc ở cấp root (chứa file data_history.json)
 │
-├── ui/                        # 🎨 Tài nguyên giao diện
-│   └── forms/                 # File thiết kế Qt Designer (.ui)
+├── docs/                        # 📝 Tài liệu hướng dẫn & Spec
+│   ├── DongBoGoogleSheets.md    # Tài liệu hướng dẫn đồng bộ dữ liệu Google Sheets
+│   ├── QuyTrinhVanHanh.md       # Quy trình vận hành hệ thống chi tiết
+│   ├── tonghoploi.md            # Các lỗi thường gặp và cách khắc phục
+│   └── tongquanOPENVION.md      # Hướng dẫn tổng quan về OpenVINO
 │
-├── assets/                    # 🖼️ Hình ảnh, icon, tài nguyên tĩnh
-├── models/                    # 🤖 Thư mục chứa model AI (YOLOv8, OpenVINO)
-├── plc/                       # ⚙️ Code PLC (SCL, Tag list)
-├── scripts/                   # 🛠️ Script tiện ích
-├── scratch/                   # 📝 File nháp, plan (không commit)
-├── venv/                      # 🐍 Môi trường ảo Python
-└── README.md                  # File hướng dẫn này
+├── ket_qua/                     # 📊 Kết quả thực hiện và tài liệu hệ thống thực tế
+│   ├── hinhanh_codeplc/         # Hình ảnh chụp các khối lệnh logic lập trình PLC
+│   │   ├── DB_PLC_Python/       # Các khối DB phục vụ truyền thông PLC-Python
+│   │   ├── Main_OB1/            # Các network lệnh chính trong khối OB1
+│   │   ├── Mode_Auto/           # Các khối điều khiển chế độ Tự động
+│   │   └── Mode_Manual/         # Các khối điều khiển chế độ Thủ công
+│   ├── hinhanh_giaodien/        # Hình ảnh chụp màn hình giao diện ứng dụng thực tế
+│   │   └── qualy_dulieu/        # Hình ảnh giao diện Dialog xem và quản lý dữ liệu
+
+│
+├── models/                      # 🤖 Thư mục chứa các model AI YOLOv8-OBB
+│   └── yolov8-obb/
+│       ├── yolov8.pt            # Trọng số PyTorch gốc
+│       └── yolov8_openvino_model/ # Trọng số định dạng OpenVINO (.xml, .bin, metadata.yaml)
+│
+├── scripts/                     # ⚙️ Các script tiện ích hỗ trợ phát triển
+│   └── pyflakes_check.py        # Script kiểm tra nhanh lỗi cú pháp code
+│
+├── src/                         # 🧠 Toàn bộ mã nguồn chương trình chính
+│   ├── ai/
+│   │   └── Class_AI.py          # Lớp YOLO_Detector - Xử lý nhận diện AI (OBB / OpenVINO)
+│   ├── data/
+│   │   ├── config.py            # Cấu hình Google Sheets, thời gian giữ dữ liệu
+│   │   ├── config.py.example    # File mẫu cấu hình Google Sheets (dùng làm mẫu)
+│   │   ├── data_manager.py      # Lớp DataManager - Quản lý lưu trữ local, sync queue và xuất Excel
+│   │   ├── service_account.json # Credentials xác thực với Google API
+│   │   └── data/
+│   │       ├── data_history.json # Lưu lịch sử kết quả phát hiện thực tế (JSON cục bộ)
+│   │       └── pending_queue.json # Hàng chờ dữ liệu chưa đồng bộ lên Cloud
+│   ├── plc/
+│   │   └── Class_dataplc.py     # Lớp PLCConnector - Truyền thông Snap7 với PLC Siemens
+│   └── ui/
+│       ├── finish.py            # File khởi chạy chính - Điều phối toàn bộ hệ thống
+│       ├── Main.py              # Logic giao diện chính (sinh từ Main.ui)
+│       ├── Login.py             # Logic giao diện đăng nhập (sinh từ Login.ui)
+│       ├── Background.py        # Logic màn hình khởi động cũ (không sử dụng trực tiếp)
+│       ├── data_viewer_dialog.py # Logic điều khiển Dialog xem/lọc/xuất nhật ký kết quả
+│       ├── data_viewer_dialog_ui.py # Giao diện Dialog nhật ký (sinh từ .ui)
+│       └── hinhanh_rc.py        # File tài nguyên hình ảnh giao diện đã biên dịch
+│
+├── ui/                          # 🎨 File thiết kế Qt Designer (.ui)
+│   └── forms/
+│       ├── Main.ui              # Thiết kế giao diện chính
+│       ├── Login.ui             # Thiết kế màn hình đăng nhập
+│       ├── data_viewer_dialog.ui # Thiết kế dialog xem lịch sử
+│       └── untitled.ui          # File phác thảo thiết kế nháp
+│
+├── venv/                        # Môi trường ảo Python dự phòng
+├── requirements.txt             # Danh sách thư viện Python cần cài đặt
+├── run_app.bat                  # File script khởi chạy nhanh trên Windows
+├── pyrightconfig.json           # File cấu hình môi trường phát triển Pyright
+└── README.md                    # Tài liệu hướng dẫn sử dụng (chính là file này)
 ```
 
 ---
 
-## 🔬 Nguyên Lý Hoạt Động
+### 🔬 Nguyên Lý Hoạt Động
 
-### Luồng xử lý tổng quan
+#### Luồng xử lý tổng quan
 
 ```
-Khởi động → Đăng nhập → Kết nối Camera → AI nhận diện → Hiển thị OK/NG → Lưu dữ liệu
-                                                              ↓
-                                               Kết nối PLC → Gửi kết quả → Điều khiển cơ cấu
+Khởi chạy (finish.py) → Hiện Login → Đăng nhập thành công → Vào thẳng Main UI → Kết nối Camera & PLC
+                                                                                │
+                                                                       Luồng camera chạy AI
+                                                                                │
+             Auto (PLC phát tín hiệu sensor) ←──────────────────────────────────┼──────────────────────────────────→ Manual (Trigger trên PC)
+                           │                                                                                                    │
+          Sensor S0 kích hoạt (Cạnh lên)                                                                             Nhấn nút "Trigger" trên UI
+                           │                                                                                                    │
+      Đóng băng ảnh AI + Lưu cục bộ & Cloud                                                                     Đóng băng ảnh AI + Lưu cục bộ & Cloud
+                           │                                                                                                    │
+          Ghi kết quả & DataReady = True xuống PLC                                                                  Ghi kết quả & DataReady = True xuống PLC
+                           │                                                                                                    │
+          Sensor S0 ngắt kích hoạt (Cạnh xuống)                                                                      Nhấn nút "Continue" trên UI
+                           │                                                                                                    │
+               Hạ cờ DataReady về False                                                                                  Hạ cờ DataReady về False
 ```
 
-### Các bước hoạt động chính
+#### Các thành phần chính
 
-**① Khởi động & Đăng nhập**
-- Ứng dụng hiển thị màn hình chào mừng → Nhấn **Bắt đầu** → Đăng nhập bằng tài khoản → Vào giao diện chính
+**① Khởi động & Xác thực**
+- Ứng dụng chạy trực tiếp file [finish.py](file:///d:/KL_2025/KLTT/src/ui/finish.py) hoặc nhấp đúp file [run_app.bat](file:///d:/KL_2025/KLTT/run_app.bat).
+- Màn hình khởi động cũ `Background.py` được loại bỏ để tối ưu hóa quy trình. Giao diện Login xuất hiện ngay lúc bật ứng dụng.
+- Người vận hành nhập thông tin tài khoản (mặc định: `admin` / `123`) để vào giao diện giám sát chính.
 
-**② Thu nhận hình ảnh**
-- Camera chạy trên **luồng riêng** để giao diện không bị treo
-- Hỗ trợ điều chỉnh **độ sáng** và **độ bão hòa** qua Slider
-- Hiển thị song song: ảnh gốc và ảnh đã qua AI xử lý
+**② Thu nhận hình ảnh & Tiền xử lý**
+- Camera được chạy trên một luồng phụ tách biệt (`CameraThread`) để đảm bảo không làm giật lag giao diện đồ họa.
+- Trên giao diện chính, người dùng có thể điều chỉnh trực tiếp **Độ sáng** (-100 đến +100) và **Độ bão hòa màu** (-100 đến +100) bằng các thanh cuộn Slider giúp tối ưu hóa ảnh đầu vào dưới các điều kiện ánh sáng nhà xưởng khác nhau.
 
-**③ Nhận diện bằng AI**
-- Model **YOLOv8-OBB** quét từng frame, phát hiện và phân loại viên thuốc trên vỉ
-- Tăng tốc xử lý bằng **OpenVINO** trên CPU Intel
-- Mỗi viên thuốc được gán 1 trong 3 nhãn:
+**③ Nhận diện lỗi bằng AI**
+- Model **YOLOv8-OBB** quét từng khung hình để phát hiện và khoanh vùng các viên thuốc bằng khung xoay hướng (Oriented Bounding Box).
+- Model được tối ưu hóa qua **Intel OpenVINO™** nhằm tăng tốc độ suy luận (Inference) trên vi xử lý CPU Intel ở thời gian thực.
+- Các viên thuốc được phân loại vào 3 trạng thái:
+  - `Full`: Viên thuốc đầy đủ, nguyên vẹn.
+  - `Partial`: Viên thuốc bị vỡ, khuyết góc hoặc bị thiếu một phần.
+  - `Empty`: Vị trí khuôn bị trống, không có thuốc.
 
-| Nhãn | Ý nghĩa | Đánh giá |
-| :--- | :--- | :--- |
-| `Full` | Viên thuốc đầy đủ, nguyên vẹn | ✅ Đạt |
-| `Partial` | Viên thuốc bị thiếu một phần | ❌ Lỗi |
-| `Empty` | Vị trí trống, không có viên | ❌ Lỗi |
+**④ Đánh giá kết quả vỉ thuốc**
+- Trạng thái đánh giá hiển thị trên nhãn màu trực quan:
+  - **WAIT** (Nền trắng): Chưa có vỉ thuốc đi vào vùng camera giám sát.
+  - **MISSING** (Nền cam): Vỉ thuốc bị thiếu ô khuôn chuẩn (khuôn chuẩn mặc định là 6 ô).
+  - **OK** (Nền xanh lá): Tất cả các viên trên vỉ đều ở trạng thái `Full`.
+  - **NG_L** (Nền vàng): Lỗi nhẹ — hơn 50% số viên đạt chuẩn.
+  - **NG_H** (Nền đỏ): Lỗi nặng — từ 50% số viên trở xuống đạt chuẩn.
 
-**④ Đánh giá kết quả**
-- **WAIT** (nền trắng): Chưa phát hiện vỉ thuốc trong khung hình
-- **MISSING** (nền cam): Phát hiện ít hơn số ô khuôn chuẩn (6 ô)
-- **OK** (nền xanh): Tất cả viên đều là `Full`
-- **NG_L** (nền vàng): Lỗi nhẹ — hơn 50% viên đạt
-- **NG_H** (nền đỏ): Lỗi nặng — ≤50% viên đạt
+**⑤ Truyền thông PLC & Điều khiển cơ cấu**
+- Kết quả kiểm tra được gửi trực tiếp xuống PLC Siemens thông qua thư viện **python-snap7**.
+- **Chế độ AUTO (Tự động):** Khi cảm biến Sensor S0 của PLC phát hiện vỉ thuốc tới vị trí chụp, luồng truyền thông sẽ bắt tín hiệu → Tự động chụp, đóng băng kết quả, lưu trữ và ghi mã kết quả (`PC_KetQua`) cùng cờ `PC_DataReady = True` xuống PLC để điều khiển xylanh đẩy vỉ NG. Khi Sensor S0 ngắt, PC sẽ hạ cờ `PC_DataReady = False`.
+- **Chế độ MANUAL (Thủ công):** Yêu cầu bảo mật 2 lớp:
+  - Bước 1: Người dùng nhấn nút **Control Manual** trên UI và xác thực tài khoản `admin`/`123`.
+  - Bước 2: Gạt công tắc vật lý trên PLC sang chế độ Manual.
+  - Khi đủ 2 điều kiện, các nút điều khiển thủ công (Trigger, Continue, Conveyor On/Off, Cylinder 1, Cylinder 2) sẽ hiển thị. Người dùng có thể nhấn giữ để kích hoạt băng tải hoặc các xylanh thử nghiệm.
 
-**⑤ Truyền thông PLC**
-- Kết quả AI được gửi xuống PLC qua **Snap7** (S7 Protocol)
-- PLC điều khiển cơ cấu: băng tải, xy-lanh phân loại
-- **Auto** (PLC tự động): Sensor S0 phát hiện sản phẩm → AI tự động ghi kết quả & DataReady xuống PLC.
-- **Manual** (Điều khiển từ PC): Yêu cầu **bảo mật 2 lớp** (Đăng nhập tài khoản điều khiển + Gạt công tắc vật lý PLC sang Manual). Các nút điều khiển chỉ xuất hiện khi đủ cả 2 điều kiện.
-
-**⑥ Lưu trữ & Xuất dữ liệu**
-- Nhấn **Trigger** để đóng băng hình ảnh và lưu kết quả kiểm tra vào file JSON
-- Nhấn **Continue** để tiếp tục quét
-- Hỗ trợ **xuất Excel** theo ngày với format chuyên nghiệp
-- Dữ liệu cũ hơn 15 ngày được tự động dọn dẹp
+**⑥ Quản lý và Đồng bộ dữ liệu**
+- Kết quả kiểm tra được lưu trữ cục bộ vào file [data_history.json](file:///d:/KL_2025/KLTT/src/data/data/data_history.json).
+- Dữ liệu đồng thời được đẩy lên Google Sheets tự động. Nếu mất mạng hoặc lỗi kết nối, dữ liệu sẽ được lưu tạm vào hàng chờ [pending_queue.json](file:///d:/KL_2025/KLTT/src/data/data/pending_queue.json) và tự động đồng bộ lại khi kết nối internet được khôi phục.
+- Chức năng tự động dọn dẹp dữ liệu cũ (mặc định giữ lại 90 ngày) giúp tránh đầy bộ nhớ.
 
 ---
 
-## ⚙️ Hướng Dẫn Cài Đặt
+### ⚙️ Hướng Dẫn Cài Đặt
 
-### Bước 1: Clone hoặc tải mã nguồn
-
+#### Bước 1: Tải mã nguồn về máy
 ```bash
 git clone <URL_REPOSITORY>
 cd KLTT
 ```
 
-### Bước 2: Tạo và kích hoạt môi trường ảo
-
+#### Bước 2: Thiết lập môi trường ảo
+Nên sử dụng Python phiên bản 3.13 hoặc 3.8+ để tương thích tốt nhất.
 ```bash
-python -m venv venv
+# Tạo môi trường ảo
+python -m venv .venv
 
-# Windows:
-venv\Scripts\activate
+# Kích hoạt môi trường ảo (Windows)
+.venv\Scripts\activate
 ```
 
-### Bước 3: Cài đặt thư viện
-
+#### Bước 3: Cài đặt các thư viện phụ thuộc
+Cài đặt các gói thư viện cơ bản từ file `requirements.txt`:
 ```bash
-pip install PyQt5 opencv-python ultralytics openvino openpyxl python-snap7
+pip install -r requirements.txt
+```
+*Lưu ý:* Để chạy tăng tốc mô hình bằng OpenVINO, cài đặt thêm gói:
+```bash
+pip install openvino
 ```
 
-> **Lưu ý:** Nên cài đặt `ultralytics` và `openvino` cùng phiên bản đã dùng để huấn luyện model.
-
-### Bước 4: Tải Model AI
-
-Do file model khá lớn, cần tải riêng từ Google Drive:
-
+#### Bước 4: Tải mô hình AI
+Do file model lớn nên không đưa lên git, tải thư mục mô hình theo đường dẫn dưới đây:
 📥 **[Google Drive - Download Model OpenVINO](https://drive.google.com/drive/folders/1GZrhgVkqMVZgJNROqwBPujrJ1-hqv6_k?usp=sharing)**
 
-Sau khi tải, đặt thư mục model vào thư mục `models/` (ví dụ: `models/yolov8-obb/`).
+Sau khi tải, đặt thư mục mô hình vào đúng đường dẫn:
+`models/yolov8-obb/yolov8_openvino_model/` (phải chứa đủ 3 file: `yolov8.xml`, `yolov8.bin`, và `metadata.yaml`).
 
-### Bước 5: Chạy chương trình và nạp Model
-
+#### Bước 5: Chạy chương trình
 ```bash
 python src/ui/finish.py
 ```
+Hoặc chạy trực tiếp thông qua file batch:
+```cmd
+run_app.bat
+```
+Sau khi giao diện tải xong, thực hiện nạp model AI từ giao diện chính:
+1. Tại khung **Quản lý Model AI**, nhấn **Duyệt** → Tìm tới thư mục `models/yolov8-obb/yolov8_openvino_model/` hoặc file trọng số gốc `yolov8.pt`.
+2. Nhấn nút **Tải Model** → Kiểm tra thanh **Status Bar** bên dưới xem đã hiển thị model AI thành công hay chưa.
 
-Sau khi vào giao diện chính, nạp model AI theo các bước:
-
-1. Nhấn nút **Duyệt** → Chọn thư mục model OpenVINO (hoặc file `.pt`, `.onnx`)
-2. Nhấn nút **Tải Model** → Hệ thống sẽ kiểm tra và nạp model
-3. Kiểm tra **Status Bar** phía dưới để xác nhận model đã được nạp thành công
-
-> 💡 **Không cần sửa code** — Mọi thao tác nạp/thay đổi model đều thực hiện trực tiếp trên giao diện.
+#### Bước 6: Cấu hình Google Sheets (Tùy chọn)
+Nếu muốn đồng bộ dữ liệu giám sát trực tuyến lên Cloud:
+1. Tạo một dự án trên Google Cloud Console, tạo Service Account và tải file credentials JSON về máy.
+2. Đổi tên file credential thành `service_account.json` và lưu vào thư mục `src/data/service_account.json`.
+3. Sửa file [config.py](file:///d:/KL_2025/KLTT/src/data/config.py) để điền đúng ID bảng tính Google Sheets của bạn:
+   ```python
+   SPREADSHEET_ID = "ID_BANG_TINH_GOOGLE_SHEETS"
+   SERVICE_ACCOUNT_FILE = "src/data/service_account.json"
+   SHEET_NAME = "KLTT_Data"
+   DATA_RETENTION_DAYS = 90
+   ```
+4. Chia sẻ quyền chỉnh sửa (Editor) bảng tính Google Sheet đó cho email của Service Account vừa tạo.
 
 ---
 
-## 🚀 Hướng Dẫn Sử Dụng
+### 🚀 Hướng Dẫn Sử Dụng
 
-### Luồng sử dụng cơ bản
+#### Luồng sử dụng cơ bản
+1. Nhấp đúp [run_app.bat](file:///d:/KL_2025/KLTT/run_app.bat) để khởi động chương trình.
+2. Nhập tên tài khoản `admin` và mật khẩu `123` để đăng nhập hệ thống.
+3. Chọn cổng camera phù hợp (Webcam 1 hoặc Webcam 2) → Nhấn **Kết nối** để nhận luồng video.
+4. Chọn đúng dòng CPU PLC Siemens (S7-1200 / S7-1500) → Nhập địa chỉ IP PLC → Nhấn **Kết nối PLC**.
+5. Nhập đường dẫn model AI → Nhấn **Tải Model**.
+6. Ở chế độ Auto, hệ thống sẽ tự động phân loại và điều khiển cơ cấu phân loại của PLC khi có vỉ chạy qua cảm biến.
+7. Để xem lại nhật ký hoặc xuất Excel, nhấn nút **📊 Quản lý dữ liệu**.
 
-```
-1. Khởi chạy → Màn hình Background hiện ra
-2. Nhấn nút "Bắt đầu" → Chuyển sang đăng nhập
-3. Nhập Tên (admin) + Mật khẩu (123) → Vào giao diện chính
-4. Chọn Camera (Webcam_1 hoặc Webcam_2) → Nhấn "Kết nối"
-5. Hệ thống tự động nhận diện vỉ thuốc → Hiển thị OK/NG
-6. Nhấn "Trigger" để dừng hình + lưu kết quả
-7. Nhấn "Continue" để tiếp tục quét
-8. Nhấn "Xuất" để export kết quả ra Excel
-```
+#### Các chức năng trên giao diện điều khiển
 
-### Các chức năng trên giao diện chính
-
-| Khu vực | Thành phần | Chức năng |
+| Phân vùng | Chức năng | Mô tả |
 | :--- | :--- | :--- |
-| **Camera** | Combobox chọn Camera | Chọn `Webcam_1` (ID=0) hoặc `Webcam_2` (ID=1) |
-| | Nút **Kết nối** | Bật camera và bắt đầu xử lý AI |
-| | Nút **Ngắt kết nối** | Tắt camera, xóa hình trên màn hình |
-| **Điều chỉnh ảnh** | Slider **Độ sáng** | Tăng/giảm độ sáng (-100 đến +100) |
-| | Slider **Độ bão hòa** | Tăng/giảm màu sắc (-100 đến +100) |
-| | Nút **Reset** | Đưa tất cả slider về 0, khởi động lại camera |
-| **Hiển thị** | Ảnh gốc | Hình ảnh thô từ camera |
-| | Ảnh đã xử lý | Hình ảnh có vẽ khung nhận diện AI |
-| | Ô kết quả (OK/NG/WAIT) | Kết quả tổng hợp với màu trực quan |
-| | Bộ đếm | Tổng số viên / Viên đạt / Viên lỗi |
-| **PLC** | Kết nối PLC | Nhập IP, Rack, Slot → Kết nối PLC Siemens (Có xác minh dòng CPU) |
-| | Nút **Control Manual** | Đăng nhập quyền điều khiển thủ công (Mặc định: `admin`/`123`) |
-| | Chế độ Auto/Manual | Hiển thị trạng thái đồng bộ từ công tắc vật lý của PLC |
-| **Điều khiển** | Nút **Trigger** | (Manual) Đóng băng camera + Ghi kết quả xuống PLC |
-| | Nút **Continue** | (Manual) Tiếp tục quét sau khi Trigger |
-| | Nút **Conveyor** | (Manual - Momentary) Nhấn giữ để chạy băng tải, nhả để dừng |
-| | Các nút **Cylinder** | (Manual - Momentary) Nhấn giữ để kích xy-lanh, nhả để thu |
-| **Dữ liệu** | Danh sách kết quả | Hiển thị lịch sử kiểm tra hôm nay |
-| | Nút **Xuất Excel** | Chọn ngày → Xuất file `.xlsx` |
-| **Status Bar** | Thanh trạng thái | Hệ thống / Model / Camera / FPS / PLC / Mode / Sensor |
+| **Camera** | `Webcam_1` / `Webcam_2` | Combobox chọn Camera ID (0 hoặc 1) |
+| | **Kết nối / Ngắt kết nối** | Kích hoạt/dừng việc đọc và phân tích camera |
+| **Ảnh & Hiệu chỉnh** | **Độ sáng / Độ bão hòa** | Slider điều chỉnh các thông số chất lượng ảnh đầu vào |
+| | **Reset** | Khôi phục chất lượng ảnh mặc định (đưa các slider về 0) |
+| **Nhận diện AI** | Màn hình hiển thị | Hiển thị song song luồng ảnh gốc và ảnh đã vẽ khung nhận diện xoay (OBB) |
+| | Ô trạng thái | Hiển thị nhãn kết quả phân loại vỉ hiện tại (OK, NG_L, NG_H, MISSING, WAIT) |
+| | Khung đếm số lượng | Đếm tổng số viên thuốc phát hiện, số viên đạt và số viên lỗi |
+| **Model AI** | **Duyệt / Tải Model** | Chọn đường dẫn và nạp model mới trực tiếp trên giao diện |
+| **PLC Siemens** | `IP` / `Rack` / `Slot` | Địa chỉ kết nối đến PLC và chọn loại CPU để auto-fill Rack/Slot |
+| | **Control Manual** | Xác thực đăng nhập thủ công cho nhân viên vận hành |
+| | Trạng thái hệ thống | Hiển thị trạng thái chế độ hoạt động (AUTO / MANUAL), cảm biến S0/S1/S2 và trạng thái hệ thống |
+| **Bảng dữ liệu** | Danh sách lịch sử | Hiển thị tóm tắt các bản ghi đã kiểm tra trong ngày hôm nay |
+| | **📊 Quản lý dữ liệu** | Mở Dialog lịch sử chi tiết (DataViewerDialog) |
 
 ---
 
-## 🤖 Quản Lý Model AI
+### 🤖 Quản Lý Model AI
 
-### Thay đổi model từ giao diện (không cần sửa code)
+#### Cách tải mô hình mới từ giao diện
+1. Trên bảng điều khiển chính, di chuyển tới tab quản lý model.
+2. Nhấp chọn nút **Duyệt** và trỏ đường dẫn tới file `.pt`, `.onnx` hoặc thư mục OpenVINO.
+3. Chọn **Tải Model** → Trạng thái tải và loại mô hình suy luận sẽ được hiển thị ngay trên thanh Status Bar.
+4. Để hủy model hiện tại, bấm nút **Khôi phục**.
 
-1. Trên giao diện chính, tìm khu vực **Quản lý Model AI**
-2. Nhấn nút **Duyệt** → Chọn loại model:
-   - **File:** `.pt` (PyTorch) hoặc `.onnx`
-   - **Thư mục:** OpenVINO (chứa `.xml` + `.bin` + `metadata.yaml`)
-3. Nhấn nút **Tải Model** → Hệ thống kiểm tra và nạp model mới
-4. Nhấn nút **Khôi phục** → Xóa đường dẫn model đã chọn
-
-### Tự huấn luyện model và mang về máy cá nhân
-
-> ⚠️ **Lưu ý quan trọng về OpenVINO**
-
-Nếu huấn luyện model trên **Google Colab** rồi mang về sử dụng:
-
-1. **Đồng bộ phiên bản:** `ultralytics` và `openvino` trên máy cá nhân phải **trùng** với Colab
-2. **Quy trình khuyên dùng:**
-   - **KHÔNG** tải trực tiếp thư mục OpenVINO từ Colab → Có thể lỗi CPU instruction set
-   - **NÊN** chỉ tải file trọng số gốc `best.pt` về
-   - Sau đó **export lại** trên máy cá nhân:
-     ```python
-     from ultralytics import YOLO
-     model = YOLO("path/to/best.pt")
-     model.export(format="openvino")
-     ```
-3. **Cấu trúc thư mục model OpenVINO:** Phải chứa đầy đủ 3 file (`.xml`, `.bin`, `metadata.yaml`). Không được di chuyển hay xóa lẻ bất kỳ file nào.
+#### Lưu ý về việc chuyển đổi OpenVINO
+Nếu bạn huấn luyện mô hình YOLOv8-OBB trên Google Colab và muốn đem về máy local chạy tăng tốc OpenVINO:
+- Phiên bản thư viện `ultralytics` trên máy local phải khớp với phiên bản trên môi trường Colab.
+- Không nên tải trực tiếp thư mục OpenVINO được sinh từ Colab về máy vì dễ bị lỗi không tương thích tập lệnh tập tin CPU.
+- Cách tốt nhất: Tải file trọng số gốc `best.pt` từ Colab về, sau đó chạy dòng lệnh sau trên máy local để sinh lại thư mục OpenVINO:
+  ```python
+  from ultralytics import YOLO
+  model = YOLO("best.pt")
+  model.export(format="openvino")
+  ```
 
 ---
 
-## 📊 Quản Lý Dữ Liệu
+### 📊 Quản Lý Dữ Liệu
 
-### Lưu trữ
+Mọi hoạt động quản lý nhật ký dữ liệu được thực hiện tập trung tại cửa sổ **DataViewerDialog** bằng cách nhấn nút **📊 Quản lý dữ liệu** trên UI:
 
-- Dữ liệu được lưu vào `data/data_history.json`
-- Mỗi bản ghi gồm: Thời gian, Tổng số viên, Viên đạt, Viên lỗi, Kết quả (OK/NG)
-- Dữ liệu được phân nhóm theo **ngày** (key: `YYYY-MM-DD`)
-- Tự động xóa dữ liệu cũ hơn **15 ngày**
-
-### Xuất Excel
-
-1. Nhấn nút **Xuất** trên giao diện
-2. Chọn **ngày** cần xuất từ lịch (Calendar)
-3. Chọn **vị trí lưu** file `.xlsx`
-4. File Excel được format chuyên nghiệp với merge cell và tiêu đề
+- **Bộ lọc thông minh:** Cho phép chọn xem dữ liệu theo ngày cụ thể (thông qua Widget QDateEdit trực quan) và lọc chính xác theo từng Model AI đã sử dụng.
+- **Thống kê nhanh:** Tự động tính toán tổng số bản ghi, số bản ghi OK, NG_L, NG_H, MISSING và tỷ lệ phần trăm đạt chuẩn (Yield Rate) của tập dữ liệu đang lọc.
+- **Đồng bộ Google Sheets thủ công:** 
+  - Nếu hàng chờ còn dữ liệu chưa đồng bộ, nút **Sync Google Sheets** sẽ gửi tất cả các bản ghi đang chờ lên Cloud.
+  - Nếu hàng chờ trống, hệ thống cho phép người dùng lựa chọn đẩy lại (overwrite/append) toàn bộ dữ liệu lịch sử của ngày đang chọn lên Cloud.
+- **Xuất Excel báo cáo:** Xuất toàn bộ dữ liệu đang lọc ra file Excel `.xlsx` định dạng chuyên nghiệp:
+  - Cột **Ngày** được tự động gộp ô (merge cell) cho các bản ghi trong cùng một ngày.
+  - Có hàng tổng hợp kết quả (OK, NG_L, NG_H, MISSING) tô màu phân biệt ở cuối bảng.
 
 ---
 
-## 🔌 Cấu Hình Truyền Thông PLC
+### 🔌 Cấu Hình Truyền Thông PLC
 
-Hệ thống sử dụng **python-snap7** để giao tiếp với PLC Siemens qua giao thức S7 (TCP/IP cổng 102). Cấu hình biến PLC được khai báo trực tiếp trong mã nguồn file `src/plc/Class_dataplc.py`.
+Hệ thống sử dụng thư viện **python-snap7** để thực hiện đọc/ghi dữ liệu thời gian thực xuống PLC Siemens thông qua 2 khối DB (Data Block) cấu hình không tối ưu hóa (Optimized block access = Disabled).
 
-> 📋 Tài liệu chi tiết về bản đồ dữ liệu: xem file [Snap7_DataMap.md](file:///d:/KL_2025/KLTT/docs/Snap7_DataMap.md)
+#### Bản đồ khối dữ liệu PLC (Data Mapping)
 
-### Kiến trúc 2 DB tách biệt
+Chi tiết bản đồ offset các biến được định cấu hình trong file [Class_dataplc.py](file:///d:/KL_2025/KLTT/src/plc/Class_dataplc.py):
 
-```
-┌──────────────────┐         Snap7 (TCP/IP)         ┌──────────────────┐
-│   PC (Python)    │  ──── GHI → DB_GET ─────────→  │   PLC Siemens    │
-│                  │  ←─── ĐỌC ← DB_PUT ────────   │   (S7-1200/1500) │
-│  Class_dataplc   │         Port 102               │  DB_GET + DB_PUT │
-└──────────────────┘                                └──────────────────┘
-```
+##### Khối DB_GET (PC ghi xuống PLC — DB1, Kích thước: 3 bytes)
+- **Offset 0.0 (INT) - `PC_KetQua`:** Kết quả đánh giá của AI (0 = WAIT, 1 = OK, 2 = NG_L, 3 = NG_H, 4 = MISSING).
+- **Offset 2.0 (BOOL) - `PC_DataReady`:** Báo cho PLC biết PC đã có kết quả phân tích mới sẵn sàng.
+- **Offset 2.1 (BOOL) - `PC_Conveyor`:** Lệnh chạy/dừng băng tải (chỉ có tác dụng ở chế độ Manual).
+- **Offset 2.2 (BOOL) - `PC_Cylinder1`:** Kích hoạt xylanh 1 phân loại vỉ NG_L (chế độ Manual).
+- **Offset 2.3 (BOOL) - `PC_Cylinder2`:** Kích hoạt xylanh 2 phân loại vỉ NG_H (chế độ Manual).
 
-### Bảng biến DB_GET — PC GHI xuống PLC (DB1, 3 bytes)
+##### Khối DB_PUT (PLC gửi lên PC — DB2, Kích thước: 1 byte)
+- **Offset 0.0 (BOOL) - `PLC_Auto`:** Báo hệ thống đang hoạt động ở chế độ tự động.
+- **Offset 0.1 (BOOL) - `PLC_Manual`:** Báo hệ thống đang hoạt động ở chế độ thủ công.
+- **Offset 0.2 (BOOL) - `PLC_Running`:** Hệ thống sẵn sàng hoạt động (đèn RUN sáng, không bị lỗi khẩn cấp E-Stop).
+- **Offset 0.3 (BOOL) - `PLC_TriggerReq`:** Cảm biến S0 phát hiện sản phẩm đi qua khuôn chụp.
+- **Offset 0.4 (BOOL) - `PLC_Sensor1`:** Cảm biến S1 phát hiện vỉ NG_L đến vị trí xylanh 1.
+- **Offset 0.5 (BOOL) - `PLC_Sensor2`:** Cảm biến S2 phát hiện vỉ NG_H đến vị trí xylanh 2.
 
-| Offset | Tên biến | Kiểu | Giá trị | Mô tả |
-| :--- | :--- | :--- | :--- | :--- |
-| 0 - 1 | `PC_KetQua` | INT | 0=WAIT, 1=OK, 2=NG_L, 3=NG_H, 4=MISSING | Kết quả phân loại AI |
-| 2.0 | `PC_DataReady` | BOOL | TRUE/FALSE | Cờ báo PLC có kết quả mới cần đọc |
-| 2.1 | `PC_Conveyor` | BOOL | TRUE/FALSE | Lệnh chạy/dừng băng tải (Manual) |
-| 2.2 | `PC_Cylinder1` | BOOL | TRUE/FALSE | Kích/thu xy-lanh 1 — đẩy vỉ NG_L |
-| 2.3 | `PC_Cylinder2` | BOOL | TRUE/FALSE | Kích/thu xy-lanh 2 — đẩy vỉ NG_H |
-
-### Bảng biến DB_PUT — PLC GỬI lên PC (DB2, 1 byte)
-
-| Offset | Tên biến | Kiểu | Mô tả |
-| :--- | :--- | :--- | :--- |
-| 0.0 | `PLC_Auto` | BOOL | Chế độ Tự động đang kích hoạt |
-| 0.1 | `PLC_Manual` | BOOL | Chế độ Thủ công đang kích hoạt |
-| 0.2 | `PLC_Running` | BOOL | Hệ thống sẵn sàng (FALSE khi E-Stop/lỗi) |
-| 0.3 | `PLC_TriggerReq` | BOOL | Sensor 0 phát hiện vỉ → yêu cầu chụp |
-| 0.4 | `PLC_Sensor1` | BOOL | Sensor 1 — vỉ tới vị trí xy-lanh 1 |
-| 0.5 | `PLC_Sensor2` | BOOL | Sensor 2 — vỉ tới vị trí xy-lanh 2 |
-
-### Hướng dẫn chỉnh sửa biến PLC
-
-Khi cần **thêm biến mới** hoặc **thay đổi offset**, chỉnh sửa theo các bước sau:
-
-**Bước 1:** Cập nhật hằng số trong `src/plc/Class_dataplc.py`
-
-```python
-# File: src/plc/Class_dataplc.py
-
-DB_GET = 1            # Số hiệu DB (đổi nếu dùng DB khác trong TIA Portal)
-DB_GET_SIZE = 3       # Tổng kích thước DB_GET (bytes) — tăng nếu thêm biến
-
-DB_PUT = 2            # Số hiệu DB
-DB_PUT_SIZE = 1       # Tổng kích thước DB_PUT (bytes) — tăng nếu thêm biến
-```
-
-**Bước 2:** Thêm/sửa hàm đọc-ghi tương ứng trong class `PLCConnector`
-
-```python
-# Ví dụ: Thêm biến PLC_Sensor3 tại offset 0.6 trong DB_PUT
-# → Sửa hàm read_plc_status(), thêm dòng:
-"sensor3": get_bool(data, 0, 6),  # Offset 0.6: PLC_Sensor3
-
-# → Nhớ tăng DB_PUT_SIZE nếu biến mới nằm ở byte mới
-```
-
-**Bước 3:** Cập nhật luồng polling trong class `PLCPollingThread` (nếu cần)
-
-**Bước 4:** Cập nhật giao diện `finish.py` để hiển thị biến mới (nếu cần)
-
-> ⚠️ **Quan trọng:** Sau khi chỉnh sửa Python, phải đảm bảo DB trong TIA Portal cũng được cập nhật tương ứng (cùng offset, cùng kiểu dữ liệu, tắt "Optimized block access").
-
-### Kiểm tra đồng bộ Python ↔ TIA Portal
-
-Sử dụng script chẩn đoán để xác minh cấu hình DB trong PLC khớp với Python:
-
-```bash
-python scripts/plc_diagnostics.py
-```
-
-Script sẽ tự động kiểm tra:
-1. ✅ DB có tồn tại và đúng kích thước
-2. ✅ Đọc thử tất cả biến → offset nào lỗi sẽ báo ngay
-3. ✅ Ghi pattern test (VD: `PC_KetQua = 42`) → đối chiếu trong Watch Table
-<<<<<<< HEAD
-4. ✅ Ghi/Đọc ngược → xác minh tính toàn vẹn dữ liệu
-=======
-4. ✅ Xác minh dòng CPU (S7-1200/1500) qua Order Code
-
-### Cơ chế ổn định (Debounce)
-Vòng lặp đọc PLC (`PLCPollingThread`) được thiết lập cơ chế **Debounce** (xác minh lỗi liên tiếp ~3 giây) giúp giao diện không bị báo mất kết nối ảo khi mạng chập chờn hoặc PLC đang bận xử lý (Job pending).
->>>>>>> test
+#### Quy trình chỉnh sửa biến hoặc thay đổi DB
+Nếu cần cấu hình thêm các biến mới trong TIA Portal, thực hiện cập nhật mã nguồn Python tương ứng:
+1. Mở file [Class_dataplc.py](file:///d:/KL_2025/KLTT/src/plc/Class_dataplc.py), điều chỉnh kích thước DB (`DB_GET_SIZE` hoặc `DB_PUT_SIZE`) tại phần khai báo hằng số.
+2. Thêm logic đọc hoặc ghi giá trị tương ứng bằng các hàm tiện ích snap7 (ví dụ: `get_bool`, `set_bool`, `get_int`, `set_int`).
+3. Khởi chạy script chẩn đoán lỗi PLC độc lập để kiểm tra tính toàn vẹn:
+   ```bash
+   python src/plc/Class_dataplc.py
+   ```
+   *(Script sẽ tự động kết nối kiểm tra dung lượng DB thực tế trên PLC, thực hiện đọc thử và ghi test để xác nhận tính chính xác của bản đồ dữ liệu).*
 
 ---
 
-## ⚠️ Lưu Ý Quan Trọng
+### ⚠️ Lưu Ý Quan Trọng
 
-1. **Camera:** Đảm bảo Camera/Webcam đã được **kết nối vật lý** trước khi nhấn nút Kết nối
-2. **Model AI:** Phải nạp model thành công (kiểm tra Status Bar) trước khi kết quả nhận diện hoạt động
-3. **Hiệu năng:** OpenVINO tối ưu nhất trên CPU Intel. FPS hiển thị trên Status Bar giúp đánh giá hiệu suất
-4. **PLC:** Phải bật **PUT/GET** trong TIA Portal (Properties → Protection). Nếu dùng PLCSim, cần mở **NetToPLCSim**
-5. **Tài khoản đăng nhập mặc định:** Có thể thay đổi trong `finish.py` tại biến `USER_SETUP` và `PASS_SETUP`
-6. **Giao diện UI:** Các file `.py` trong `File_QTtoPY/` được **sinh tự động** từ Qt Designer → Không nên chỉnh sửa trực tiếp. Nếu muốn thay đổi UI, hãy sửa file `.ui` trong `File_QT/` rồi chạy lại `pyuic5`
-
----
-
-## 📝 Thông Tin Bổ Sung
-
-### Các thư viện Python chính
-
-```
-PyQt5          - Giao diện Desktop
-opencv-python  - Xử lý hình ảnh và camera
-ultralytics    - Framework YOLO cho nhận diện vật thể
-openvino       - Tăng tốc inference trên CPU Intel
-python-snap7   - Giao tiếp PLC Siemens qua S7 Protocol
-openpyxl       - Đọc/ghi file Excel
-numpy          - Xử lý mảng và tính toán số học
-```
-
-### Chạy lệnh sinh code Python từ file UI (nếu cần)
-
-```bash
-# Sinh lại file Python từ .ui (chạy tại thư mục gốc project)
-pyuic5 File_QT/Main.ui -o File_QTtoPY/Main.py
-pyuic5 File_QT/Login.ui -o File_QTtoPY/Login.py
-pyuic5 File_QT/Background.ui -o File_QTtoPY/Background.py
-
-# Sinh lại file resource
-pyrcc5 File_QT/hinhanh.qrc -o File_QTtoPY/hinhanh_rc.py
-```
+1. **PUT/GET Access:** Trên cấu hình PLC Siemens trong phần mềm TIA Portal, bắt buộc phải bật tùy chọn **Permit access with PUT/GET communication from remote partner** trong mục Protection & Security thì Snap7 mới có thể kết nối.
+2. **Biên dịch giao diện từ file UI:** Nếu bạn thực hiện sửa đổi giao diện đồ họa thông qua phần mềm Qt Designer (các file `.ui` nằm ở thư mục `ui/forms/`), bạn phải chạy lệnh biên dịch để cập nhật mã Python tương ứng:
+   ```bash
+   pyuic5 ui/forms/Main.ui -o src/ui/Main.py
+   pyuic5 ui/forms/Login.ui -o src/ui/Login.py
+   pyuic5 ui/forms/data_viewer_dialog.ui -o src/ui/data_viewer_dialog_ui.py
+   ```
+3. **Môi trường Windows:** Các tiến trình AI chạy trên Torch thường gặp lỗi nạp thư viện DLL (`c10.dll`). Mã nguồn trong [finish.py](file:///d:/KL_2025/KLTT/src/ui/finish.py) và [Class_AI.py](file:///d:/KL_2025/KLTT/src/ai/Class_AI.py) đã tích hợp sẵn đoạn mã tự động phát hiện và import đường dẫn thư viện DLL của PyTorch nhằm tránh lỗi sập phần mềm khi khởi chạy trên Windows.

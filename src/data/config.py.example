@@ -1,0 +1,15 @@
+# -*- coding: utf-8 -*-
+# File cấu hình mẫu - Google Sheets và Lưu trữ dữ liệu
+# Hãy sao chép file này thành config.py và điền thông tin thực tế của bạn.
+
+# ID của Google Spreadsheet (lấy từ URL trên trình duyệt web)
+SPREADSHEET_ID = "YOUR_SPREADSHEET_ID_HERE"
+
+# Đường dẫn tới file Service Account JSON (dùng để xác thực Google API)
+SERVICE_ACCOUNT_FILE = "src/data/service_account.json"
+
+# Tên Sheet (Tab) mặc định để đồng bộ dữ liệu kiểm tra
+SHEET_NAME = "KLTT_Data"
+
+# Số ngày giữ lại lịch sử dữ liệu (tự động xóa dữ liệu cũ hơn số ngày này)
+DATA_RETENTION_DAYS = 90

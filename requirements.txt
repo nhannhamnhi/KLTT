@@ -1,0 +1,8 @@
+gspread>=6.0.0
+google-auth>=2.0.0
+PyQt5
+opencv-python
+openpyxl
+requests
+ultralytics
+python-snap7

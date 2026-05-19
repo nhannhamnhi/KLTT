@@ -1,11 +1,9 @@
-import sys
 import os
+import sys
 import time
+from datetime import datetime
 
-# Cho phép chạy nhiều thư viện OpenMP cùng lúc để tránh crash (thường gặp với torch/cv2)
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-
-# Sửa lỗi "DLL load failed: c10.dll" cho torch trên Windows
+# 1. Sửa lỗi "DLL load failed: c10.dll" cho torch trên Windows
 try:
     if os.name == 'nt':
         import importlib.util
@@ -14,38 +12,46 @@ try:
             torch_path = spec.submodule_search_locations[0]
             torch_dll_path = os.path.join(torch_path, 'lib')
             if os.path.exists(torch_dll_path):
-                # Thêm thư mục chứa các file DLL của torch vào đường dẫn tìm kiếm
                 os.add_dll_directory(torch_dll_path)
-except Exception as e:
-    print(f"Lưu ý: Không thể nạp DLL bổ sung cho torch: {e}")
+except Exception:
+    pass
 
-# Import AI Detector trước để nạp các DLL cần thiết
-from Class_AI import YOLO_Detector, DEFAULT_MODEL_PATH
+# 2. Cấu hình môi trường
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Buộc sử dụng CPU cho Torch
+os.environ["YOLO_OFFLINE"] = "True"       # Chế độ offline cho Ultralytics
+os.environ["OPENVINO_DEVICE"] = "CPU"     # Buộc OpenVINO dùng CPU
 
+# 3. Thiết lập sys.path để nạp module từ src/
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(current_dir)
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
+# 4. Import AI và các thư viện nặng trước
 import cv2
 import numpy as np
+from ai.Class_AI import YOLO_Detector, DEFAULT_MODEL_PATH
+
+# 5. Import GUI và các module khác
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox, QGraphicsScene, QFileDialog
 from PyQt5.QtGui import QImage, QPixmap
-from datetime import datetime
 
-# Thêm đường dẫn thư mục 'File_QTtoPY' vào sys.path để có thể import các file GUI
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-gui_dir = os.path.join(parent_dir, 'File_QTtoPY')
-sys.path.append(gui_dir)
+from ui.Login import Ui_Login
+from ui.Main import Ui_Main
+from ui.data_viewer_dialog import DataViewerDialog
 
-# Import các giao diện từ các file của bạn (nằm trong File_QTtoPY)
-from Background import Ui_Background
-from Login import Ui_Login
-from Main import Ui_Main
+from data.data_manager import get_data_manager
+try:
+    from data import config
+    SPREADSHEET_ID = getattr(config, 'SPREADSHEET_ID', "")
+    SHEETS_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit" if SPREADSHEET_ID else ""
+except ImportError:
+    SHEETS_URL = ""
 
-# Import module quản lý dữ liệu
-from data_manager import get_data_manager
-
-# Import module quản lý kết nối PLC
 import re
-from Class_dataplc import PLCConnector, PLCPollingThread
+from plc.Class_dataplc import PLCConnector, PLCPollingThread
 
 # ================================================================
 # LỚP XỬ LÝ LUỒNG CAMERA (CAMERA THREAD)
@@ -150,14 +156,10 @@ class CameraThread(QtCore.QThread):
 class Controller:
     def __init__(self):
         # Khởi tạo các cửa sổ chính
-        self.background_win = QtWidgets.QMainWindow()
         self.login_win = QtWidgets.QMainWindow()
         self.main_win = QtWidgets.QMainWindow()
 
         # Thiết lập UI cho từng cửa sổ
-        self.ui_background = Ui_Background()
-        self.ui_background.setupUi(self.background_win)
-
         self.ui_login = Ui_Login()
         self.ui_login.setupUi(self.login_win)
         
@@ -262,6 +264,9 @@ class Controller:
         self.cylinder1_state = False
         self.cylinder2_state = False
 
+        # Biến lưu trữ hành động chờ sau khi đăng nhập (VD: "open_data_manager" hoặc "master_control")
+        self.pending_action = None
+
         # Thiết lập nút Control Manual mới (thay thế nút Master cũ)
         self.ui_main.btControlManual.setText("⚙️ Control Manual")
         self.ui_main.btControlManual.setStyleSheet(self._STYLE_MASTER_OFF)
@@ -269,14 +274,12 @@ class Controller:
         # Khởi động: Ẩn tất cả các nút điều khiển thủ công
         self.ui_main.btTrigger.hide()
         self.ui_main.btContinue.hide()
-        self.ui_main.btConveyor.hide()
+        self.ui_main.btConveyorOn.hide()
+        self.ui_main.btConveyorOff.hide()
         self.ui_main.btCylinder1.hide()
         self.ui_main.btCylinder2.hide()
 
     def setup_connections(self):
-        # Khi nhấn nút btBatdau ở Background -> Đi thẳng vào Main
-        self.ui_background.btBatdau.clicked.connect(self.show_main_from_background)
-        
         # Khi nhấn nút btDangnhap ở Login -> Kiểm tra thông tin
         self.ui_login.btDangnhap.clicked.connect(self.handle_login)
 
@@ -299,8 +302,12 @@ class Controller:
         # Kết nối nút Reset hình ảnh
         self.ui_main.Resset_hinhanh.clicked.connect(self.reset_camera_params)
 
-        # Kết nối nút Xuất Excel
-        self.ui_main.btXuat.clicked.connect(self.export_excel)
+        # Kết nối nút Quản lý dữ liệu (thay cho Xuất Excel cũ)
+        try:
+            self.ui_main.btXuat.clicked.connect(self.open_data_manager)
+            self.ui_main.btXuat.setText("📊 Quản lý dữ liệu")
+        except:
+            self.ui_main.btXuat.clicked.connect(self.export_excel)
 
         # Kết nối nút Trigger và Continue cho chế độ Manual
         self.ui_main.btTrigger.clicked.connect(self.handle_trigger)
@@ -321,23 +328,18 @@ class Controller:
         self.ui_main.btControlManual.clicked.connect(self.handle_control_manual_click)
 
         # --- PHẦN MỚI: Kết nối các nút điều khiển Manual ---
-        self.ui_main.btConveyor.pressed.connect(lambda: self.set_conveyor(True))
-        self.ui_main.btConveyor.released.connect(lambda: self.set_conveyor(False))
+        self.ui_main.btConveyorOn.pressed.connect(lambda: self.set_conveyor_on(True))
+        self.ui_main.btConveyorOn.released.connect(lambda: self.set_conveyor_on(False))
+        self.ui_main.btConveyorOff.pressed.connect(lambda: self.set_conveyor_off(True))
+        self.ui_main.btConveyorOff.released.connect(lambda: self.set_conveyor_off(False))
         self.ui_main.btCylinder1.pressed.connect(lambda: self.set_cylinder1(True))
         self.ui_main.btCylinder1.released.connect(lambda: self.set_cylinder1(False))
         self.ui_main.btCylinder2.pressed.connect(lambda: self.set_cylinder2(True))
         self.ui_main.btCylinder2.released.connect(lambda: self.set_cylinder2(False))
 
-    def show_background(self):
-        self.background_win.show()
-
-    def show_main_from_background(self):
-        """Nhấn btBatdau ở Background → Đi thẳng vào Main (bỏ qua Login)."""
-        self.background_win.close()
-        self.main_win.show()
-
-    def show_login_for_master(self):
-        """Hiện cửa sổ Login để xác thực trước khi bật Master."""
+    def show_login_for_master(self, action="master_control"):
+        """Hiện cửa sổ Login để xác thực. action: 'master_control' hoặc 'open_data_manager'"""
+        self.pending_action = action
         # Reset ô nhập liệu
         self.ui_login.nhapten.clear()
         self.ui_login.matkhau.clear()
@@ -378,13 +380,17 @@ class Controller:
             self.login_win.close()
             self.manual_authenticated = True
             
-            # Cập nhật nút thành Đăng xuất
-            self.ui_main.btControlManual.setText("🔒 Đăng xuất")
-            self.ui_main.btControlManual.setStyleSheet(self._STYLE_MASTER_ON)  # Viền/đỏ nhạt báo hiệu quyền điều khiển
-            print("[LOGIN] Đăng nhập quyền Control Manual thành công! Chờ vặn công tắc Manual...")
-            
-            # Cập nhật lại giao diện ngay để xem PLC có đang ở Manual ko
-            self.update_manual_ui()
+            # Kiểm tra hành động chờ
+            if self.pending_action == "open_data_manager":
+                self._open_data_manager_dialog()
+                self.pending_action = None
+            else:
+                # Mặc định là master control
+                self.ui_main.btControlManual.setText("🔒 Đăng xuất")
+                self.ui_main.btControlManual.setStyleSheet(self._STYLE_MASTER_ON)  # Viền/đỏ nhạt báo hiệu quyền điều khiển
+                print("[LOGIN] Đăng nhập quyền Control Manual thành công! Chờ vặn công tắc Manual...")
+                self.update_manual_ui()
+                self.pending_action = None
         else:
             # Đăng nhập thất bại: Hiển thị cảnh báo
             msg = QMessageBox(self.login_win) # Gắn msg vào login_win để nó hiện trên cùng
@@ -488,16 +494,16 @@ class Controller:
             # Cho phép điều khiển (Vì đã vặn Manual cứng + Đã Login phần mềm)
             self.ui_main.btTrigger.show()
             self.ui_main.btContinue.show()
-            self.ui_main.btConveyor.show()
+            self.ui_main.btConveyorOn.show()
+            self.ui_main.btConveyorOff.show()
             self.ui_main.btCylinder1.show()
             self.ui_main.btCylinder2.show()
             
             # Khởi tạo lại giao diện nút nhấn để tránh dính màu cũ
-            self.conveyor_state = False
-            self.cylinder1_state = False
-            self.cylinder2_state = False
-            self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_OFF)
-            self.ui_main.btConveyor.setText("▶ Conveyor")
+            self.ui_main.btConveyorOn.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btConveyorOn.setText("ON Conveyor")
+            self.ui_main.btConveyorOff.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btConveyorOff.setText("OFF Conveyor")
             self.ui_main.btCylinder1.setStyleSheet(self._STYLE_TOGGLE_OFF)
             self.ui_main.btCylinder1.setText("Cylinder 1")
             self.ui_main.btCylinder2.setStyleSheet(self._STYLE_TOGGLE_OFF)
@@ -506,26 +512,40 @@ class Controller:
             # Ẩn nút (Nếu ai gạt lại tũ vật lý qua Auto, HOẶC lỡ tay log out màn hình)
             self.ui_main.btTrigger.hide()
             self.ui_main.btContinue.hide()
-            self.ui_main.btConveyor.hide()
+            self.ui_main.btConveyorOn.hide()
+            self.ui_main.btConveyorOff.hide()
             self.ui_main.btCylinder1.hide()
             self.ui_main.btCylinder2.hide()
 
 
 
-    def set_conveyor(self, state):
-        """Bật/tắt băng tải kiểu nhấn nhả (momentary)."""
-        self.conveyor_state = state
+    def set_conveyor_on(self, state):
+        """Ghi bit ON Conveyor xuống PLC khi nhấn giữ."""
         if self.plc.is_connected:
-            self.plc.write_conveyor(self.conveyor_state)
+            self.plc.write_conveyor_on(state)
 
-        if self.conveyor_state:
-            self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_ON)
-            self.ui_main.btConveyor.setText("■ Conveyor")
-            print("[MANUAL] ▶ Băng tải BẬT (Nhấn)")
+        if state:
+            self.ui_main.btConveyorOn.setStyleSheet(self._STYLE_TOGGLE_ON)
+            self.ui_main.btConveyorOn.setText("■ ON Conveyor")
+            print("[MANUAL] ▶ Conveyor ON (Nhấn)")
         else:
-            self.ui_main.btConveyor.setStyleSheet(self._STYLE_TOGGLE_OFF)
-            self.ui_main.btConveyor.setText("▶ Conveyor")
-            print("[MANUAL] ■ Băng tải TẮT (Nhả)")
+            self.ui_main.btConveyorOn.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btConveyorOn.setText("ON Conveyor")
+            print("[MANUAL] ■ Conveyor ON (Nhả)")
+
+    def set_conveyor_off(self, state):
+        """Ghi bit OFF Conveyor xuống PLC khi nhấn giữ."""
+        if self.plc.is_connected:
+            self.plc.write_conveyor_off(state)
+
+        if state:
+            self.ui_main.btConveyorOff.setStyleSheet(self._STYLE_TOGGLE_ON)
+            self.ui_main.btConveyorOff.setText("■ OFF Conveyor")
+            print("[MANUAL] ▶ Conveyor OFF (Nhấn)")
+        else:
+            self.ui_main.btConveyorOff.setStyleSheet(self._STYLE_TOGGLE_OFF)
+            self.ui_main.btConveyorOff.setText("OFF Conveyor")
+            print("[MANUAL] ■ Conveyor OFF (Nhả)")
 
     def set_cylinder1(self, state):
         """Bật/tắt xy-lanh 1 kiểu nhấn nhả."""
@@ -644,6 +664,7 @@ class Controller:
             self.plc_polling_thread = PLCPollingThread(self.plc, poll_interval_ms=200)
             self.plc_polling_thread.plc_status_changed.connect(self.on_plc_status_changed)
             self.plc_polling_thread.plc_connection_lost.connect(self.on_plc_connection_lost)
+            self.plc_polling_thread.plc_connection_restored.connect(self.on_plc_connection_restored)
             self.plc_polling_thread.start()
         else:
                 QMessageBox.critical(
@@ -690,6 +711,10 @@ class Controller:
 
     def on_plc_status_changed(self, status):
         """Slot nhận signal từ PLCPollingThread khi trạng thái PLC thay đổi."""
+        # Có status hợp lệ từ polling => kết nối đang tốt, đảm bảo về lại màu xanh.
+        if hasattr(self, 'lb_stt_plc'):
+            self.lb_stt_plc.setText("PLC: ✅ Đã kết nối")
+            self.lb_stt_plc.setStyleSheet("color: green; font-weight: bold; padding-right: 15px")
         # Đồng bộ giao diện ẩn/hiện nút nhấn dựa vào chế độ vật lý của PLC
         self.update_manual_ui()
 
@@ -757,6 +782,7 @@ class Controller:
         if hasattr(self, 'lb_stt_plc'):
             self.lb_stt_plc.setText("PLC: ⚠️ Mất kết nối")
             self.lb_stt_plc.setStyleSheet("color: red; font-weight: bold; padding-right: 15px")
+            return
         if hasattr(self, 'lb_stt_mode'):
             self.lb_stt_mode.setText("--")
         if hasattr(self, 'lb_stt_sensors'):
@@ -764,6 +790,12 @@ class Controller:
         if hasattr(self, 'lb_stt_running'):
             self.lb_stt_running.setText("Hệ thống: ⚪")
             self.lb_stt_running.setStyleSheet("color: gray; padding-right: 15px")
+
+    def on_plc_connection_restored(self):
+        """Slot nhận signal khi PLC khôi phục kết nối sau khi từng mất."""
+        if hasattr(self, 'lb_stt_plc'):
+            self.lb_stt_plc.setText("PLC: ✅ Đã kết nối")
+            self.lb_stt_plc.setStyleSheet("color: green; font-weight: bold; padding-right: 15px")
 
     def init_statusbar(self):
         """Khởi tạo các widget trên thanh trạng thái (Status Bar)"""
@@ -1134,14 +1166,33 @@ class Controller:
         """Lưu dữ liệu hiện tại vào file JSON (được gọi mỗi 10 giây)"""
         # Chỉ lưu khi có kết quả thực sự (không phải WAIT)
         if self.current_result != "WAIT":
+            # 6b: Lấy tên model chính xác từ detector
+            model_name = ""
+            if self.detector and hasattr(self.detector, 'model_path_loaded') and self.detector.model_path_loaded:
+                model_name = os.path.basename(self.detector.model_path_loaded)
+            
             display_str = self.data_manager.save_record(
                 total=self.current_total,
                 passed=self.current_passed,
                 failed=self.current_failed,
-                result=self.current_result
+                result=self.current_result,
+                model_name=model_name
             )
             print(f"[GHI DỮ LIỆU] {display_str}")
             self.update_data_list()
+
+    def open_data_manager(self):
+        """Mở cửa sổ quản lý dữ liệu - Yêu cầu đăng nhập nếu chưa có quyền."""
+        if self.manual_authenticated:
+            self._open_data_manager_dialog()
+        else:
+            print("[SYSTEM] Yêu cầu đăng nhập để truy cập quản lý dữ liệu.")
+            self.show_login_for_master(action="open_data_manager")
+
+    def _open_data_manager_dialog(self):
+        """Thực hiện mở Dialog sau khi đã xác thực."""
+        dialog = DataViewerDialog(self.data_manager, sheets_url=SHEETS_URL, parent=self.main_win)
+        dialog.exec_()
 
     # --- CÁC HÀM XỬ LÝ MODEL AI ---
     def handle_browse_model(self):
@@ -1331,6 +1382,6 @@ if __name__ == "__main__":
     
     # Khởi tạo và chạy chương trình
     controller = Controller()
-    controller.show_background()
+    controller.main_win.showMaximized() # Hiện Full màn hình giao diện Main
     
     sys.exit(app.exec_())

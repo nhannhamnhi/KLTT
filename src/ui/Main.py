@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\KL_2025\KLTT\File_QT\Main.ui'
+# Form implementation generated from reading ui file 'D:\KL_2025\KLTT\ui\forms\Main.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -447,13 +447,13 @@ class Ui_Main(object):
 "    background-color: #0F6A6A;\n"
 "}")
         self.btXuat.setObjectName("btXuat")
-        self.btConveyor = QtWidgets.QPushButton(self.groupBox_hienthidl)
-        self.btConveyor.setGeometry(QtCore.QRect(509, 90, 251, 50))
+        self.btConveyorOn = QtWidgets.QPushButton(self.groupBox_hienthidl)
+        self.btConveyorOn.setGeometry(QtCore.QRect(509, 90, 120, 50))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
-        self.btConveyor.setFont(font)
-        self.btConveyor.setStyleSheet("QPushButton {\n"
+        self.btConveyorOn.setFont(font)
+        self.btConveyorOn.setStyleSheet("QPushButton {\n"
 "    color: #169393;\n"
 "    background-color: #FFFFFF;\n"
 "    border: 2px solid #CEC2B1;\n"
@@ -466,7 +466,27 @@ class Ui_Main(object):
 "QPushButton:pressed {\n"
 "    background-color: #B5A08C;\n"
 "}")
-        self.btConveyor.setObjectName("btConveyor")
+        self.btConveyorOn.setObjectName("btConveyorOn")
+        self.btConveyorOff = QtWidgets.QPushButton(self.groupBox_hienthidl)
+        self.btConveyorOff.setGeometry(QtCore.QRect(640, 90, 120, 50))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.btConveyorOff.setFont(font)
+        self.btConveyorOff.setStyleSheet("QPushButton {\n"
+"    color: #169393;\n"
+"    background-color: #FFFFFF;\n"
+"    border: 2px solid #CEC2B1;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: #E2C0B2;\n"
+"    color: #FFFFFF;\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    background-color: #B5A08C;\n"
+"}")
+        self.btConveyorOff.setObjectName("btConveyorOff")
         self.btCylinder1 = QtWidgets.QPushButton(self.groupBox_hienthidl)
         self.btCylinder1.setGeometry(QtCore.QRect(505, 162, 120, 50))
         font = QtGui.QFont()
@@ -787,8 +807,9 @@ class Ui_Main(object):
         self.label_20.setText(_translate("Main", "CPU_PLC"))
         self.groupBox_hienthidl.setTitle(_translate("Main", "HIỂN THỊ DL"))
         self.btControlManual.setText(_translate("Main", "🔓 ControlManual"))
-        self.btXuat.setText(_translate("Main", "Xuất Excel"))
-        self.btConveyor.setText(_translate("Main", "▶ Conveyor"))
+        self.btXuat.setText(_translate("Main", "📊 Quản lý dữ liệu"))
+        self.btConveyorOn.setText(_translate("Main", "ON Conveyor"))
+        self.btConveyorOff.setText(_translate("Main", "OFF Conveyor"))
         self.btCylinder1.setText(_translate("Main", "Cylinder 1"))
         self.btCylinder2.setText(_translate("Main", "Cylinder 2"))
         self.btTrigger.setText(_translate("Main", "📸 Trigger"))
@@ -801,7 +822,6 @@ class Ui_Main(object):
         self.label_3.setText(_translate("Main", "Tổng số viên "))
         self.label_6.setText(_translate("Main", "Viên đạt "))
         self.label_8.setText(_translate("Main", "Viên lỗi"))
-import hinhanh_rc
 
 
 if __name__ == "__main__":
