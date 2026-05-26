@@ -39,3 +39,5 @@ src/data/data/*.json
 # PLC
 ket_qua/plc_context_old/
 
+#hinh anh su dụng trong QT
+assets/

@@ -1,64 +1,83 @@
-<!-- ⚠️ SYSTEM NOTICE FOR AI AGENTS: Bất cứ khi nào bạn (hoặc LLM khác) nhận yêu cầu chỉnh sửa logic hệ thống / luồng truyền thông PLC / chức năng GUI từ User, BẠN BẮT BUỘC phải đối chiếu và tự động CẬP NHẬT file này để phản ánh chính xác cấu trúc vận hành mới nhất. -->
+<!-- ⚠️ SYSTEM NOTICE FOR AI AGENTS: Khi chỉnh sửa logic hệ thống / luồng PLC / GUI, bắt buộc cập nhật file này. -->
 
-# QUY TRÌNH VẬN HÀNH CHI TIẾT HỆ THỐNG PHÂN LOẠI VỈ THUỐC
+# QUY TRÌNH VẬN HÀNH CHI TIẾT
 
-Tài liệu này mô tả từng bước dòng chảy dữ liệu (Data Flow) và cách hệ thống cơ điện tử phối hợp nội bộ với Phần mềm Trung tâm AI để vận hành dây chuyền.
+Tài liệu này mô tả luồng dữ liệu (Data Flow) và cách hệ thống cơ điện tử phối hợp với AI để vận hành dây chuyền.
 
----
-
-## 1. QUY TRÌNH KHỞI ĐỘNG VÀ THIẾT LẬP (STARTUP)
-Trước khi chạy máy, người vận hành thực hiện các bước trên giao diện (GUI):
-
-1. **Khởi động Camera:**
-   - Chọn nguồn vào trong combobox (Webcam 1, Webcam 2 hoặc Camera_custom).
-   - *Lưu ý:* Nếu chọn `Camera_custom`, hệ thống sẽ yêu cầu nhập URL luồng video (ví dụ: HTTP/RTSP từ IP Camera / App Điện thoại).
-   - Nhấn **"Kết Nối Camera"**. Tinh chỉnh độ sáng/bão hòa nếu cần.
-2. **Khởi động Trí Tuệ Nhân Tạo (AI):**
-   - Bấm **"Browser"** để chọn đường dẫn mô hình đồ thị YOLO (file định dạng `.pt`, `.onnx` hoặc OpenVINO XML).
-   - Nhấn **"Tải Model"** để khởi tạo Core suy luận thời gian thực.
-3. **Kết Nối Trung Tâm (PC ↔ PLC):**
-   - Điền thông số PLC mạng hở: `Đời CPU` (S7-1200, 1500, 400), `IP`, `Rack`, `Slot`.
-   - Bấm **"Kết Nối PLC"**. Trạng thái "Mất kết nối" 🔴 sẽ chuyển sang mức sẵn sàng 🟢.
+> ⚡ Hướng dẫn cài đặt & UI cơ bản: [docs/caidat.md](caidat.md) | [docs/huongdanUI.md](huongdanUI.md)
 
 ---
 
-## 2. CHẾ ĐỘ HOẠT ĐỘNG (ROUTING)
+## 1. CHẾ ĐỘ HOẠT ĐỘNG
 
-### 🔒 2.0 Kích hoạt Điều khiển Thủ công (Control Manual)
-Để thực hiện vận hành bằng tay, người trực máy phải kích hoạt quyền điều khiển thủ công theo quy trình bảo mật 2 lớp:
-1. **Xác thực phần mềm:** Nhấn nút **"⚙️ Control Manual"** trên giao diện chính, nhập tài khoản admin (mặc định: `admin` / `123`). Khi đăng nhập thành công, nút chuyển trạng thái sang **"🔒 Đăng xuất"**.
-2. **Xác thực phần cứng:** Xoay khóa vật lý trên tủ điện PLC sang chế độ Manual. PLC sẽ gửi cờ hiệu `PLC_Manual = TRUE` lên máy tính.
-- Chỉ khi **đủ cả 2 điều kiện** trên, giao diện phần mềm mới kích hoạt và hiển thị các nút điều khiển thủ công (`Trigger`, `Continue`, `ON Conveyor`, `OFF Conveyor`, `Cylinder 1`, `Cylinder 2`).
-- Nếu thiếu bất kỳ điều kiện nào (gạt tủ điện về Auto hoặc nhấn đăng xuất trên phần mềm), các nút này sẽ tự động ẩn đi để tránh các thao tác sai sót ngoài ý muốn.
+### 🔒 Kích hoạt Điều khiển Thủ công (Control Manual)
+Bảo mật 2 lớp:
+1. **Phần mềm:** Nhấn **"⚙️ Control Manual"** → nhập `admin` / `123`.
+2. **Phần cứng:** Xoay công tắc vật lý trên tủ PLC sang Manual → `PLC_Manual = TRUE`.
 
-### 🟢 2A. Chế độ Tự Động (AUTO MODE)
-**Đặc điểm:** Phần mềm tự động giám sát cảm biến quang, chạy vòng lặp suy luận và gửi lệnh cho PLC loại bỏ tự động mà không cần can thiệp tay. Sự tương tác diễn ra 100% qua Snap7 ở Back-ground.
+Chỉ khi đủ cả 2 điều kiện, các nút thủ công mới hiện: Trigger, Continue, ON/OFF Conveyor, Cylinder 1/2.
 
-* **Bước 1:** Đầu vào. Băng tải chở vỉ thuốc vào buồng chụp.
-* **Bước 2:** Kích hoạt (Trigger). Khi vỉ thuốc chạm mốc Cảm biến 0 (S0), PLC dựng cờ hiệu `PLC_TriggerReq = TRUE` đẩy lên cho máy tính (PC).
-* **Bước 3:** Chụp & Phân tích (Vision). Phần mềm Python trên PC thấy cờ S0:
-  - Lập tức đóng băng 1 Frame hình.
-  - Chạy mô hình YOLO đếm số lượng viên đạt `Full`, vỡ `Partial`, trống `Empty`.
-* **Bước 4:** Định tuyến kết quả (Decision). Machine Learning đưa ra 1 trong 3 mức độ chất lượng (ghi vào `PC_KetQua`):
-  - `OK (1)`: Trạng thái hoàn hảo -> Vỉ thuốc đi thẳng qua khâu đóng gói.
-  - `NG_L (2)`: Lỗi nhẹ (thiếu 1-2 viên) -> Tới vị trí xi lanh 1 (cảm biến S1), kích đẩy ra khay hàng tái chế.
-  - `NG_H (3)`: Lỗi nặng (hao hụt nhiều) -> Tới vị trí xi lanh 2 (cảm biến S2), kích đẩy thẳng vào thùng rác.
-* **Bước 5:** Báo tin (Handshake). PC báo `PC_DataReady = TRUE` báo PLC "Đã suy luận xong!". PLC nhận tin, thực thi xi lanh và hạ cờ S0.
+### 🟢 Chế độ Tự Động (AUTO)
+```
+Bước 1: Băng tải đưa vỉ thuốc vào buồng chụp
+Bước 2: Sensor S0 → PLC_TriggerReq = TRUE
+Bước 3: PC đóng băng frame → AI phân tích (Full/Partial/Empty)
+Bước 4: Ghi PC_KetQua (1=OK, 2=NG_L, 3=NG_H, 4=MISSING)
+Bước 5: PC_DataReady = TRUE → PLC thực thi xylanh → hạ S0
+```
 
-### 🔵 2B. Chế độ Thủ Công (MANUAL MODE)
-**Đặc điểm:** Vô hiệu hóa tính năng ra quyết định vòng kín của PLC, giao toàn quyền điều khiển từng bộ phận cơ khí riêng lẻ cho người trực máy thông qua các nút trên màn hình máy tính.
-
-- **Điều khiển Băng tải (`btConveyorOn`/`btConveyorOff`):** Nhấn giữ nút để chạy băng tải cưỡng bức và nhả nút để dừng băng tải (Tín hiệu gửi xuống `Conveyor_ON`/`Conveyor_OFF` trong `Class_dataplc.py`).
-- **Điều khiển Xy-lanh (`btCylinder1`, `btCylinder2`):** Nhấn giữ nút để kích hoạt đẩy xi lanh ra ngoài và nhả nút để tự động thu xi lanh về.
-- **Mô phỏng Chụp (Nút `Trigger`):** Ép Camera đóng băng hình ảnh hiện tại và xử lý AI tức thì để ghi dữ liệu/biên bản kết quả (Không đợi mạch PLC).
-- **Tiếp tục (Nút `Continue`):** Thả frame bị đóng băng, đưa hình ảnh Camera về dạng video Live Stream.
+### 🔵 Chế độ Thủ Công (MANUAL)
+- **Conveyor:** Nhấn giữ để chạy, nhả để dừng.
+- **Cylinder 1/2:** Nhấn giữ đẩy ra, nhả thu về.
+- **Trigger:** Chụp & AI phân tích ngay (không chờ PLC).
+- **Continue:** Trở lại live stream.
 
 ---
 
-## 3. LOGGING: THỐNG KÊ & XUẤT BÁO CÁO
-Bất kể hoạt động ở chế độ Auto hay Manual (`Trigger` ép tay), mọi kết quả nhận diện đều được ghi vào danh sách Database cục bộ:
-1. **Lưu vết Real-time:** Tổng số viên trên vỉ, số viên Đạt, số viên Lỗi, kèm timestamp vào bảng List trên giao diện chính.
-2. **Xuất sổ tay Excel:** Nút **"Xuất Excel"** sẽ tổng hợp toán bộ lịch sử hoạt động thành định dạng Bảng Tính `.xlsx`, phục vụ cho kế toán chất lượng / QAS.
+## 2. BẢN ĐỒ DỮ LIỆU PLC (Data Mapping)
+
+Cấu hình trong `src/plc/Class_dataplc.py`.
+
+### DB_GET (PC → PLC) — DB1, 3 bytes
+
+| Offset | Kiểu | Tên | Mô tả |
+|--------|------|-----|-------|
+| 0.0 | INT | `PC_KetQua` | 0=WAIT, 1=OK, 2=NG_L, 3=NG_H, 4=MISSING |
+| 2.0 | BOOL | `PC_DataReady` | PC đã có kết quả mới |
+| 2.1 | BOOL | `PC_Conveyor` | Lệnh băng tải (Manual) |
+| 2.2 | BOOL | `PC_Cylinder1` | Kích xylanh 1 (NG_L) |
+| 2.3 | BOOL | `PC_Cylinder2` | Kích xylanh 2 (NG_H) |
+
+### DB_PUT (PLC → PC) — DB2, 1 byte
+
+| Offset | Kiểu | Tên | Mô tả |
+|--------|------|-----|-------|
+| 0.0 | BOOL | `PLC_Auto` | Chế độ Auto |
+| 0.1 | BOOL | `PLC_Manual` | Chế độ Manual |
+| 0.2 | BOOL | `PLC_Running` | Hệ thống sẵn sàng |
+| 0.3 | BOOL | `PLC_TriggerReq` | Sensor S0 phát hiện vỉ |
+| 0.4 | BOOL | `PLC_Sensor1` | Sensor S1 (vị trí xylanh 1) |
+| 0.5 | BOOL | `PLC_Sensor2` | Sensor S2 (vị trí xylanh 2) |
+
+**Yêu cầu TIA Portal:**
+- Bật **Permit access with PUT/GET** (Protection & Security).
+- Tắt **Optimized block access** trên DB1 và DB2.
+
+### Chỉnh sửa DB
+1. Sửa hằng số `DB_GET_SIZE` / `DB_PUT_SIZE` trong `Class_dataplc.py`.
+2. Thêm logic đọc/ghi bằng `get_bool`, `set_bool`, `get_int`, `set_int`.
+3. Kiểm tra: `python src/plc/Class_dataplc.py`
 
 ---
-📅 *Ngày cập nhật gần nhất: Tự động ghi nhận theo Git/Lần tương tác.*
+
+## 3. LOGGING & BÁO CÁO
+Mọi kết quả (Auto hay Manual) đều được:
+1. Ghi vào bảng danh sách real-time trên UI.
+2. Lưu vào `data_history.json` + đồng bộ Google Sheets.
+3. Xuất Excel (.xlsx) từ DataViewerDialog.
+
+📖 Chi tiết đồng bộ: [docs/DongBoGoogleSheets.md](DongBoGoogleSheets.md)
+📖 Chi tiết xuất Excel: [docs/huongdanUI.md](huongdanUI.md)
+
+---
+📅 *Cập nhật: tự động theo Git.*

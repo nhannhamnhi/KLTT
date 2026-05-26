@@ -143,3 +143,67 @@ Dữ liệu kiểm tra lưu cục bộ bình thường nhưng không hiển th�
 1. **Chia sẻ bảng tính Google Sheets:** Mở tệp tin `service_account.json` của bạn ra, tìm từ khóa `"client_email"` và sao chép địa chỉ email tương ứng (định dạng: `xxx@xxx.iam.gserviceaccount.com`). Mở bảng tính Google Sheets trên trình duyệt, nhấn nút **Chia Sẻ (Share)**, dán email này vào và cấp quyền **Editor (Người chỉnh sửa)**.
 2. **Kiểm tra ID bảng tính:** Mở file `src/data/config.py` và kiểm tra hằng số `SPREADSHEET_ID` xem đã đúng với ID bảng tính của bạn chưa (ID là chuỗi ký tự dài nằm giữa `/d/` và `/edit` trên đường dẫn URL trình duyệt).
 3. **Kiểm tra hàng chờ offline:** Khi mất kết nối mạng, dữ liệu sẽ được lưu tạm tại `src/data/data/pending_queue.json`. Ngay khi có mạng trở lại, hãy bấm nút **Sync Google Sheets** trong cửa sổ quản lý dữ liệu để đồng bộ hết hàng chờ lên đám mây.
+
+---
+
+### 8. Lỗi Data Viewer Không Mở
+
+#### 🔴 Triệu chứng
+Nhấn nút **📊 Quản lý dữ liệu** nhưng không có cửa sổ nào hiện ra, hoặc chương trình bị treo.
+
+#### 🔍 Nguyên nhân
+- File `data_history.json` bị hỏng (không đúng định dạng JSON).
+- Dung lượng file quá lớn gây chậm load.
+
+#### ✅ Khắc phục
+1. Mở file `src/data/data/data_history.json` bằng Notepad. Nếu file rỗng hoặc sai cú pháp JSON, xóa hết nội dung và ghi `[]` (mảng rỗng).
+2. Nếu file lớn (>10MB), vào DataViewerDialog chọn ngày hẹp hơn để giảm tải.
+
+---
+
+### 9. Lỗi Xuất Excel Báo Lỗi Font
+
+#### 🔴 Triệu chứng
+Khi nhấn **Xuất Excel**, file tạo ra nhưng mở lên thiếu chữ hoặc báo lỗi font `Calibri`.
+
+#### 🔍 Nguyên nhân
+- Thiếu font Calibri trên máy (Windows bản cũ hoặc không có Office).
+- openpyxl không tìm thấy font mặc định.
+
+#### ✅ Khắc phục
+1. Cài Microsoft Office hoặc font Calibri từ nguồn chính thống.
+2. Hoặc sửa trong `data_manager.py`: đổi tên font `Calibri` thành `Arial` hoặc `Tahoma`.
+
+---
+
+### 10. Lỗi Camera Kết Nối OK Nhưng Không Nhận Diện
+
+#### 🔴 Triệu chứng
+Camera kết nối thành công, thấy hình ảnh nhưng AI không vẽ khung OBB, kết quả luôn WAIT.
+
+#### 🔍 Nguyên nhân
+- Model AI chưa được tải hoặc tải sai.
+- Camera chụp ảnh đen (thiếu sáng) → AI không detect được gì.
+
+#### ✅ Khắc phục
+1. Kiểm tra status bar: "Model loaded" hay chưa. Nếu chưa → Duyệt model lại.
+2. Điều chỉnh slider Độ sáng +50 hoặc +80 đến khi thấy rõ viên thuốc.
+3. Bật đèn chiếu sáng nếu đang trong môi trường thiếu sáng.
+
+---
+
+### 11. Lỗi Service Account Google Hết Hạn / Bị Thu Hồi
+
+#### 🔴 Triệu chứng
+Google Sheets đồng bộ OK hồi sáng, chiều báo lỗi "Access denied" hoặc "Token expired".
+
+#### 🔍 Nguyên nhân
+- Service Account bị vô hiệu hóa trên Google Cloud Console.
+- Key JSON bị xóa hoặc thay đổi.
+- Bảng tính đã bị xóa hoặc thu hồi quyền share.
+
+#### ✅ Khắc phục
+1. Vào [Google Cloud Console](https://console.cloud.google.com/) → IAM & Admin → Service Accounts → kiểm tra trạng thái.
+2. Nếu key cũ bị mất, tạo key mới → tải về → thay file `service_account.json`.
+3. Kiểm tra bảng tính còn tồn tại không. Nếu bị xóa, tạo bảng tính mới và cập nhật `SPREADSHEET_ID` trong `config.py`.
+4. Chia sẻ lại quyền Editor cho email Service Account mới.
