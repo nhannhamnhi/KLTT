@@ -128,6 +128,16 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QLabel" name="lbl_calendar_legend">
+       <property name="text">
+        <string>🟢 Xanh = Đã sync  |  🟡 Vàng = Chưa sync</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-size: 11px; color: #555; padding-left: 10px;</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -204,8 +214,24 @@
         </property>
        </widget>
       </item>
-     </layout>
-    </widget>
+      <item>
+       <widget class="QPushButton" name="xoaDL">
+        <property name="minimumSize">
+         <size>
+          <width>130</width>
+          <height>0</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton { background-color: #cc0000; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold; border: none; } QPushButton:hover { background-color: #e60000; } QPushButton:pressed { background-color: #990000; }</string>
+       </property>
+       <property name="text">
+        <string>🗑 Xóa dữ liệu</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="stats_group">

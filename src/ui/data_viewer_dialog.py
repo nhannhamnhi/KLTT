@@ -13,6 +13,8 @@ class DataViewerDialog(QtWidgets.QDialog, Ui_DataViewerDialog):
     Dialog hiển thị danh sách kết quả kiểm tra, thống kê và quản lý Google Sheets.
     Giao diện được tải từ file data_viewer_dialog.ui
     """
+    data_deleted = QtCore.pyqtSignal()  # Signal thông báo dữ liệu đã bị xóa
+
     def __init__(self, data_manager, sheets_url=None, parent=None):
         super().__init__(parent)
         self.data_manager = data_manager
@@ -38,6 +40,7 @@ class DataViewerDialog(QtWidgets.QDialog, Ui_DataViewerDialog):
         self.btn_sheets.clicked.connect(self.handle_open_sheets)
         self.btn_close.clicked.connect(self.close)
         self.btn_sync_sheets.clicked.connect(self.handle_sync_sheets)
+        self.xoaDL.clicked.connect(self.handle_delete)  # Nút xóa dữ liệu
         
         # Kết nối bộ lọc
         # cb_date bây giờ là QDateEdit
@@ -49,6 +52,10 @@ class DataViewerDialog(QtWidgets.QDialog, Ui_DataViewerDialog):
         self.status_timer.timeout.connect(self.refresh_sheet_status)
         self.status_timer.start(2000) # Cập nhật mỗi 2 giây
         self.refresh_sheet_status()
+
+        # Tô màu các ngày có dữ liệu trên calendar
+        self._highlighted_dates = set()
+        self._highlight_data_dates()
 
     def setup_table_config(self):
         """Cấu hình chi tiết cho QTableWidget."""
@@ -187,11 +194,14 @@ class DataViewerDialog(QtWidgets.QDialog, Ui_DataViewerDialog):
         """Kích hoạt đồng bộ thủ công ngay lập tức."""
         status = self.data_manager.get_sheets_status()
         
+        synced_anything = False
+
         # 1. Nếu có hàng chờ, ưu tiên đẩy hàng chờ
         if status.get('queue_size', 0) > 0:
             count = self.data_manager.force_sync_sheets()
             if count > 0:
                 QMessageBox.information(self, "Đồng bộ", f"Đã gửi thành công {count} bản ghi từ hàng chờ lên Google Sheets.")
+                synced_anything = True
             else:
                 QMessageBox.warning(self, "Đồng bộ", f"Không thể đồng bộ. Lỗi: {status.get('last_error')}")
         
@@ -214,10 +224,15 @@ class DataViewerDialog(QtWidgets.QDialog, Ui_DataViewerDialog):
                 count = self.data_manager.sync_history_to_sheets(date_str)
                 if count > 0:
                     QMessageBox.information(self, "Thành công", f"Đã đẩy thành công {count} bản ghi ngày {display_date} lên Google Sheets.")
+                    synced_anything = True
                 else:
                     QMessageBox.warning(self, "Thất bại", "Không có dữ liệu hoặc lỗi kết nối. Kiểm tra tab 'Lỗi' phía trên.")
         
         self.refresh_sheet_status()
+
+        # Cập nhật màu calendar nếu có sync thành công
+        if synced_anything:
+            self._highlight_data_dates()
 
     def handle_export(self):
         """Xuất dữ liệu đang hiển thị ra file Excel."""
@@ -239,6 +254,40 @@ class DataViewerDialog(QtWidgets.QDialog, Ui_DataViewerDialog):
             else:
                 QMessageBox.critical(self.main_win, "Lỗi", f"Không thể xuất file:\n{msg}")
 
+    def _highlight_data_dates(self):
+        """Tô màu ngày trên calendar: xanh=đã sync, vàng=chưa sync.
+
+        Reset calendar trước, sau đó tô màu các ngày có dữ liệu.
+        """
+        calendar = self.cb_date.calendarWidget()
+
+        # Reset tất cả ngày đã highlight trước đó
+        default_fmt = QtGui.QTextCharFormat()
+        for d_str in list(self._highlighted_dates):
+            parts = d_str.split('-')
+            qdate = QtCore.QDate(int(parts[0]), int(parts[1]), int(parts[2]))
+            calendar.setDateTextFormat(qdate, default_fmt)
+        self._highlighted_dates.clear()
+
+        fmt_synced = QtGui.QTextCharFormat()
+        fmt_synced.setBackground(QtGui.QColor("#C6EFCE"))
+        fmt_synced.setFontWeight(QtGui.QFont.Bold)
+
+        fmt_unsynced = QtGui.QTextCharFormat()
+        fmt_unsynced.setBackground(QtGui.QColor("#FFF2CC"))
+        fmt_unsynced.setFontWeight(QtGui.QFont.Bold)
+
+        synced = set(self.data_manager.get_synced_dates())
+        dates = self.data_manager.get_available_dates()
+        for d_str in dates:
+            parts = d_str.split('-')
+            qdate = QtCore.QDate(int(parts[0]), int(parts[1]), int(parts[2]))
+            if d_str in synced:
+                calendar.setDateTextFormat(qdate, fmt_synced)
+            else:
+                calendar.setDateTextFormat(qdate, fmt_unsynced)
+            self._highlighted_dates.add(d_str)
+
     def handle_open_sheets(self):
         """Mở liên kết Google Sheets"""
         if self.sheets_url and self.sheets_url.startswith("http"):
@@ -248,3 +297,97 @@ class DataViewerDialog(QtWidgets.QDialog, Ui_DataViewerDialog):
             webbrowser.open(self.sheets_url)
         else:
             QMessageBox.warning(self.main_win, "Thông báo", "Đường dẫn Google Sheets chưa được cấu hình trong config.py")
+
+    def handle_delete(self):
+        """Xử lý xóa dữ liệu: chọn từng record hoặc xóa toàn bộ ngày."""
+        q_date = self.cb_date.date()
+        date_str = q_date.toString("yyyy-MM-dd")
+        display_date = q_date.toString("dd/MM/yyyy")
+
+        records = self.data_manager.get_records(date_str)
+        if not records:
+            QMessageBox.information(self, "Thông báo", f"Không có dữ liệu ngày {display_date} để xóa.")
+            return
+
+        # Dialog chọn chế độ xóa
+        dialog = QtWidgets.QDialog(self)
+        dialog.setWindowTitle(f"Xóa dữ liệu ngày {display_date}")
+        dialog.resize(600, 500)
+        layout = QtWidgets.QVBoxLayout(dialog)
+
+        lbl = QtWidgets.QLabel(f"<b>Chọn bản ghi cần xóa (ngày {display_date}, {len(records)} bản ghi):</b>")
+        layout.addWidget(lbl)
+
+        list_widget = QtWidgets.QListWidget()
+        for i, rec in enumerate(records):
+            model_name = rec.get('model_name', 'N/A')
+            txt = f"Sản phẩm {i+1}: [{rec['time']}] {rec['result']} | Tổng:{rec['total']} Đạt:{rec['passed']} Lỗi:{rec['failed']} | Model:{model_name}"
+            item = QtWidgets.QListWidgetItem(txt)
+            item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
+            item.setCheckState(QtCore.Qt.Unchecked)
+            list_widget.addItem(item)
+        layout.addWidget(list_widget)
+
+        btn_layout = QtWidgets.QHBoxLayout()
+
+        btn_delete_selected = QtWidgets.QPushButton("🗑 Xóa đã chọn")
+        btn_delete_selected.setStyleSheet("QPushButton { background-color: #cc0000; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold; border: none; } QPushButton:hover { background-color: #e60000; }")
+        btn_layout.addWidget(btn_delete_selected)
+
+        btn_delete_all = QtWidgets.QPushButton("🗑 Xóa tất cả ngày")
+        btn_delete_all.setStyleSheet("QPushButton { background-color: #990000; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold; border: none; } QPushButton:hover { background-color: #cc0000; }")
+        btn_layout.addWidget(btn_delete_all)
+
+        btn_cancel = QtWidgets.QPushButton("Hủy")
+        btn_cancel.setStyleSheet("QPushButton { background-color: #006666; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold; border: none; }")
+        btn_layout.addWidget(btn_cancel)
+
+        layout.addLayout(btn_layout)
+
+        result = {"action": "", "indices": None}
+
+        def on_delete_selected():
+            indices = [i for i in range(list_widget.count()) if list_widget.item(i).checkState() == QtCore.Qt.Checked]
+            if not indices:
+                QMessageBox.warning(dialog, "Cảnh báo", "Vui lòng chọn ít nhất 1 bản ghi để xóa.")
+                return
+            result["action"] = "selected"
+            result["indices"] = indices
+            dialog.accept()
+
+        def on_delete_all():
+            reply = QMessageBox.question(dialog, "Xác nhận", f"Bạn có chắc muốn xóa TOÀN BỘ dữ liệu ngày {display_date} ({len(records)} bản ghi)?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                result["action"] = "all"
+                dialog.accept()
+
+        btn_delete_selected.clicked.connect(on_delete_selected)
+        btn_delete_all.clicked.connect(on_delete_all)
+        btn_cancel.clicked.connect(dialog.reject)
+
+        if dialog.exec_() != QtWidgets.QDialog.Accepted:
+            return
+
+        if result["action"] == "all":
+            deleted = self.data_manager.delete_records(date_str, indices=None)
+            msg = f"Đã xóa {deleted} bản ghi ngày {display_date}."
+        elif result["action"] == "selected":
+            deleted = self.data_manager.delete_records(date_str, indices=result["indices"])
+            msg = f"Đã xóa {deleted} bản ghi đã chọn."
+        else:
+            msg = "Không có bản ghi nào được xóa."
+
+        QMessageBox.information(self, "Thành công", msg)
+        self.lbl_status.setText(msg)
+
+        # Refresh lại bảng và filter
+        self.do_refresh()
+        self.refresh_filters()
+
+        # Cập nhật lại màu calendar (ngày A mất màu nếu xóa hết)
+        self._highlight_data_dates()
+
+        # Nếu là ngày hôm nay → emit signal để finish.py cập nhật Hienthidulieu
+        today_str = datetime.now().strftime('%Y-%m-%d')
+        if date_str == today_str:
+            self.data_deleted.emit()
