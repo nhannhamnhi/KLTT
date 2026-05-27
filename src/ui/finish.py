@@ -378,19 +378,19 @@ class Controller:
         if username == USER_SETUP and password == PASS_SETUP:
             # Đăng nhập thành công
             self.login_win.close()
-            self.manual_authenticated = True
             
             # Kiểm tra hành động chờ
             if self.pending_action == "open_data_manager":
+                # Mở data manager, không set manual_authenticated
                 self._open_data_manager_dialog()
-                self.pending_action = None
             else:
                 # Mặc định là master control
+                self.manual_authenticated = True
                 self.ui_main.btControlManual.setText("🔒 Đăng xuất")
-                self.ui_main.btControlManual.setStyleSheet(self._STYLE_MASTER_ON)  # Viền/đỏ nhạt báo hiệu quyền điều khiển
+                self.ui_main.btControlManual.setStyleSheet(self._STYLE_MASTER_ON)
                 print("[LOGIN] Đăng nhập quyền Control Manual thành công! Chờ vặn công tắc Manual...")
                 self.update_manual_ui()
-                self.pending_action = None
+            self.pending_action = None
         else:
             # Đăng nhập thất bại: Hiển thị cảnh báo
             msg = QMessageBox(self.login_win) # Gắn msg vào login_win để nó hiện trên cùng
@@ -904,7 +904,10 @@ class Controller:
         if hasattr(self, 'lb_stt_cam'):
             # Hiển thị tên ngắn gọn trên status bar
             if loai_camera == "Camera_custom":
-                self.lb_stt_cam.setText(f"Cam: HTTP ({camera_source[:30]}...)")
+                cam_label = str(camera_source)
+                if len(cam_label) > 30:
+                    cam_label = cam_label[:30] + "..."
+                self.lb_stt_cam.setText(f"Cam: HTTP ({cam_label})")
             else:
                 self.lb_stt_cam.setText(f"Cam: {loai_camera}")
 
@@ -1182,16 +1185,13 @@ class Controller:
             self.update_data_list()
 
     def open_data_manager(self):
-        """Mở cửa sổ quản lý dữ liệu - Yêu cầu đăng nhập nếu chưa có quyền."""
-        if self.manual_authenticated:
-            self._open_data_manager_dialog()
-        else:
-            print("[SYSTEM] Yêu cầu đăng nhập để truy cập quản lý dữ liệu.")
-            self.show_login_for_master(action="open_data_manager")
+        """Mở cửa sổ quản lý dữ liệu - Luôn yêu cầu đăng nhập mới."""
+        self.show_login_for_master(action="open_data_manager")
 
     def _open_data_manager_dialog(self):
         """Thực hiện mở Dialog sau khi đã xác thực."""
         dialog = DataViewerDialog(self.data_manager, sheets_url=SHEETS_URL, parent=self.main_win)
+        dialog.data_deleted.connect(self.update_data_list)
         dialog.exec_()
 
     # --- CÁC HÀM XỬ LÝ MODEL AI ---

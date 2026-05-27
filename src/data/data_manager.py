@@ -93,6 +93,7 @@ class DataManager:
         self.data_dir = data_dir
         self.json_file = os.path.join(data_dir, 'data_history.json')
         self.pending_queue_file = os.path.join(data_dir, 'pending_queue.json')
+        self.synced_dates_file = os.path.join(data_dir, 'synced_dates.json')
 
         # Lock để đảm bảo thread-safe khi ghi file
         self._lock = Lock()
@@ -253,7 +254,9 @@ class DataManager:
             
             if self._gs_spreadsheet:
                 sheet = self._get_or_create_worksheet(self._gs_spreadsheet, sheet_name)
+                self._clear_worksheet_data(sheet)
                 sheet.append_rows(rows_to_push)
+                self._mark_date_synced(date_str)
                 return len(rows_to_push)
         except Exception as e:
             print(f"[LỖI SYNC LỊCH SỬ] {e}")
@@ -350,6 +353,97 @@ class DataManager:
 
         return display_list
 
+    def get_records(self, date_str):
+        """
+        Lấy danh sách record của 1 ngày.
+
+        Args:
+            date_str: Ngày dạng 'YYYY-MM-DD'
+
+        Returns:
+            list: Danh sách record, [] nếu không có
+        """
+        return self.data.get(date_str, [])
+
+    def delete_records(self, date_str, indices=None):
+        """
+        Xóa 1 hoặc nhiều record trong 1 ngày.
+
+        Args:
+            date_str: Ngày dạng 'YYYY-MM-DD'
+            indices: list index cần xóa, hoặc None để xóa toàn bộ ngày
+
+        Returns:
+            int: Số record đã xóa
+        """
+        if date_str not in self.data:
+            return 0
+
+        records = self.data[date_str]
+        if not records:
+            return 0
+
+        if indices is None:
+            # Xóa toàn bộ ngày
+            deleted = len(records)
+            del self.data[date_str]
+            # Hủy đánh dấu đã sync vì ngày này ko còn dữ liệu
+            self._unmark_date_synced(date_str)
+        else:
+            # Xóa từng record theo index (xóa từ cao xuống thấp để không loạn index)
+            valid = sorted([i for i in indices if 0 <= i < len(records)], reverse=True)
+            if not valid:
+                return 0
+            deleted = 0
+            for i in valid:
+                del records[i]
+                deleted += 1
+            if not records:
+                del self.data[date_str]
+                self._unmark_date_synced(date_str)
+
+        # Ghi lại JSON
+        Thread(target=self._write_json, daemon=True).start()
+
+        # Ghi audit log
+        self._write_delete_audit(date_str, deleted)
+
+        return deleted
+
+    def _write_delete_audit(self, date_str, count):
+        """Ghi nhật ký xóa dữ liệu vào data/delete_audit.json."""
+        audit_file = os.path.join(self.data_dir, 'delete_audit.json')
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        entry = {
+            "time": now,
+            "action": "delete",
+            "date": date_str,
+            "count": count
+        }
+        try:
+            audit = []
+            if os.path.exists(audit_file):
+                with open(audit_file, 'r', encoding='utf-8') as f:
+                    audit = json.load(f)
+            audit.append(entry)
+            with open(audit_file, 'w', encoding='utf-8') as f:
+                json.dump(audit, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"[LỖI AUDIT] Không thể ghi audit log: {e}")
+
+    def _unmark_date_synced(self, date_str):
+        """Xóa ngày khỏi danh sách đã sync (khi dữ liệu bị xóa hết)."""
+        if not os.path.exists(self.synced_dates_file):
+            return
+        try:
+            with open(self.synced_dates_file, 'r', encoding='utf-8') as f:
+                synced = set(json.load(f))
+            synced.discard(date_str)
+            with open(self.synced_dates_file, 'w', encoding='utf-8') as f:
+                json.dump(sorted(synced), f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"[LỖI] Không thể cập nhật synced_dates: {e}")
+
     def cleanup_old_data(self, days=DATA_RETENTION_DAYS):
         """
         Xóa dữ liệu cũ hơn số ngày chỉ định
@@ -379,6 +473,18 @@ class DataManager:
                 new_sheet.format("A1:H1", {"textFormat": {"bold": True}})
             except: pass
             return new_sheet
+
+    def _clear_worksheet_data(self, sheet):
+        """Xóa toàn bộ dữ liệu cũ trên sheet, chỉ giữ lại header (dòng 1).
+
+        Dùng trước khi ghi lại dữ liệu mới để tránh trùng lặp trên GG Sheet.
+        """
+        try:
+            row_count = len(sheet.get_all_values())
+            if row_count > 1:
+                sheet.delete_rows(2, row_count - 1)
+        except Exception as e:
+            print(f"[LỖI] Không thể xóa dữ liệu cũ trên sheet: {e}")
 
     def _init_gspread(self):
         """Kết nối Google Sheets bằng Service Account."""
@@ -426,6 +532,7 @@ class DataManager:
             # Gửi từng nhóm lên các Tab tương ứng
             for date_key, rows in data_by_date.items():
                 sheet = self._get_or_create_worksheet(self._gs_spreadsheet, date_key)
+                self._clear_worksheet_data(sheet)
                 sheet.append_rows(rows) # Gửi hàng loạt (Batch update)
                 success_count += len(rows)
             
@@ -473,15 +580,23 @@ class DataManager:
                 else:
                     # Ghi trực tiếp vào Tab ngày
                     sheet = self._get_or_create_worksheet(self._gs_spreadsheet, sheet_name)
+                    self._clear_worksheet_data(sheet)
                     sheet.append_row(row)
+                    self._mark_date_synced(date_str)
             else:
                 raise Exception("Chưa có kết nối Spreadsheet")
 
         except Exception as e:
             message = str(e)
             print(f"[LỖI SHEETS] Tạm lưu vào hàng chờ: {message}")
-            if 'row' in locals():
-                self._pending_queue.append(row)
+            # row luôn được gán trước khi vào try, nhưng phòng trường hợp lỗi
+            # exception xảy ra trước khi row defined → dùng fallback
+            try:
+                row_local = row
+            except NameError:
+                row_local = None
+            if row_local is not None:
+                self._pending_queue.append(row_local)
                 self._save_pending_queue()
                 self._update_pending_queue_size()
             if self.sheets_status['enabled']:
@@ -514,6 +629,32 @@ class DataManager:
                 all_records.append(item)
                 
         return all_records
+
+    def _mark_date_synced(self, date_str):
+        """Ghi nhận ngày đã sync lên Google Sheets vào synced_dates.json."""
+        synced = set()
+        if os.path.exists(self.synced_dates_file):
+            try:
+                with open(self.synced_dates_file, 'r', encoding='utf-8') as f:
+                    synced = set(json.load(f))
+            except:
+                pass
+        synced.add(date_str)
+        try:
+            with open(self.synced_dates_file, 'w', encoding='utf-8') as f:
+                json.dump(sorted(synced), f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"[LỖI] Không thể ghi synced_dates: {e}")
+
+    def get_synced_dates(self):
+        """Trả về list ngày đã sync lên Sheets."""
+        if not os.path.exists(self.synced_dates_file):
+            return []
+        try:
+            with open(self.synced_dates_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return []
 
     def get_available_dates(self):
         """Trả về list ngày có dữ liệu (YYYY-MM-DD), mới nhất trước"""
@@ -635,7 +776,10 @@ class DataManager:
         try:
             wb = Workbook()
             ws = wb.active
-            ws.title = "Kết quả phát hiện"
+            if ws is None:
+                ws = wb.create_sheet(title="Kết quả phát hiện")
+            else:
+                ws.title = "Kết quả phát hiện"
 
             # Định dạng header
             headers = ['STT', 'Ngày', 'Thời gian', 'Tổng số viên', 'Viên đạt', 'Viên lỗi', 'Kết quả', 'Model AI']

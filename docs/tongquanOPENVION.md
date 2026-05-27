@@ -54,3 +54,31 @@ results = model("image.jpg")
 1. **Phiên bản đồng bộ**: Nên export và chạy suy luận trên cùng một máy (hoặc cùng phiên bản thư viện `openvino`) để tránh lỗi không tương thích.
 2. **Task**: Phải khai báo đúng loại task (`detect`, `obb`, `segment`) khi load model, nếu sai sẽ bị crash.
 3. **Phần cứng**: OpenVINO tối ưu nhất cho chip **Intel**. Nếu dùng chip AMD hoặc NVIDIA, hiệu quả sẽ không cao bằng hoặc phải dùng công cụ khác (như ONNX Runtime hay TensorRT).
+
+## 5. Quy trình Export Thực Tế
+
+### Trên máy local (khuyến nghị)
+```python
+from ultralytics import YOLO
+model = YOLO("best.pt")          # file .pt đã train
+model.export(format="openvino")  # sinh thư mục best_openvino_model/
+```
+
+### Kiểm tra tương thích sau export
+```python
+model = YOLO("best_openvino_model", task="obb")
+results = model("test.jpg")      # chạy không lỗi → OK
+print(results[0].obb)            # in kết quả OBB
+```
+
+### Lỗi thường gặp khi export
+
+| Lỗi | Nguyên nhân | Fix |
+|-----|-------------|-----|
+| `ValueError: Invalid task` | Task không khớp với model | Export đúng task (obb/detect/segment) |
+| `RuntimeError: openvino not found` | Chưa cài openvino | `pip install openvino` |
+| `FileNotFoundError: .xml not found` | Đường dẫn sai | Kiểm tra thư mục OpenVINO có 3 file |
+| `Inference error: wrong shape` | Input size không tương thích | Export lại với `imgsz` đúng (ví dụ 640) |
+
+📖 Chi tiết hướng dẫn export: [docs/export_openvino.md](export_openvino.md)
+📖 Troubleshooting: [docs/tonghoploi.md](tonghoploi.md)

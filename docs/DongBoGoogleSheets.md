@@ -62,5 +62,37 @@ Sau khi đã có tệp khóa xác thực, bạn cần thực hiện 2 bước c�
 1. Sao chép tệp tin mẫu [config.py.example](file:///d:/KL_2025/KLTT/src/data/config.py.example) tại thư mục `src/data/`.
 2. Đổi tên tệp tin sao chép thành `config.py`.
 3. Mở tệp `config.py` bằng trình soạn thảo và thay đổi giá trị `SPREADSHEET_ID` bằng ID bảng tính của bạn.
-   - *Mẹo: ID bảng tính là chuỗi ký tự nằm giữa `/d/` và `/edit` trên thanh địa chỉ trình duyệt.*
-   - Ví dụ: Với URL `https://docs.google.com/spreadsheets/d/1A2B3C4D5E6F7G8H9I0J/edit`, ID sẽ là `1A2B3C4D5E6F7G8H9I0J`.
+    - *Mẹo: ID bảng tính là chuỗi ký tự nằm giữa `/d/` và `/edit` trên thanh địa chỉ trình duyệt.*
+    - Ví dụ: Với URL `https://docs.google.com/spreadsheets/d/1A2B3C4D5E6F7G8H9I0J/edit`, ID sẽ là `1A2B3C4D5E6F7G8H9I0J`.
+
+---
+
+### 4. Xử Lý Sự Cố Google Sheets
+
+#### Xóa cache pending_queue.json
+Nếu hàng chờ bị treo (dữ liệu không sync dù đã nhấn nút):
+1. Tắt chương trình.
+2. Mở file `src/data/data/pending_queue.json` bằng Notepad.
+3. Xóa toàn bộ nội dung và ghi `[]` (mảng rỗng).
+4. Lưu file và khởi động lại chương trình.
+
+#### Sheet bị hỏng cấu trúc (missing header, sai cột)
+1. Tạo một sheet mới trên cùng Google Spreadsheet hoặc tạo file riêng.
+2. Cập nhật `SHEET_NAME` trong `config.py`.
+3. Nhấn **Sync Google Sheets** → hệ thống sẽ tự động tạo header (cột) cho sheet mới.
+
+#### Không kết nối được Google API (firewall/proxy)
+- Kiểm tra máy tính có truy cập được `https://sheets.googleapis.com` không.
+- Nếu dùng proxy, cấu hình biến môi trường:
+  ```bash
+  set HTTP_PROXY=http://proxy:port
+  set HTTPS_PROXY=http://proxy:port
+  ```
+- Thử tắt firewall tạm thời để kiểm tra.
+
+---
+
+### 5. Lưu Ý Quan Trọng
+- File `service_account.json` đã được thêm vào `.gitignore` → không bị đẩy lên GitHub.
+- `pending_queue.json` chỉ lưu tạm dữ liệu chưa sync. Nếu xóa file này, dữ liệu chưa sync sẽ mất vĩnh viễn.
+- Giới hạn Google Sheets API: 60 requests/phút. Nếu sync quá nhiều dữ liệu cùng lúc có thể bị rate limit, hãy sync từng phần.

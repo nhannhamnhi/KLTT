@@ -13,6 +13,7 @@ env/
 *.bin
 # fomat_openvino/
 yolov8_openvino_model/
+models/ 
 
 # IDE
 .vscode/
@@ -36,5 +37,7 @@ src/data/config.py
 src/data/service_account.json
 src/data/data/*.json
 # PLC
-ket_qua/plc_context_old/
+ket_qua/
 
+#hinh anh su dụng trong QT
+assets/
