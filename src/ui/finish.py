@@ -239,6 +239,18 @@ class Controller:
         self.current_passed = 0
         self.current_failed = 0
         self.current_result = "WAIT"
+        
+        # Benchmark suy luận (Bảng 5.10)
+        self.benchmark_window_size = 200
+        self.benchmark_fps_samples = []
+        self.benchmark_latency_samples = []
+        self._last_benchmark_print_time = 0.0
+        self._last_frame_resolution = "--"
+
+        # Benchmark truyền thông PC-PLC (Bảng 5.11)
+        self._trigger_t0 = None
+        self._dataready_t1 = None
+        self.plc_benchmark_trials = []
 
         # Số ô khuôn chuẩn của vỉ thuốc (hằng số vật lý — thay đổi ở đây nếu đổi khuôn)
         self.SO_O_KHUON = 6
@@ -753,11 +765,16 @@ class Controller:
             # Cạnh lên: S0 phát hiện vỉ mới (False → True)
             if status["trigger_req"] and not getattr(self, '_prev_trigger_req', False):
                 print(f"[TRIGGER] 📸 Cảm biến S0 kích hoạt (AUTO)! KQ AI hiện tại: {getattr(self, 'current_result', 'WAIT')}")
+                self._trigger_t0 = time.time()
                 if hasattr(self, 'current_result') and self.current_result != "WAIT":
                     # 1. Đóng băng Anhdaxuly + số liệu với kết quả hiện tại
                     self.freeze_anhdaxuly()
                     # 2. Ghi xuống PLC và đóng dấu DataReady = True
+                    self._dataready_t1 = time.time()
                     self.plc.write_result(self.current_result, data_ready=True)
+                    if self._trigger_t0 is not None:
+                        pc_delay_ms = (self._dataready_t1 - self._trigger_t0) * 1000.0
+                        print(f"[BENCH PC-PLC] Trigger->DataReady: {pc_delay_ms:.1f} ms")
                     # 3. Lưu lại lịch sử đo đếm vào Excel/Log
                     self.save_current_data()
                 else:
@@ -766,7 +783,9 @@ class Controller:
             # Cạnh xuống: PLC đã lấy xong dữ liệu (True → False)
             elif not status["trigger_req"] and getattr(self, '_prev_trigger_req', False):
                 print("[TRIGGER] ✅ PLC đã nhận dữ liệu, hạ cờ DataReady về False.")
+                ack_time = time.time()
                 self.plc.reset_data_ready()
+                self._record_plc_benchmark_trial(ack_time)
         else:
             # Ở chế độ MANUAL, thiết bị không tự đông chụp khi đi qua cảm biến S0
             if status["trigger_req"] and not getattr(self, '_prev_trigger_req', False):
@@ -820,6 +839,9 @@ class Controller:
             self.lb_stt_fps = QtWidgets.QLabel("FPS: --")
             self.lb_stt_fps.setStyleSheet("color: red; font-weight: bold; padding-right: 15px")
             self.ui_main.statusbar.addWidget(self.lb_stt_fps)
+            self.lb_stt_benchmark = QtWidgets.QLabel("Bench: FPS_tb -- | Lat_tb --ms | Lat_max --ms")
+            self.lb_stt_benchmark.setStyleSheet("color: #6A1B9A; padding-right: 15px")
+            self.ui_main.statusbar.addWidget(self.lb_stt_benchmark)
 
             # 5. Label trạng thái PLC
             self.lb_stt_plc = QtWidgets.QLabel("PLC: ❌ Chưa kết nối")
@@ -842,6 +864,9 @@ class Controller:
             self.lb_stt_sensors = QtWidgets.QLabel("S0:⚫ S1:⚫ S2:⚫")
             self.lb_stt_sensors.setStyleSheet("padding-right: 15px")
             self.ui_main.statusbar.addWidget(self.lb_stt_sensors)
+            self.lb_stt_plc_bench = QtWidgets.QLabel("PC-PLC: Trial 0 | PC_tb --ms | PLC_tb --ms")
+            self.lb_stt_plc_bench.setStyleSheet("color: #0D47A1; padding-right: 15px")
+            self.ui_main.statusbar.addWidget(self.lb_stt_plc_bench)
             
             # 8. Label Thời gian (Nằm về phía bên phải)
             self.lb_stt_time = QtWidgets.QLabel("--:--:--")
@@ -1009,6 +1034,85 @@ class Controller:
                 self.plc.reset_data_ready()
                 print("[CONTINUE] 📉 Đã reset DataReady về FALSE.")
 
+    def _update_inference_benchmark(self, fps, frame_shape):
+        """Cập nhật benchmark suy luận để hiển thị và copy thủ công."""
+        if frame_shape is not None and len(frame_shape) >= 2:
+            self._last_frame_resolution = f"{frame_shape[1]}x{frame_shape[0]}"
+
+        if fps <= 0:
+            return
+
+        latency_ms = 1000.0 / fps
+        self.benchmark_fps_samples.append(fps)
+        self.benchmark_latency_samples.append(latency_ms)
+
+        if len(self.benchmark_fps_samples) > self.benchmark_window_size:
+            self.benchmark_fps_samples.pop(0)
+        if len(self.benchmark_latency_samples) > self.benchmark_window_size:
+            self.benchmark_latency_samples.pop(0)
+
+        fps_avg = sum(self.benchmark_fps_samples) / len(self.benchmark_fps_samples)
+        latency_avg = sum(self.benchmark_latency_samples) / len(self.benchmark_latency_samples)
+        latency_max = max(self.benchmark_latency_samples)
+
+        if hasattr(self, 'lb_stt_benchmark'):
+            self.lb_stt_benchmark.setText(
+                f"Bench: FPS_tb {fps_avg:.1f} | Lat_tb {latency_avg:.1f}ms | Lat_max {latency_max:.1f}ms"
+            )
+
+        now = time.time()
+        if now - self._last_benchmark_print_time >= 2.0:
+            backend_info = "--"
+            try:
+                if self.detector:
+                    backend_info = self.detector.get_model_info()
+            except Exception:
+                pass
+            print(
+                f"[BENCH AI] Backend={backend_info} | Res={self._last_frame_resolution} | "
+                f"FPS_tb={fps_avg:.2f} | Lat_tb={latency_avg:.2f}ms | Lat_max={latency_max:.2f}ms | "
+                f"N={len(self.benchmark_fps_samples)}"
+            )
+            self._last_benchmark_print_time = now
+
+    def _record_plc_benchmark_trial(self, ack_time):
+        """Lưu 1 trial benchmark truyền thông PC-PLC và cập nhật trung bình."""
+        if self._trigger_t0 is None or self._dataready_t1 is None:
+            return
+
+        pc_delay_ms = (self._dataready_t1 - self._trigger_t0) * 1000.0
+        plc_response_ms = (ack_time - self._dataready_t1) * 1000.0
+        if pc_delay_ms < 0 or plc_response_ms < 0:
+            return
+
+        trial = {
+            "trial": len(self.plc_benchmark_trials) + 1,
+            "pc_delay_ms": pc_delay_ms,
+            "plc_response_ms": plc_response_ms,
+            "result": self.current_result
+        }
+        self.plc_benchmark_trials.append(trial)
+
+        pc_avg = sum(item["pc_delay_ms"] for item in self.plc_benchmark_trials) / len(self.plc_benchmark_trials)
+        plc_avg = sum(item["plc_response_ms"] for item in self.plc_benchmark_trials) / len(self.plc_benchmark_trials)
+
+        if hasattr(self, 'lb_stt_plc_bench'):
+            self.lb_stt_plc_bench.setText(
+                f"PC-PLC: Trial {trial['trial']} | PC_tb {pc_avg:.1f}ms | PLC_tb {plc_avg:.1f}ms"
+            )
+
+        print(
+            f"[BENCH PC-PLC] Trial {trial['trial']} | "
+            f"PC_delay={pc_delay_ms:.1f}ms | PLC_response={plc_response_ms:.1f}ms | Result={self.current_result}"
+        )
+        print(
+            f"[BENCH PC-PLC][AVG] Trials={len(self.plc_benchmark_trials)} | "
+            f"PC_tb={pc_avg:.1f}ms | PLC_tb={plc_avg:.1f}ms"
+        )
+
+        self._trigger_t0 = None
+        self._dataready_t1 = None
+
     def freeze_anhdaxuly(self):
         """
         Đóng băng khung Anhdaxuly + số liệu với kết quả AI hiện tại.
@@ -1069,6 +1173,7 @@ class Controller:
         # Cập nhật FPS lên status bar (luôn cập nhật)
         if hasattr(self, 'lb_stt_fps'):
             self.lb_stt_fps.setText(f"FPS: {fps:.1f}")
+        self._update_inference_benchmark(fps, cv_img_xuly.shape if cv_img_xuly is not None else None)
 
         # === KHUNG 1: Anhgoc — LUÔN CẬP NHẬT ảnh thô (raw, không AI bbox) ===
         qt_img_goc = self.convert_cv_qt(cv_img_goc)
