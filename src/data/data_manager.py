@@ -758,33 +758,43 @@ class DataManager:
 
     def export_to_excel(self, filepath, date_filter=None, model_filter=None):
         """
-        Xuất dữ liệu ra file Excel với merge cell cho cột Ngày
-
-        Args:
-            filepath: Đường dẫn file Excel để lưu
-            date_filter: Nếu là chuỗi 'YYYY-MM-DD', chỉ xuất ngày đó. 
-                        Nếu là None, xuất toàn bộ dữ liệu.
-            model_filter: Nếu có, chỉ xuất các bản ghi của model này.
+        Xu?t d? li?u ra file Excel v?i merge cell cho c?t Ng?y
 
         Returns:
-            bool: True nếu thành công, False nếu thất bại
+            tuple[bool, str]: (th?nh c?ng, th?ng b?o)
         """
         if not OPENPYXL_AVAILABLE:
-            print("[LỖI] Thư viện openpyxl chưa được cài đặt!")
-            return False
+            print("[L?i] Th? vi?n openpyxl ch?a ???c c?i ??t!")
+            return False, "Th? vi?n openpyxl ch?a ???c c?i ??t."
+
+        if not filepath or not isinstance(filepath, str):
+            return False, "???ng d?n l?u file kh?ng h?p l?."
+
+        filepath = filepath.strip()
+        if not filepath:
+            return False, "???ng d?n l?u file kh?ng h?p l?."
+
+        if date_filter and date_filter not in self.data:
+            return False, f"Kh?ng c? d? li?u cho ng?y {date_filter}."
 
         try:
+            if os.path.exists(filepath):
+                try:
+                    os.remove(filepath)
+                except PermissionError:
+                    return False, "Kh?ng th? ghi file v? file ?ang ???c m? trong Excel ho?c ?ng d?ng kh?c."
+
             wb = Workbook()
             ws = wb.active
+            sheet_title = "Ket_Qua_Phat_Hien"
             if ws is None:
-                ws = wb.create_sheet(title="Kết quả phát hiện")
+                ws = wb.create_sheet(title=sheet_title)
             else:
-                ws.title = "Kết quả phát hiện"
+                ws.title = sheet_title
 
-            # Định dạng header
-            headers = ['STT', 'Ngày', 'Thời gian', 'Tổng số viên', 'Viên đạt', 'Viên lỗi', 'Kết quả', 'Model AI']
+            headers = ['STT', 'Ng?y', 'Th?i gian', 'T?ng s? vi?n', 'Vi?n ??t', 'Vi?n l?i', 'K?t qu?', 'Model AI']
             header_font = Font(bold=True, color='FFFFFF')
-            header_fill_color = '006666'  # Màu teal
+            header_fill_color = '006666'
             header_alignment = Alignment(horizontal='center', vertical='center')
             thin_border = Border(
                 left=Side(style='thin'),
@@ -793,35 +803,25 @@ class DataManager:
                 bottom=Side(style='thin')
             )
 
-            # Ghi header
+            from openpyxl.styles import PatternFill
             for col, header in enumerate(headers, 1):
                 cell = ws.cell(row=1, column=col, value=header)
                 cell.font = header_font
                 cell.alignment = header_alignment
                 cell.border = thin_border
-                # Đặt màu nền cho header
-                from openpyxl.styles import PatternFill
                 cell.fill = PatternFill(start_color=header_fill_color, end_color=header_fill_color, fill_type='solid')
 
-            # Ghi dữ liệu
             row_num = 2
             stt = 1
-
-            # Biến đếm số lần từng trạng thái kết quả (5 trạng thái)
             count_ok = 0
             count_ng_l = 0
             count_ng_h = 0
             count_missing = 0
             count_wait = 0
 
-            # Lọc các ngày cần xuất
             if date_filter:
-                if date_filter in self.data:
-                    sorted_dates = [date_filter]
-                else:
-                    sorted_dates = []
+                sorted_dates = [date_filter] if date_filter in self.data else []
             else:
-                # Sắp xếp các ngày theo thứ tự
                 sorted_dates = sorted(self.data.keys())
 
             for date_str in sorted_dates:
@@ -829,17 +829,9 @@ class DataManager:
                 if not records:
                     continue
 
-                # Chuyển đổi định dạng ngày từ YYYY-MM-DD sang DD/MM/YYYY
                 date_obj = datetime.strptime(date_str, '%Y-%m-%d')
                 display_date = date_obj.strftime('%d/%m/%Y')
-
-                # Lọc records theo model_filter
-                filtered_records = []
-                for r in records:
-                    if model_filter and r.get('model_name') != model_filter:
-                        continue
-                    filtered_records.append(r)
-                
+                filtered_records = [r for r in records if not model_filter or r.get('model_name') == model_filter]
                 if not filtered_records:
                     continue
 
@@ -848,33 +840,22 @@ class DataManager:
                     current_row = row_num
                     ws.cell(row=current_row, column=1, value=stt).alignment = header_alignment
                     ws.cell(row=current_row, column=1).border = thin_border
-
-                    # Chỉ ghi ngày vào hàng đầu tiên của ngày đó (trong tập đã lọc)
                     if i == 0:
                         ws.cell(row=current_row, column=2, value=display_date).alignment = header_alignment
-                        ws.cell(row=current_row, column=2).border = thin_border
-                    else:
-                        ws.cell(row=current_row, column=2).border = thin_border
-
+                    ws.cell(row=current_row, column=2).border = thin_border
                     ws.cell(row=current_row, column=3, value=rec['time']).alignment = header_alignment
                     ws.cell(row=current_row, column=3).border = thin_border
-
                     ws.cell(row=current_row, column=4, value=rec['total']).alignment = header_alignment
                     ws.cell(row=current_row, column=4).border = thin_border
-
                     ws.cell(row=current_row, column=5, value=rec['passed']).alignment = header_alignment
                     ws.cell(row=current_row, column=5).border = thin_border
-
                     ws.cell(row=current_row, column=6, value=rec['failed']).alignment = header_alignment
                     ws.cell(row=current_row, column=6).border = thin_border
-
                     ws.cell(row=current_row, column=7, value=rec['result']).alignment = header_alignment
                     ws.cell(row=current_row, column=7).border = thin_border
-
                     ws.cell(row=current_row, column=8, value=rec.get('model_name', 'N/A')).alignment = header_alignment
                     ws.cell(row=current_row, column=8).border = thin_border
 
-                    # Đếm số lần từng trạng thái kết quả
                     result_val = rec.get('result', '')
                     if result_val == 'OK':
                         count_ok += 1
@@ -891,89 +872,73 @@ class DataManager:
                     row_num += 1
 
                 end_row = row_num - 1
-
-                # Merge cell cột Ngày nếu có nhiều hơn 1 bản ghi trong ngày
                 if end_row > start_row:
                     ws.merge_cells(start_row=start_row, start_column=2, end_row=end_row, end_column=2)
-                    # Căn trung tâm cho ô đã gộp
                     ws.cell(row=start_row, column=2).alignment = Alignment(horizontal='center', vertical='center')
 
-            # === PHẦN TỔNG HỢP KẾT QUẢ Ở CUỐI ===
-            if row_num > 2:  # Chỉ thêm nếu có dữ liệu
-                from openpyxl.styles import PatternFill
-                
+            if row_num > 2:
                 summary_font = Font(bold=True, size=11)
-                summary_fill = PatternFill(start_color='FFEB9C', end_color='FFEB9C', fill_type='solid')  # Vàng nhạt
-                
-                # --- HÀNG 1: Tiêu đề "TỔNG HỢP KẾT QUẢ" + OK + NG_L ---
+                summary_fill = PatternFill(start_color='FFEB9C', end_color='FFEB9C', fill_type='solid')
+
                 row1 = row_num
                 ws.merge_cells(start_row=row1, start_column=1, end_row=row1, end_column=3)
-                cell_title = ws.cell(row=row1, column=1, value="TỔNG HỢP KẾT QUẢ")
+                cell_title = ws.cell(row=row1, column=1, value="T?NG H?P K?T QU?")
                 cell_title.font = Font(bold=True, size=12)
                 cell_title.alignment = Alignment(horizontal='center', vertical='center')
                 cell_title.border = thin_border
                 cell_title.fill = summary_fill
 
-                # OK
                 cell_ok = ws.cell(row=row1, column=4, value=f"OK: {count_ok}")
                 cell_ok.font = summary_font
                 cell_ok.alignment = Alignment(horizontal='center', vertical='center')
                 cell_ok.border = thin_border
-                cell_ok.fill = PatternFill(start_color='C6EFCE', end_color='C6EFCE', fill_type='solid')  # Xanh nhạt
+                cell_ok.fill = PatternFill(start_color='C6EFCE', end_color='C6EFCE', fill_type='solid')
 
-                # NG_L (lỗi nhẹ)
                 cell_ng_l = ws.cell(row=row1, column=5, value=f"NG_L: {count_ng_l}")
                 cell_ng_l.font = summary_font
                 cell_ng_l.alignment = Alignment(horizontal='center', vertical='center')
                 cell_ng_l.border = thin_border
-                cell_ng_l.fill = PatternFill(start_color='FFF2CC', end_color='FFF2CC', fill_type='solid')  # Vàng nhạt
+                cell_ng_l.fill = PatternFill(start_color='FFF2CC', end_color='FFF2CC', fill_type='solid')
 
-                # NG_H (lỗi nặng)
                 cell_ng_h = ws.cell(row=row1, column=6, value=f"NG_H: {count_ng_h}")
                 cell_ng_h.font = summary_font
                 cell_ng_h.alignment = Alignment(horizontal='center', vertical='center')
                 cell_ng_h.border = thin_border
-                cell_ng_h.fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')  # Đỏ nhạt
+                cell_ng_h.fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')
 
-                # MISSING
                 cell_miss = ws.cell(row=row1, column=7, value=f"MISSING: {count_missing}")
                 cell_miss.font = summary_font
                 cell_miss.alignment = Alignment(horizontal='center', vertical='center')
                 cell_miss.border = thin_border
-                cell_miss.fill = PatternFill(start_color='FFD699', end_color='FFD699', fill_type='solid')  # Cam nhạt
+                cell_miss.fill = PatternFill(start_color='FFD699', end_color='FFD699', fill_type='solid')
 
-                # --- HÀNG 2: Tổng số lượt kiểm tra ---
                 row2 = row_num + 1
                 total_count = count_ok + count_ng_l + count_ng_h + count_missing + count_wait
                 total_ng = count_ng_l + count_ng_h
 
                 ws.merge_cells(start_row=row2, start_column=1, end_row=row2, end_column=3)
-                cell_total_label = ws.cell(row=row2, column=1, value=f"TỔNG LƯỢT: {total_count}")
+                cell_total_label = ws.cell(row=row2, column=1, value=f"T?NG L??T: {total_count}")
                 cell_total_label.font = Font(bold=True, size=12)
                 cell_total_label.alignment = Alignment(horizontal='center', vertical='center')
                 cell_total_label.border = thin_border
                 cell_total_label.fill = summary_fill
 
-                # Tổng đạt
-                cell_dat = ws.cell(row=row2, column=4, value=f"Đạt: {count_ok}")
+                cell_dat = ws.cell(row=row2, column=4, value=f"??t: {count_ok}")
                 cell_dat.font = summary_font
                 cell_dat.alignment = Alignment(horizontal='center', vertical='center')
                 cell_dat.border = thin_border
                 cell_dat.fill = PatternFill(start_color='C6EFCE', end_color='C6EFCE', fill_type='solid')
 
-                # Tổng lỗi (NG_L + NG_H)
-                cell_loi = ws.cell(row=row2, column=5, value=f"Lỗi: {total_ng}")
+                cell_loi = ws.cell(row=row2, column=5, value=f"L?i: {total_ng}")
                 cell_loi.font = summary_font
                 cell_loi.alignment = Alignment(horizontal='center', vertical='center')
                 cell_loi.border = thin_border
                 cell_loi.fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')
 
-                # Tỷ lệ đạt
                 if total_count > 0:
-                    ty_le = (count_ok / total_count) * 100
-                    ty_le_str = f"Tỷ lệ đạt: {ty_le:.1f}%"
+                    ty_le_str = f"T? l? ??t: {(count_ok / total_count) * 100:.1f}%"
                 else:
-                    ty_le_str = "Tỷ lệ đạt: --"
+                    ty_le_str = "T? l? ??t: --"
                 ws.merge_cells(start_row=row2, start_column=6, end_row=row2, end_column=7)
                 cell_tyle = ws.cell(row=row2, column=6, value=ty_le_str)
                 cell_tyle.font = Font(bold=True, size=11, color='006666')
@@ -981,19 +946,18 @@ class DataManager:
                 cell_tyle.border = thin_border
                 cell_tyle.fill = summary_fill
 
-            # Điều chỉnh độ rộng cột
             column_widths = [6, 15, 12, 15, 12, 12, 15, 25]
             for i, width in enumerate(column_widths, 1):
                 ws.column_dimensions[chr(64 + i)].width = width
 
-            # Lưu file
             wb.save(filepath)
-            print(f"[THÔNG BÁO] Đã xuất file Excel: {filepath}")
-            return True
+            print(f"[TH?NG B?O] ?? xu?t file Excel: {filepath}")
+            return True, f"?? xu?t file Excel: {filepath}"
 
         except Exception as e:
-            print(f"[LỖI] Không thể xuất Excel: {e}")
-            return False
+            print(f"[L?I] Kh?ng th? xu?t Excel: {e}")
+            return False, f"Kh?ng th? xu?t Excel: {e}"
+
 
 
 # Singleton instance để sử dụng trong toàn ứng dụng

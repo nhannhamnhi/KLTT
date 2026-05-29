@@ -250,7 +250,7 @@ class DataViewerDialog(QtWidgets.QDialog, Ui_DataViewerDialog):
         if path:
             success, msg = self.data_manager.export_to_excel(path, date_filter, model_filter)
             if success:
-                QMessageBox.information(self.main_win, "Thành công", f"Đã xuất dữ liệu ra:\n{path}")
+                QMessageBox.information(self.main_win, "Thành công", msg or f"Đã xuất dữ liệu ra:\n{path}")
             else:
                 QMessageBox.critical(self.main_win, "Lỗi", f"Không thể xuất file:\n{msg}")
 

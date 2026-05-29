@@ -1465,19 +1465,19 @@ class Controller:
                 if not filepath.endswith('.xlsx'):
                     filepath += '.xlsx'
                 
-                success = self.data_manager.export_to_excel(filepath, date_filter=selected_date)
+                success, msg = self.data_manager.export_to_excel(filepath, date_filter=selected_date)
                 
                 if success:
                     QMessageBox.information(
                         self.main_win,
                         "Thành công",
-                        f"Đã xuất file Excel thành công cho ngày {selected_date}!\n\nĐường dẫn: {filepath}"
+                        msg or f"Đã xuất file Excel thành công cho ngày {selected_date}!\n\nĐường dẫn: {filepath}"
                     )
                 else:
                     QMessageBox.critical(
                         self.main_win,
                         "Lỗi",
-                        "Không thể xuất file Excel!"
+                        msg or "Không thể xuất file Excel!"
                     )
         
         # Kết thúc hàm
