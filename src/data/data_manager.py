@@ -462,15 +462,22 @@ class DataManager:
     def _get_or_create_worksheet(self, spreadsheet, sheet_name):
         """Lấy worksheet theo tên, nếu chưa có thì tạo mới với header."""
         try:
-            return spreadsheet.worksheet(sheet_name)
+            sheet = spreadsheet.worksheet(sheet_name)
+            try:
+                sheet.update("A1:G1", [["Ngày", "Thời gian", "Tổng", "Đạt", "Lỗi", "Kết quả", "Model AI"]])
+                sheet.update("H1", [[""]])
+                sheet.format("A1:G1", {"textFormat": {"bold": True}})
+            except Exception:
+                pass
+            return sheet
         except Exception:
             # Tạo mới nếu không tồn tại
             new_sheet = spreadsheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
-            headers = ["Timestamp", "Ngày", "Thời gian", "Tổng", "Đạt", "Lỗi", "Kết quả", "Model AI"]
+            headers = ["Ngày", "Thời gian", "Tổng", "Đạt", "Lỗi", "Kết quả", "Model AI"]
             new_sheet.append_row(headers)
             # Định dạng header (bold)
             try:
-                new_sheet.format("A1:H1", {"textFormat": {"bold": True}})
+                new_sheet.format("A1:G1", {"textFormat": {"bold": True}})
             except: pass
             return new_sheet
 
@@ -485,6 +492,17 @@ class DataManager:
                 sheet.delete_rows(2, row_count - 1)
         except Exception as e:
             print(f"[LỖI] Không thể xóa dữ liệu cũ trên sheet: {e}")
+
+    def _extract_sheet_date_key(self, row):
+        """Lấy key ngày dạng DD-MM-YYYY từ một row của Google Sheets."""
+        if not row:
+            return None
+
+        for value in row[:2]:
+            if isinstance(value, str) and "/" in value:
+                return value.replace("/", "-")
+
+        return None
 
     def _init_gspread(self):
         """Kết nối Google Sheets bằng Service Account."""
@@ -524,7 +542,9 @@ class DataManager:
             # Phân nhóm hàng chờ theo ngày (giả định cột thứ 2 là ngày dạng DD/MM/YYYY)
             data_by_date = {}
             for row in self._pending_queue:
-                date_key = row[1].replace("/", "-") # Chuyển thành tên Tab 15-05-2026
+                date_key = self._extract_sheet_date_key(row)
+                if not date_key:
+                    continue
                 if date_key not in data_by_date:
                     data_by_date[date_key] = []
                 data_by_date[date_key].append(row)
@@ -556,7 +576,6 @@ class DataManager:
             sheet_name = date_obj.strftime('%d-%m-%Y')
 
             row = [
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 display_date,
                 record['time'],
                 record['total'],
@@ -792,7 +811,7 @@ class DataManager:
             else:
                 ws.title = sheet_title
 
-            headers = ['STT', 'Ng?y', 'Th?i gian', 'T?ng s? vi?n', 'Vi?n ??t', 'Vi?n l?i', 'K?t qu?', 'Model AI']
+            headers = ['STT', 'Ngay', 'Thoi gian', 'Tong so vien', 'Vien dat', 'Vien loi', 'Ket qua', 'Model AI']
             header_font = Font(bold=True, color='FFFFFF')
             header_fill_color = '006666'
             header_alignment = Alignment(horizontal='center', vertical='center')
@@ -882,7 +901,7 @@ class DataManager:
 
                 row1 = row_num
                 ws.merge_cells(start_row=row1, start_column=1, end_row=row1, end_column=3)
-                cell_title = ws.cell(row=row1, column=1, value="T?NG H?P K?T QU?")
+                cell_title = ws.cell(row=row1, column=1, value="TONG HOP KET QUA")
                 cell_title.font = Font(bold=True, size=12)
                 cell_title.alignment = Alignment(horizontal='center', vertical='center')
                 cell_title.border = thin_border
@@ -917,28 +936,28 @@ class DataManager:
                 total_ng = count_ng_l + count_ng_h
 
                 ws.merge_cells(start_row=row2, start_column=1, end_row=row2, end_column=3)
-                cell_total_label = ws.cell(row=row2, column=1, value=f"T?NG L??T: {total_count}")
+                cell_total_label = ws.cell(row=row2, column=1, value=f"TONG LUOT: {total_count}")
                 cell_total_label.font = Font(bold=True, size=12)
                 cell_total_label.alignment = Alignment(horizontal='center', vertical='center')
                 cell_total_label.border = thin_border
                 cell_total_label.fill = summary_fill
 
-                cell_dat = ws.cell(row=row2, column=4, value=f"??t: {count_ok}")
+                cell_dat = ws.cell(row=row2, column=4, value=f"DAT: {count_ok}")
                 cell_dat.font = summary_font
                 cell_dat.alignment = Alignment(horizontal='center', vertical='center')
                 cell_dat.border = thin_border
                 cell_dat.fill = PatternFill(start_color='C6EFCE', end_color='C6EFCE', fill_type='solid')
 
-                cell_loi = ws.cell(row=row2, column=5, value=f"L?i: {total_ng}")
+                cell_loi = ws.cell(row=row2, column=5, value=f"LOI: {total_ng}")
                 cell_loi.font = summary_font
                 cell_loi.alignment = Alignment(horizontal='center', vertical='center')
                 cell_loi.border = thin_border
                 cell_loi.fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')
 
                 if total_count > 0:
-                    ty_le_str = f"T? l? ??t: {(count_ok / total_count) * 100:.1f}%"
+                    ty_le_str = f"TY LE DAT: {(count_ok / total_count) * 100:.1f}%"
                 else:
-                    ty_le_str = "T? l? ??t: --"
+                    ty_le_str = "TY LE DAT: --"
                 ws.merge_cells(start_row=row2, start_column=6, end_row=row2, end_column=7)
                 cell_tyle = ws.cell(row=row2, column=6, value=ty_le_str)
                 cell_tyle.font = Font(bold=True, size=11, color='006666')

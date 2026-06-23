@@ -11,9 +11,13 @@ env/
 *.onnx
 *.xml
 *.bin
-# fomat_openvino/
-yolov8_openvino_model/
-models/ 
+
+# Keep only the approved version2 models under models/
+models/
+!models/version2/
+!models/version2/yolov8-obb_polygon.pt
+!models/version2/yolov8-obb_polygon_openvino_model/
+!models/version2/yolov8-obb_polygon_openvino_model/**
 
 # IDE
 .vscode/
