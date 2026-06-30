@@ -1,0 +1,3590 @@
+{
+  "2026-05-14": [
+    {
+      "time": "20:27:13",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "20:27:14",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:14",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "20:27:15",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:16",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:17",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:19",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:21",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:21",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:22",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:23",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:23",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:24",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:25",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:26",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:27",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:27",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:28",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:28",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:30",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:31",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:32",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:33",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:34",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:35",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:37",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:38",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:39",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:40",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:41",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:43",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:44",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:46",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:46",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:47",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:48",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:49",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:49",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:50",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:51",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:51",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:52",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:53",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:54",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:55",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:55",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:57",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:57",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:27:58",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:28:02",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:28:03",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:28:04",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:28:05",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:28:06",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:28:07",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:28:08",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:37:51",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "20:37:52",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:37:53",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:37:54",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:37:56",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:37:57",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:37:57",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:37:58",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:38:00",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:38:02",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:38:03",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:38:04",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "20:38:04",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    }
+  ],
+  "2026-05-15": [
+    {
+      "time": "09:20:56",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "09:21:31",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "09:36:01",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "09:44:24",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "09:46:52",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "09:49:41",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "09:52:02",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:06:19",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:51:49",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:53:09",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:53:34",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:53:36",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:53:57",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:53:58",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:54:16",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:54:17",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:57:44",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:57:45",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:57:46",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:58:01",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 2,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:58:02",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:59:47",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:59:48",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:00:40",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:00:41",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:00:41",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:00:42",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:01:00",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:01:01",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:01:01",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:02:18",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:02:20",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:02:40",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:02:40",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:02:41",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:03:37",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:03:38",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:03:38",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:05:20",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:05:21",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:05:21",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:26:56",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "17:28:02",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:28:36",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:28:37",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:28:53",
+      "model_name": "yolov8_openvino_model",
+      "total": 7,
+      "passed": 0,
+      "failed": 7,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:28:54",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:29:07",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "17:29:24",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:29:25",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:29:42",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:29:43",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:29:43",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:29:53",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:29:54",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:29:55",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:46:10",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:46:31",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 1,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:46:32",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:46:32",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:46:48",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:46:50",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:46:50",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:47:06",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:47:07",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:47:08",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 1,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:47:15",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:47:37",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 2,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:47:38",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 4,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:47:59",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:48:01",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 2,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:48:09",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:48:10",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:48:27",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:48:43",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:48:44",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:49:05",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:49:19",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:49:19",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:49:20",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:49:30",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:49:47",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    }
+  ],
+  "2026-05-18": [
+    {
+      "time": "14:18:16",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:19:05",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:19:05",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:19:20",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:19:20",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:19:21",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:19:38",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:19:40",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:20:07",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:20:29",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:20:30",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:20:43",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:20:44",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:21:01",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:22:01",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:22:02",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:22:02",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:22:03",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:23:46",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:23:48",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:39:46",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:47:34",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:47:50",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:48:32",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:51:12",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:53:22",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:54:09",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:55:00",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:55:15",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:55:29",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:55:57",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:56:07",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:56:20",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 4,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:56:36",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:02:36",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:02:36",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:02:37",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:02:38",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:02:39",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "15:02:41",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "15:02:43",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:02:43",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:02:44",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 1,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:02:45",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 1,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:03:47",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:03:48",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:03:49",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:03:49",
+      "model_name": "yolov8_openvino_model",
+      "total": 3,
+      "passed": 1,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:03:53",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:03:54",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:03:54",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:04:01",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "15:04:01",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    }
+  ],
+  "2026-05-19": [
+    {
+      "time": "09:54:26",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "09:55:14",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "09:56:06",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:03:18",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:04:02",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:04:58",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:04:59",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:05:13",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:05:22",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:09:58",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:10:17",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:10:29",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:11:21",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:11:40",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:12:05",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:12:21",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:12:45",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:13:14",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:13:25",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:50:12",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:51:18",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:51:28",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:51:48",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:51:59",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:52:35",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 5,
+      "failed": 1,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:53:06",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 5,
+      "failed": 1,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:54:23",
+      "model_name": "yolov8_openvino_model",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:55:04",
+      "model_name": "yolov8_openvino_model",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:55:34",
+      "model_name": "yolov8_openvino_model",
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:55:48",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 5,
+      "failed": 1,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:56:03",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 5,
+      "failed": 1,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:56:14",
+      "model_name": "yolov8_openvino_model",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:56:36",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "12:00:32",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "12:01:05",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "12:02:28",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "12:02:29",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "12:02:48",
+      "model_name": "yolov8_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    }
+  ],
+  "2026-05-26": [
+    {
+      "time": "20:17:02",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "20:17:03",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "20:30:58",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "21:03:27",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_H"
+    },
+    {
+      "time": "21:30:21",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_H"
+    },
+    {
+      "time": "21:31:04",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_H"
+    },
+    {
+      "time": "21:31:45",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "21:39:16",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "21:39:27",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "21:49:31",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "result": "MISSING"
+    }
+  ],
+  "2026-05-27": [
+    {
+      "time": "10:39:46",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:40:02",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:40:19",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:40:37",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:40:56",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:41:11",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:41:23",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "10:41:43",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_H"
+    },
+    {
+      "time": "10:45:32",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:45:48",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:46:06",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:46:23",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:46:39",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 7,
+      "passed": 2,
+      "failed": 5,
+      "result": "NG_H"
+    },
+    {
+      "time": "10:47:01",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "10:47:20",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 2,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:47:37",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:52:58",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:53:18",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "10:53:43",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:53:57",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "10:54:09",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 7,
+      "passed": 1,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "10:54:26",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_H"
+    },
+    {
+      "time": "10:54:45",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "10:54:59",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 4,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:02:48",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:03:04",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:03:25",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:04:03",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:04:19",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 7,
+      "passed": 1,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:04:38",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:05:03",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 4,
+      "passed": 1,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:05:16",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:14:24",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:14:32",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:14:46",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:14:58",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:15:11",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:15:39",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:15:51",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:15:58",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:41:19",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:41:26",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:41:35",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:41:46",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:41:54",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:42:05",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 1,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:42:16",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 4,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:42:24",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:45:46",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:45:53",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:46:03",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:46:11",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:46:19",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 2,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:51:06",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:51:16",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 4,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:51:25",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:53:06",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:53:12",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:53:31",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:53:43",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:53:51",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:53:59",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:54:11",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:54:20",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:56:18",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:56:29",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 7,
+      "passed": 6,
+      "failed": 1,
+      "result": "OK"
+    },
+    {
+      "time": "11:56:38",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 7,
+      "passed": 3,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:56:46",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:56:56",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 8,
+      "passed": 2,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:57:04",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 4,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:57:14",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:57:25",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "11:58:49",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:58:56",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "11:59:13",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:59:25",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "11:59:34",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:59:45",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_H"
+    },
+    {
+      "time": "11:59:58",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "12:00:13",
+      "model_name": "yolov11-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "14:28:33",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:28:48",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:29:00",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:29:12",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 7,
+      "passed": 3,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:29:22",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_H"
+    },
+    {
+      "time": "14:29:34",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 5,
+      "passed": 1,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:29:51",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:30:03",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:32:17",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:32:29",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:32:41",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:32:48",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 7,
+      "passed": 3,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:32:56",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 8,
+      "passed": 1,
+      "failed": 7,
+      "result": "NG_H"
+    },
+    {
+      "time": "14:33:07",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 7,
+      "passed": 0,
+      "failed": 7,
+      "result": "NG_H"
+    },
+    {
+      "time": "14:33:18",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:33:30",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 5,
+      "failed": 1,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:36:54",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:37:01",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:37:13",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:37:20",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 7,
+      "passed": 3,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:37:27",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 5,
+      "passed": 1,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:37:39",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_H"
+    },
+    {
+      "time": "14:37:47",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:37:56",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:45:20",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:45:26",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:45:35",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 7,
+      "passed": 3,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:45:40",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:45:48",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "14:45:58",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 7,
+      "passed": 1,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "14:46:07",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 5,
+      "passed": 4,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:46:15",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:49:00",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:49:10",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 7,
+      "passed": 6,
+      "failed": 1,
+      "result": "OK"
+    },
+    {
+      "time": "14:49:53",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:49:59",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:50:15",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 4,
+      "passed": 1,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:50:29",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_H"
+    },
+    {
+      "time": "14:50:39",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:50:49",
+      "model_name": "yolov8-obb_polygon.pt",
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:59:59",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "15:00:05",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "15:00:14",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:00:25",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:00:33",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_H"
+    },
+    {
+      "time": "15:00:43",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 5,
+      "passed": 2,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:00:52",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:01:00",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:02:23",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:02:33",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "15:02:41",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:02:48",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:02:57",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 5,
+      "passed": 1,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:03:07",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 5,
+      "passed": 2,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:03:15",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:03:21",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:04:45",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 5,
+      "failed": 1,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:04:58",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "15:05:08",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 5,
+      "passed": 2,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:05:23",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:05:32",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 5,
+      "passed": 1,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:05:44",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 5,
+      "passed": 2,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:05:59",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:06:08",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:08:55",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "15:09:07",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "15:09:19",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:09:27",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:09:36",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "15:09:49",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_H"
+    },
+    {
+      "time": "15:10:00",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 4,
+      "passed": 1,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "15:10:12",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:11:36",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 7,
+      "passed": 6,
+      "failed": 1,
+      "result": "OK"
+    },
+    {
+      "time": "15:11:48",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "15:11:58",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:12:07",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:12:19",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_H"
+    },
+    {
+      "time": "15:12:30",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "15:12:42",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 6,
+      "passed": 4,
+      "failed": 2,
+      "result": "NG_L"
+    },
+    {
+      "time": "15:12:51",
+      "model_name": "yolov11-obb_polygon.pt",
+      "total": 4,
+      "passed": 2,
+      "failed": 2,
+      "result": "MISSING"
+    }
+  ],
+  "2026-05-31": [
+    {
+      "time": "14:08:23",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "14:08:51",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "14:09:12",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:10:45",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "14:11:03",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "14:11:29",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "14:13:00",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 1,
+      "failed": 5,
+      "result": "NG_H"
+    }
+  ],
+  "2026-06-10": [
+    {
+      "time": "18:23:25",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 3,
+      "passed": 2,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "18:24:33",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 4,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "18:25:21",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "18:25:56",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 7,
+      "passed": 1,
+      "failed": 6,
+      "result": "NG_L"
+    },
+    {
+      "time": "18:26:03",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "18:26:43",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "result": "MISSING"
+    },
+    {
+      "time": "18:29:53",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "18:30:04",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "18:30:14",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "18:30:35",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "result": "MISSING"
+    }
+  ],
+  "2026-06-23": [
+    {
+      "time": "17:22:20",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:22:40",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:22:51",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:23:01",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 5,
+      "passed": 4,
+      "failed": 1,
+      "result": "MISSING"
+    },
+    {
+      "time": "17:23:28",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:23:38",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 2,
+      "failed": 4,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:23:46",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    }
+  ],
+  "2026-06-25": [
+    {
+      "time": "17:44:43",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:45:54",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "17:48:22",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "result": "OK"
+    },
+    {
+      "time": "17:48:41",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "17:49:00",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "17:49:19",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 4,
+      "passed": 2,
+      "failed": 2,
+      "result": "MISSING"
+    },
+    {
+      "time": "18:21:59",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 3,
+      "failed": 3,
+      "result": "NG_L"
+    },
+    {
+      "time": "18:22:52",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 6,
+      "passed": 0,
+      "failed": 6,
+      "result": "NG_H"
+    },
+    {
+      "time": "18:22:53",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "result": "MISSING"
+    },
+    {
+      "time": "18:23:12",
+      "model_name": "yolov8-obb_polygon_openvino_model",
+      "total": 7,
+      "passed": 3,
+      "failed": 4,
+      "result": "NG_L"
+    }
+  ]
+}

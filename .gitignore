@@ -1,47 +1,47 @@
 # Python
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-.venv/
-env/
+#__pycache__/
+#*.py[cod]
+#*$py.class
+#venv/
+#.venv/
+#env/
 
 # AI Models (Large files)
-*.pt
-*.onnx
-*.xml
-*.bin
+#*.pt
+#*.onnx
+#*.xml
+#*.bin
 
 # Keep only the approved version2 models under models/
-models/
-!models/version2/
-!models/version2/yolov8-obb_polygon.pt
-!models/version2/yolov8-obb_polygon_openvino_model/
-!models/version2/yolov8-obb_polygon_openvino_model/**
+#models/
+#!models/version2/
+# !models/version2/yolov8-obb_polygon.pt
+# !models/version2/yolov8-obb_polygon_openvino_model/
+# !models/version2/yolov8-obb_polygon_openvino_model/**
 
 # IDE
-.vscode/
-.idea/
+# .vscode/
+# .idea/
 
 # Logs
-*.log
-kernel.errors.txt
+# *.log
+# kernel.errors.txt
 
 # Runtime data (do not track changing production records)
-data/data_history.json
-data/*.json
+#data/data_history.json
+#data/*.json
 
 # Temporary/Scratch files
-scratch/
+#scratch/
 
 # AI Rules
-skills/
+#skills/
 # Config & Sensitive Info
-src/data/config.py
-src/data/service_account.json
-src/data/data/*.json
+#src/data/config.py
+#src/data/service_account.json
+#src/data/data/*.json
 # PLC
-ket_qua/
+#ket_qua/
 
 #hinh anh su dụng trong QT
-assets/
+#assets/

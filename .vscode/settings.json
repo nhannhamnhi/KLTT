@@ -1,0 +1,10 @@
+{
+    "python.analysis.extraPaths": [
+        "./File_MainProgram",
+        "./File_QTtoPY"
+    ],
+    "python.autoComplete.extraPaths": [
+        "./File_MainProgram",
+        "./File_QTtoPY"
+    ]
+}

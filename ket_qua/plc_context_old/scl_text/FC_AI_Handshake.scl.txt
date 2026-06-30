@@ -1,0 +1,65 @@
+FUNCTION FC_AI_Handshake : Void
+VERSION : 0.1
+// ------------------------------------------------------------
+// FC_AI_Handshake
+// - Handshake PLC <-> PC (Python) tại cảm biến SS0 (vị trí camera).
+// - Khi có cạnh lên SS0: set TriggerReq để yêu cầu PC xử lý AI.
+// - Khi PC_DataReady = 1: chỉ "consume" đúng 1 lần cho mỗi chu kỳ SS0.
+// - Khi SS0 xuống: clear TriggerReq để khớp cơ chế PC giữ DataReady theo SS0.
+//
+// Kết quả hợp lệ: 0..4
+// - 0=WAIT, 1=OK, 2=NG_L, 3=NG_H, 4=MISSING
+// ------------------------------------------------------------
+
+VAR_INPUT
+    ss0Rise          : BOOL;
+    ss0Fall          : BOOL;
+    PC_DataReady     : BOOL;
+    PC_KetQua        : INT;
+    queueCount       : INT;
+END_VAR
+
+VAR_IN_OUT
+    triggerReq           : BOOL;
+    triggerCycleActive   : BOOL;
+    aiConsumedThisCycle  : BOOL;
+END_VAR
+
+VAR_OUTPUT
+    pushReq          : BOOL;
+    pushResult       : INT;
+    errOverflow      : BOOL;
+    errInvalidResult : BOOL;
+END_VAR
+
+BEGIN
+    pushReq := FALSE;
+    errOverflow := FALSE;
+    errInvalidResult := FALSE;
+
+    IF ss0Rise THEN
+        IF queueCount >= 10 THEN
+            errOverflow := TRUE;
+        ELSE
+            triggerReq := TRUE;
+            triggerCycleActive := TRUE;
+            aiConsumedThisCycle := FALSE;
+        END_IF;
+    END_IF;
+
+    IF PC_DataReady AND (NOT aiConsumedThisCycle) AND triggerCycleActive THEN
+        IF (PC_KetQua < 0) OR (PC_KetQua > 4) THEN
+            errInvalidResult := TRUE;
+        ELSE
+            pushReq := TRUE;
+            pushResult := PC_KetQua;
+            aiConsumedThisCycle := TRUE;
+        END_IF;
+    END_IF;
+
+    IF triggerCycleActive AND ss0Fall THEN
+        triggerReq := FALSE;
+        triggerCycleActive := FALSE;
+        aiConsumedThisCycle := FALSE;
+    END_IF;
+END_FUNCTION
